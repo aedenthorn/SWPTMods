@@ -58,8 +58,10 @@ namespace MerchantEdit
                 return;
             if (arg0.name == "The Palace")
             {
-                Dbgl("Altering palace");
-
+                Dbgl("Altering merchants. Available companion presets:");
+                
+                foreach (Transform t in RM.code.allCompanions.items)
+                    Dbgl($"\t{t.name}");
 
                 Dictionary<string, GameObject> modelObjects = new Dictionary<string, GameObject>()
                 {
@@ -106,6 +108,8 @@ namespace MerchantEdit
         private void SwitchModel(Dictionary<string, GameObject> modelObjects, string custom, string vanilla)
         {
             GameObject go = null;
+
+
             if (modelObjects.ContainsKey(custom))
             {
                 Dbgl($"Using static model {custom} for {vanilla}");

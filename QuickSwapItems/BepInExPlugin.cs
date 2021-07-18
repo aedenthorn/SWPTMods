@@ -28,7 +28,7 @@ namespace QuickSwapItems
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            hotKeys = Config.Bind<string>("Options", "HotKeys", "1,2,3,4,5,6", "Comma-separated list of hotkeys to switch inventories or send selected item to specific inventory. First entry refers to the player.");
+            hotKeys = Config.Bind<string>("Options", "HotKeys", "1,2,3,4,5,6", "Comma-separated list of hotkeys to switch inventories or send selected item to specific inventory. First entry refers to the player. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 

@@ -29,7 +29,7 @@ namespace Respec
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            modKey = Config.Bind<string>("Options", "ModKey", "left shift", "Modifier key to subtract point from skills.");
+            modKey = Config.Bind<string>("Options", "ModKey", "left shift", "Modifier key to subtract point from skills. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 

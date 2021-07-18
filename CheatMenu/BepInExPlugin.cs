@@ -4,6 +4,7 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CheatMenu
 {
@@ -39,6 +40,24 @@ namespace CheatMenu
         }
 
 
+        [HarmonyPatch(typeof(Global), "Awake")]
+        static class Global_Awake_Patch
+        {
+            static void Postfix(Global __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                Dbgl("Fixing spelling errors in cheat menu");
+
+                Text[] textList = __instance.uiCheat.transform.GetComponentsInChildren<Text>();
+                foreach(Text text in textList)
+                {
+                    text.text = text.text.Replace("Invinsible", "Invincible").Replace("Lingeries", "Lingerie");
+                }
+
+            }
+        }
         [HarmonyPatch(typeof(Player), "Update")]
         static class Player_Update_Patch
         {
