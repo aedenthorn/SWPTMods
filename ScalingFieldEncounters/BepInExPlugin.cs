@@ -62,20 +62,64 @@ namespace ScalingFieldEncounters
 
                 float mult = GetMult();
 
-                multiplier *= Mathf.Max(1, Mathf.CeilToInt(mult * damageScale.Value));
+                multiplier *= Mathf.Max(1, mult * damageScale.Value);
             }
         }
-        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.Start))]
-        static class LootDrop_Start_Patch
+
+        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.Drop))]
+        static class LootDrop_Drop_Patch
         {
-            static void Postfix(LootDrop __instance)
+            static void Prefix(LootDrop __instance)
             {
                 if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy)
                     return;
 
                 float mult = GetMult();
 
-                __instance.maxAmount *= Mathf.Max(1, Mathf.CeilToInt(mult * lootScale.Value));
+                Dbgl($"multiplying dropped rewards by {mult * lootScale.Value}");
+
+                __instance.maxAmount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootScale.Value));
+            }
+        }
+
+        [HarmonyPatch(typeof(LootDrop), "InstantiateItem")]
+        static class LootDrop_InstantiateItem_Patch
+        {
+            static void Prefix(LootDrop __instance, Transform item)
+            {
+                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || (item.name != "Gold" && item.name != "Crystals"))
+                    return;
+
+                float mult = GetMult();
+
+                Dbgl($"multiplying dropped gold and crystals by {mult * lootScale.Value}");
+
+                item.GetComponent<Item>().amount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootScale.Value));
+            }
+        }
+
+        [HarmonyPatch(typeof(UIResult), "GenerateReward")]
+        static class UIResult_Open_Patch
+        {
+            static void Prefix(UIResult __instance)
+            {
+                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy)
+                    return;
+
+                float mult = GetMult();
+                Dbgl($"multiplying fixed rewards by {mult * lootScale.Value}");
+
+                foreach (Transform transform in __instance.finalRewards.items)
+                {
+                    if (transform)
+                    {
+                        Reward reward = transform.GetComponent<Reward>();
+                        if (reward.rewardItem && (reward.rewardItem.name == "Gold" || reward.rewardItem.name == "Crystals"))
+                        {
+                            reward.amount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootScale.Value));
+                        }
+                    }
+                }
             }
         }
         [HarmonyPatch(typeof(WorldMapIcon), nameof(WorldMapIcon.Initiate))]
@@ -91,12 +135,12 @@ namespace ScalingFieldEncounters
                 __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + _location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScale.Value)) + "");
             }
         }
-        [HarmonyPatch(typeof(Location), "Start")]
-        static class Location_Start_Patch
+        [HarmonyPatch(typeof(Scene), "Start")]
+        static class Scene_Start_Patch
         {
-            static void Prefix(Location __instance)
+            static void Prefix(Scene __instance)
             {
-                if (!modEnabled.Value || __instance.isCleared || __instance.locationType != LocationType.fieldarmy)
+                if (!modEnabled.Value || Global.code.curlocation.locationType != LocationType.fieldarmy || Global.code.curlocation.isCleared)
                     return;
 
                 Dbgl("Scaling fieldarmy location");
@@ -106,7 +150,7 @@ namespace ScalingFieldEncounters
 
                 Dbgl($"Base scaling for location: {mult}");
 
-                __instance.level = Mathf.RoundToInt(__instance.level * mult * statScale.Value);
+                Global.code.curlocation.level = Mathf.RoundToInt(Global.code.curlocation.level * mult * statScale.Value);
 
                 ArmyPreset ap = __instance.GetComponent<ArmyPreset>();
                 if (ap == null)
@@ -117,7 +161,6 @@ namespace ScalingFieldEncounters
 
                 int count = 0;
 
-                List<Transform> enemies = new List<Transform>();
                 if (ap.bosses != null)
                 {
                     ap.bosses = ScaleArray(ap.bosses, mult);
@@ -178,10 +221,10 @@ namespace ScalingFieldEncounters
                     }
                 }
 
-                Dbgl($"Vanilla units count: {__instance.maxUnitsCount}, new units count {count}");
+                Dbgl($"Vanilla units count: {Global.code.curlocation.maxUnitsCount}, new units count {count}");
 
-                __instance.maxUnitsCount = count;
-                __instance.unitsCount = count;
+                Global.code.curlocation.maxUnitsCount = count;
+                Global.code.curlocation.unitsCount = count;
             }
         }
         [HarmonyPatch(typeof(Scene), "Start")]
