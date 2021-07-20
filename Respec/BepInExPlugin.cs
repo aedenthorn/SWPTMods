@@ -159,24 +159,31 @@ namespace Respec
                     subStrength.name = "Sub strength";
                     subStrength.GetComponent<RectTransform>().anchoredPosition = __instance.addStrength.GetComponent<RectTransform>().anchoredPosition - new Vector2(__instance.addStrength.GetComponent<RectTransform>().rect.width + __instance.addStrength.transform.parent.GetComponent<RectTransform>().rect.width - 2, 0);
                     subStrength.transform.GetComponentInChildren<Text>().text = "-";
+                    subStrength.transform.GetComponentInChildren<Text>().GetComponent<RectTransform>().anchoredPosition += new Vector2(0,1);
                     subStrength.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                     subStrength.GetComponent<Button>().onClick.AddListener(SubtractStrength);
+                    
                     GameObject subAgility = Instantiate(__instance.addAgility, __instance.addAgility.transform.parent);
                     subAgility.name = "Sub agility";
                     subAgility.GetComponent<RectTransform>().anchoredPosition = __instance.addAgility.GetComponent<RectTransform>().anchoredPosition - new Vector2(__instance.addAgility.GetComponent<RectTransform>().rect.width + __instance.addAgility.transform.parent.GetComponent<RectTransform>().rect.width - 2, 0);
                     subAgility.transform.GetComponentInChildren<Text>().text = "-";
+                    subAgility.transform.GetComponentInChildren<Text>().GetComponent<RectTransform>().anchoredPosition += new Vector2(0, 1);
                     subAgility.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                     subAgility.GetComponent<Button>().onClick.AddListener(SubtractAgility);
+                    
                     GameObject subVitality = Instantiate(__instance.addVitality, __instance.addVitality.transform.parent);
                     subVitality.name = "Sub vitality";
                     subVitality.GetComponent<RectTransform>().anchoredPosition = __instance.addVitality.GetComponent<RectTransform>().anchoredPosition - new Vector2(__instance.addVitality.GetComponent<RectTransform>().rect.width + __instance.addVitality.transform.parent.GetComponent<RectTransform>().rect.width - 2, 0);
                     subVitality.transform.GetComponentInChildren<Text>().text = "-";
+                    subVitality.transform.GetComponentInChildren<Text>().GetComponent<RectTransform>().anchoredPosition += new Vector2(0, 1);
                     subVitality.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                     subVitality.GetComponent<Button>().onClick.AddListener(SubtractVitality);
+                    
                     GameObject subPower = Instantiate(__instance.addPower, __instance.addPower.transform.parent);
                     subPower.name = "Sub power";
                     subPower.GetComponent<RectTransform>().anchoredPosition = __instance.addPower.GetComponent<RectTransform>().anchoredPosition - new Vector2(__instance.addPower.GetComponent<RectTransform>().rect.width + __instance.addPower.transform.parent.GetComponent<RectTransform>().rect.width - 2, 0);
                     subPower.transform.GetComponentInChildren<Text>().text = "-";
+                    subPower.transform.GetComponentInChildren<Text>().GetComponent<RectTransform>().anchoredPosition += new Vector2(0, 1);
                     subPower.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                     subPower.GetComponent<Button>().onClick.AddListener(SubtractPower);
                 }

@@ -13,23 +13,27 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScalingFieldEncounters", "S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jump", "Jump\Jump.csproj", "{DC30F999-924F-4832-8451-489E60543A7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanionAdd", "CompanionAdd\CompanionAdd.csproj", "{A02850DD-A888-46A1-9FD1-E08BDB7F292A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanionAdd", "CompanionAdd\CompanionAdd.csproj", "{A02850DD-A888-46A1-9FD1-E08BDB7F292A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSkillPoints", "MoreSkillPoints\MoreSkillPoints.csproj", "{727CB3C4-73E8-44AD-BDD4-C7FA85A6ADB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoreSkillPoints", "MoreSkillPoints\MoreSkillPoints.csproj", "{727CB3C4-73E8-44AD-BDD4-C7FA85A6ADB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarPartySize", "WarPartySize\WarPartySize.csproj", "{2929DB04-C0DA-4CA6-966D-20DEA153CF13}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarPartySize", "WarPartySize\WarPartySize.csproj", "{2929DB04-C0DA-4CA6-966D-20DEA153CF13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerchantEdit", "MerchantEdit\MerchantEdit.csproj", "{D5ABBCDE-3BC1-4BF9-9DA0-7399135DC56F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MerchantEdit", "MerchantEdit\MerchantEdit.csproj", "{D5ABBCDE-3BC1-4BF9-9DA0-7399135DC56F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanMerchantArea", "CleanMerchantArea\CleanMerchantArea.csproj", "{4D934589-E3FE-4445-994C-BF4D209F2DC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CleanMerchantArea", "CleanMerchantArea\CleanMerchantArea.csproj", "{4D934589-E3FE-4445-994C-BF4D209F2DC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheatMenu", "CheatMenu\CheatMenu.csproj", "{96C4902C-A24F-4049-82C0-BBFAA6C4DD12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheatMenu", "CheatMenu\CheatMenu.csproj", "{96C4902C-A24F-4049-82C0-BBFAA6C4DD12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterFireball", "BetterFireball\BetterFireball.csproj", "{718CB386-021B-40C0-A9F0-CAFFD5CF2EF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterFireball", "BetterFireball\BetterFireball.csproj", "{718CB386-021B-40C0-A9F0-CAFFD5CF2EF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BowAnimationFix", "BowAnimationFix\BowAnimationFix.csproj", "{4CB47AAA-D0BD-4453-A06F-906977B4C231}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BowAnimationFix", "BowAnimationFix\BowAnimationFix.csproj", "{4CB47AAA-D0BD-4453-A06F-906977B4C231}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreHairColor", "MoreHairColor\MoreHairColor.csproj", "{88B3F19A-8D81-43D2-9C99-8665ADCEE799}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoreHairColor", "MoreHairColor\MoreHairColor.csproj", "{88B3F19A-8D81-43D2-9C99-8665ADCEE799}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RescueMissions", "RescueMissions\RescueMissions.csproj", "{5C87E3E3-EFFD-491A-A302-F9CFB9F3C65C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSkinColor", "MoreSkinColor\MoreSkinColor.csproj", "{E4F99DCE-0A9E-4698-94A2-AFBC1A30F944}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +97,14 @@ Global
 		{88B3F19A-8D81-43D2-9C99-8665ADCEE799}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88B3F19A-8D81-43D2-9C99-8665ADCEE799}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88B3F19A-8D81-43D2-9C99-8665ADCEE799}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C87E3E3-EFFD-491A-A302-F9CFB9F3C65C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C87E3E3-EFFD-491A-A302-F9CFB9F3C65C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C87E3E3-EFFD-491A-A302-F9CFB9F3C65C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C87E3E3-EFFD-491A-A302-F9CFB9F3C65C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4F99DCE-0A9E-4698-94A2-AFBC1A30F944}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4F99DCE-0A9E-4698-94A2-AFBC1A30F944}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4F99DCE-0A9E-4698-94A2-AFBC1A30F944}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4F99DCE-0A9E-4698-94A2-AFBC1A30F944}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

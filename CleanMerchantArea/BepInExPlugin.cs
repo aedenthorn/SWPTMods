@@ -1,8 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -18,6 +16,7 @@ namespace CleanMerchantArea
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<string> removePrefixes;
+        public static ConfigEntry<string> parentTransforms;
 
         //ConfigEntry<int> nexusID;
 
@@ -33,7 +32,8 @@ namespace CleanMerchantArea
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            removePrefixes = Config.Bind<string>("Options", "MaidModel", "trunk,chest", "Remove any object with names starting with these, comma-separated.");
+            removePrefixes = Config.Bind<string>("Options", "RemovePrefixes", "trunk,chest", "Remove any object with names starting with these, comma-separated.");
+            parentTransforms = Config.Bind<string>("Options", "ParentTransforms", "/Scene/Statics/Bar", "Look for objects in these transforms, comma-separated.");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
@@ -52,14 +52,19 @@ namespace CleanMerchantArea
             {
                 Dbgl("Altering palace");
 
+                string[] parentTransformsList = parentTransforms.Value.Split(',');
                 string[] removePrefixList = removePrefixes.Value.Split(',');
-                Transform t = GameObject.Find("/Scene/Statics/Bar").transform;
-                for(int i = t.childCount - 1; i >= 0; i--)
+                foreach(string s in parentTransformsList)
                 {
-                    if (removePrefixList.ToList().Exists(s => t.GetChild(i).name.StartsWith(s)))
-                        Destroy(t.GetChild(i).gameObject);
+                    Transform t = GameObject.Find(s)?.transform;
+                    if (!t)
+                        continue;
+                    for (int i = t.childCount - 1; i >= 0; i--)
+                    {
+                        if (removePrefixList.ToList().Exists(p => t.GetChild(i).name.StartsWith(p)))
+                            Destroy(t.GetChild(i).gameObject);
+                    }
                 }
-
             }
         }
     }

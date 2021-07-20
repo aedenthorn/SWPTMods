@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
@@ -17,12 +19,13 @@ namespace ScalingFieldEncounters
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         
-        public static ConfigEntry<float> levelScaleFactor;
-        public static ConfigEntry<float> skirmishScaleFactor;
-        public static ConfigEntry<float> amountScale;
-        public static ConfigEntry<float> statScale;
-        public static ConfigEntry<float> damageScale;
-        public static ConfigEntry<float> lootScale;
+        public static ConfigEntry<float> levelFactor;
+        public static ConfigEntry<float> wonFactor;
+        public static ConfigEntry<float> enemyAmountScaleMult ;
+        public static ConfigEntry<float> statScaleMult ;
+        public static ConfigEntry<float> damageScaleMult ;
+        public static ConfigEntry<float> goldCrystalScaleMult ;
+        public static ConfigEntry<float> lootAmountScaleMult;
         //public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -37,12 +40,13 @@ namespace ScalingFieldEncounters
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            levelScaleFactor = Config.Bind<float>("Options", "LevelScaleFactor", 0.05f, "Difficulty scale factor based on level (1 = 1-to-1 scaling per player level, set to 0 for no effect).");
-            skirmishScaleFactor = Config.Bind<float>("Options", "SkirmishScaleFactor", 0.05f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
-            amountScale = Config.Bind<float>("Options", "AmountScale", 1f, "Scale amount of enemies by the scale multiplier x this number.");
-            statScale = Config.Bind<float>("Options", "StatScale", 1.0f, "Scale enemy stats by the scale multiplier x this number.");
-            damageScale = Config.Bind<float>("Options", "DamageScale", 0.2f, "Scale enemy damage by the scale multiplier x this number.");
-            lootScale = Config.Bind<float>("Options", "LootScale", 1.0f, "Scale loot drops by the scale multiplier x this number.");
+            levelFactor = Config.Bind<float>("Options", "LevelFactor", 0.1f, "Difficulty scale factor based on level (1 = 1-to-1 scaling per player level, set to 0 for no effect).");
+            wonFactor = Config.Bind<float>("Options", "WonFactor", 0.1f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
+            enemyAmountScaleMult  = Config.Bind<float>("Options", "EnemyAmountScaleMult", 1f, "Scale amount of enemies by the scale multiplier times this number.");
+            statScaleMult  = Config.Bind<float>("Options", "StatScaleMult", 5f, "Scale enemy stats by the scale multiplier times this number.");
+            damageScaleMult  = Config.Bind<float>("Options", "DamageScaleMult", 5f, "Scale enemy damage by the scale multiplier times this number.");
+            goldCrystalScaleMult = Config.Bind<float>("Options", "GoldCrystalScaleMult", 0.5f, "Scale gold and crystal amounts by the scale multiplier times this number.");
+            lootAmountScaleMult = Config.Bind<float>("Options", "LootAmountScaleMult", 0.5f, "Scale frequency and number of loot drops by the scale multiplier times this number.");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
@@ -52,17 +56,18 @@ namespace ScalingFieldEncounters
         }
 
 
-        [HarmonyPatch(typeof(Weapon), "DealDamage")]
-        static class Weapon_DealDamage_Patch
+        [HarmonyPatch(typeof(ID), "AddHealth")]
+        static class AddHealth_Patch
         {
-            static void Prefix(Weapon __instance, ref float multiplier, Item ____Item)
+            static void Prefix(ID __instance, ref float pt, Transform source)
             {
-                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || !____Item.owner?.GetComponent<ID>()?.monster)
+                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || !source.GetComponent<ID>()?.monster)
                     return;
 
-                float mult = GetMult();
+                float mult = GetMult() * damageScaleMult .Value;
 
-                multiplier *= Mathf.Max(1, mult * damageScale.Value);
+                //Dbgl($"damage: {pt} mult: {mult}");
+                pt *= mult;
             }
         }
 
@@ -76,9 +81,9 @@ namespace ScalingFieldEncounters
 
                 float mult = GetMult();
 
-                Dbgl($"multiplying dropped rewards by {mult * lootScale.Value}");
+                //Dbgl($"multiplying dropped rewards by {mult * lootAmountScaleMult.Value}");
 
-                __instance.maxAmount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootScale.Value));
+                __instance.maxAmount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootAmountScaleMult.Value));
             }
         }
 
@@ -92,9 +97,9 @@ namespace ScalingFieldEncounters
 
                 float mult = GetMult();
 
-                Dbgl($"multiplying dropped gold and crystals by {mult * lootScale.Value}");
+                //Dbgl($"multiplying dropped gold and crystals by {mult * goldCrystalScaleMult .Value}");
 
-                item.GetComponent<Item>().amount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootScale.Value));
+                item.GetComponent<Item>().amount *= Mathf.Max(1, Mathf.RoundToInt(mult * goldCrystalScaleMult .Value));
             }
         }
 
@@ -107,7 +112,7 @@ namespace ScalingFieldEncounters
                     return;
 
                 float mult = GetMult();
-                Dbgl($"multiplying fixed rewards by {mult * lootScale.Value}");
+                Dbgl($"multiplying fixed rewards by {mult * goldCrystalScaleMult .Value}");
 
                 foreach (Transform transform in __instance.finalRewards.items)
                 {
@@ -116,7 +121,7 @@ namespace ScalingFieldEncounters
                         Reward reward = transform.GetComponent<Reward>();
                         if (reward.rewardItem && (reward.rewardItem.name == "Gold" || reward.rewardItem.name == "Crystals"))
                         {
-                            reward.amount *= Mathf.Max(1, Mathf.RoundToInt(mult * lootScale.Value));
+                            reward.amount *= Mathf.Max(1, Mathf.RoundToInt(mult * goldCrystalScaleMult .Value));
                         }
                     }
                 }
@@ -131,8 +136,45 @@ namespace ScalingFieldEncounters
                     return;
                 float mult = GetMult();
 
-                __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(_location.unitsCount.ToString(), _location.unitsCount * Mathf.Max(1, Mathf.CeilToInt(mult * amountScale.Value))+"");
-                __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + _location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScale.Value)) + "");
+                __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(_location.unitsCount.ToString(), _location.unitsCount * Mathf.Max(1, Mathf.CeilToInt(mult * enemyAmountScaleMult .Value))+"");
+                __instance.txtname.text = __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + (_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScaleMult .Value))) + "");
+                //Dbgl($"{__instance.txtname.text}, scaled {_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScale.Value))}, level {_location.level}");
+            }
+        }
+        [HarmonyPatch(typeof(SkirmishSpawner), nameof(SkirmishSpawner.InstantiateEnemy))]
+        static class SkirmishSpawner_InstantiateEnemy_Patch
+        {
+            static void Postfix(SkirmishSpawner __instance, ref Transform __result)
+            {
+                if (!modEnabled.Value || Global.code.curlocation.locationType != LocationType.fieldarmy)
+                    return;
+                float mult = GetMult();
+                
+                float statMult = mult * statScaleMult .Value;
+                float countMult = mult * enemyAmountScaleMult .Value;
+                
+                ID id = __result.GetComponent<ID>();
+
+                id.level = Mathf.RoundToInt(id.level * statMult);
+                id.maxHealth *= Mathf.Max(1, statMult);
+                id.maxStamina *= Mathf.Max(1, statMult);
+                id.maxMana *= Mathf.Max(1, statMult);
+
+                while(countMult >= 2)
+                {
+                    Transform enemy = Utility.Instantiate(__result);
+                    enemy.GetComponent<ID>().isFriendly = false;
+                    enemy.position = __instance.transform.position;
+                    enemy.eulerAngles = new Vector3(0f, Random.Range(0, 360), 0f);
+                    enemy.GetComponent<NavMeshAgent>().enabled = false;
+                    enemy.GetComponent<NavMeshAgent>().enabled = true;
+                    enemy.GetComponent<Monster>().charge = true;
+                    Global.code.enemies.AddItemDifferentObject(enemy);
+
+                    countMult -= 1;
+                    if (countMult < 2 && countMult - 1 < Random.value)
+                        break;
+                }
             }
         }
         [HarmonyPatch(typeof(Scene), "Start")]
@@ -147,12 +189,20 @@ namespace ScalingFieldEncounters
 
                 float mult = GetMult();
 
-
                 Dbgl($"Base scaling for location: {mult}");
 
+                int count = Mathf.RoundToInt(Global.code.curlocation.maxUnitsCount * Mathf.Max(1, mult * enemyAmountScaleMult .Value));
+
+                Dbgl($"Vanilla units count: {Global.code.curlocation.maxUnitsCount}, new units count {count}");
+
+                Global.code.curlocation.maxUnitsCount = count;
+                Global.code.curlocation.unitsCount = count;
+
+                return;
+                /*
                 Global.code.curlocation.level = Mathf.RoundToInt(Global.code.curlocation.level * mult * statScale.Value);
 
-                ArmyPreset ap = __instance.GetComponent<ArmyPreset>();
+                ArmyPreset ap = Global.code.curlocation.GetComponent<ArmyPreset>();
                 if (ap == null)
                 {
                     Dbgl("No army preset");
@@ -225,20 +275,8 @@ namespace ScalingFieldEncounters
 
                 Global.code.curlocation.maxUnitsCount = count;
                 Global.code.curlocation.unitsCount = count;
+                */
             }
-        }
-        [HarmonyPatch(typeof(Scene), "Start")]
-        static class SkillBox_ButtonClick_Patch
-        {
-            static void Prefix(Scene __instance)
-            {
-
-                if (!modEnabled.Value || Global.code.curlocation.locationType != LocationType.fieldarmy)
-                    return;
-
-                Dbgl("Field army scene start, max units: " + Global.code.curlocation.maxUnitsCount);
-            }
-
         }
 
         private static float GetMult()
@@ -254,14 +292,18 @@ namespace ScalingFieldEncounters
                     break;
                 }
             }
-            mult += won * skirmishScaleFactor.Value;
-            mult += Player.code.customization._ID.level * levelScaleFactor.Value;
+            mult += won * wonFactor.Value;
+            mult += Player.code.customization._ID.level * levelFactor.Value;
             return mult;
         }
 
+
+
+
+
         private static Transform[] ScaleArray(Transform[] array, float mult)
         {
-            float statMult = Mathf.Max(1, mult * statScale.Value);
+            float statMult = Mathf.Max(1, mult * statScaleMult .Value);
             foreach (Transform t in array)
             {
                 if (!t)
@@ -282,7 +324,18 @@ namespace ScalingFieldEncounters
                 id.maxStamina = id.maxStamina * statMult;
                 id.maxMana = id.maxMana * statMult;
             }
-            return array;
+
+            List<Transform> list = new List<Transform>();
+            while(list.Count < array.Length * mult)
+            {
+                foreach (Transform t in array)
+                {
+                    list.Add(t);
+                    if (list.Count >= mult)
+                        break;
+                }
+            }
+            return list.ToArray();
         }
     }
 }

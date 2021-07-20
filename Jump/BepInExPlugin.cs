@@ -13,6 +13,7 @@ namespace Jump
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
+        public static ConfigEntry<bool> multiJump;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<float> jumpPower;
         //public static ConfigEntry<int> nexusID;
@@ -28,6 +29,8 @@ namespace Jump
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            
+            multiJump = Config.Bind<bool>("General", "MultiJump", true, "Enable in air jumping");
 
             hotKey = Config.Bind<string>("Options", "HotKey", "space", "Hotkey to jump.");
             jumpPower = Config.Bind<float>("Options", "JumpPower", 6, "Player jump power.");
@@ -83,12 +86,20 @@ namespace Jump
         [HarmonyPatch(typeof(ThirdPersonCharacter), "Move")]
         static class ThirdPersonCharacter_Move_Patch
         {
-            static void Prefix(ThirdPersonCharacter __instance, bool jump)
+            static void Postfix(ThirdPersonCharacter __instance, bool crouch, bool jump, Vector3 move)
             {
                 if (!modEnabled.Value || !jump)
                     return;
 
                 Dbgl($"character move, grounded {__instance.m_IsGrounded}");
+
+                if (multiJump.Value)
+                {
+                    AccessTools.Method(typeof(ThirdPersonCharacter), "HandleGroundedMovement").Invoke(__instance, new object[] { crouch, jump });
+                    AccessTools.Method(typeof(ThirdPersonCharacter), "UpdateAnimator").Invoke(__instance, new object[] { move });
+
+                }
+
             }
         }
 
