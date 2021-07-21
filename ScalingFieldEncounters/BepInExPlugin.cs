@@ -1,17 +1,15 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.1.0")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -21,7 +19,8 @@ namespace ScalingFieldEncounters
         
         public static ConfigEntry<float> levelFactor;
         public static ConfigEntry<float> wonFactor;
-        public static ConfigEntry<float> enemyAmountScaleMult ;
+        public static ConfigEntry<float> enemySpawnMult;
+        public static ConfigEntry<float> enemyTotalMult;
         public static ConfigEntry<float> statScaleMult ;
         public static ConfigEntry<float> damageScaleMult ;
         public static ConfigEntry<float> goldCrystalScaleMult ;
@@ -42,7 +41,8 @@ namespace ScalingFieldEncounters
 
             levelFactor = Config.Bind<float>("Options", "LevelFactor", 0.1f, "Difficulty scale factor based on level (1 = 1-to-1 scaling per player level, set to 0 for no effect).");
             wonFactor = Config.Bind<float>("Options", "WonFactor", 0.1f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
-            enemyAmountScaleMult  = Config.Bind<float>("Options", "EnemyAmountScaleMult", 1f, "Scale amount of enemies by the scale multiplier times this number.");
+            enemySpawnMult = Config.Bind<float>("Options", "EnemySpawnMult", 1f, "Scale number of enemies per spawn by the scale multiplier times this number.");
+            enemyTotalMult  = Config.Bind<float>("Options", "EnemyTotalMult", 1f, "Scale number of total enemies per battle by the scale multiplier times this number.");
             statScaleMult  = Config.Bind<float>("Options", "StatScaleMult", 5f, "Scale enemy stats by the scale multiplier times this number.");
             damageScaleMult  = Config.Bind<float>("Options", "DamageScaleMult", 5f, "Scale enemy damage by the scale multiplier times this number.");
             goldCrystalScaleMult = Config.Bind<float>("Options", "GoldCrystalScaleMult", 0.5f, "Scale gold and crystal amounts by the scale multiplier times this number.");
@@ -71,6 +71,35 @@ namespace ScalingFieldEncounters
             }
         }
 
+        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.GetMatchLevelItems))]
+        static class LootDrop_GetMatchLevelItems_Patch
+        {
+            static bool Prefix(LootDrop __instance, List<Transform> list, List<Transform> __result)
+            {
+                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || list.Count <= 0)
+                    return true;
+
+                List<Transform> list2 = new List<Transform>();
+                foreach (Transform transform in list)
+                {
+                    Item component = transform.GetComponent<Item>();
+                    if (component)
+                    {
+                        if (component.level <= Global.code.curlocation.level && component.level > Random.value * (Global.code.curlocation.level - 2))
+                        {
+                            list2.Add(transform);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("错误道具 " + transform.name);
+                    }
+                }
+                __result = list2;
+                return false;
+            }
+        }
+        
         [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.Drop))]
         static class LootDrop_Drop_Patch
         {
@@ -136,7 +165,7 @@ namespace ScalingFieldEncounters
                     return;
                 float mult = GetMult();
 
-                __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(_location.unitsCount.ToString(), _location.unitsCount * Mathf.Max(1, Mathf.CeilToInt(mult * enemyAmountScaleMult .Value))+"");
+                __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(_location.unitsCount.ToString(), _location.unitsCount * Mathf.Max(1, Mathf.CeilToInt(mult * enemyTotalMult.Value))+"");
                 __instance.txtname.text = __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + (_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScaleMult .Value))) + "");
                 //Dbgl($"{__instance.txtname.text}, scaled {_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScale.Value))}, level {_location.level}");
             }
@@ -151,7 +180,7 @@ namespace ScalingFieldEncounters
                 float mult = GetMult();
                 
                 float statMult = mult * statScaleMult .Value;
-                float countMult = mult * enemyAmountScaleMult .Value;
+                float countMult = mult * enemySpawnMult.Value;
                 
                 ID id = __result.GetComponent<ID>();
 
@@ -191,7 +220,7 @@ namespace ScalingFieldEncounters
 
                 Dbgl($"Base scaling for location: {mult}");
 
-                int count = Mathf.RoundToInt(Global.code.curlocation.maxUnitsCount * Mathf.Max(1, mult * enemyAmountScaleMult .Value));
+                int count = Mathf.RoundToInt(Global.code.curlocation.maxUnitsCount * Mathf.Max(1, mult * enemyTotalMult .Value));
 
                 Dbgl($"Vanilla units count: {Global.code.curlocation.maxUnitsCount}, new units count {count}");
 

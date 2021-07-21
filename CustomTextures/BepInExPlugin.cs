@@ -6,18 +6,17 @@ using System.Reflection;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Jump
+namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.Jump", "Jump", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.1.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
-        public static ConfigEntry<bool> multiJump;
+
         public static ConfigEntry<string> hotKey;
-        public static ConfigEntry<float> jumpPower;
         //public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -32,10 +31,7 @@ namespace Jump
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             
-            multiJump = Config.Bind<bool>("General", "MultiJump", true, "Enable in air jumping");
-
             hotKey = Config.Bind<string>("Options", "HotKey", "space", "Hotkey to jump.");
-            jumpPower = Config.Bind<float>("Options", "JumpPower", 6, "Player jump power.");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 

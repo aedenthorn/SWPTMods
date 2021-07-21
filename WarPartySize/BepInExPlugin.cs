@@ -1,12 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace WarPartySize
 {
-    [BepInPlugin("aedenthorn.WarPartySize", "War Party Size", "0.1.0")]
+    [BepInPlugin("aedenthorn.WarPartySize", "War Party Size", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -41,6 +42,24 @@ namespace WarPartySize
         [HarmonyPatch(typeof(UICombatParty), nameof(UICombatParty.Refresh))]
         static class Refresh_Patch
         {
+            static void Prefix(UICombatParty __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                foreach(Transform t in __instance.locators)
+                {
+                    Dbgl($"{t.position}, {t.rotation}");
+                }
+
+                List<Transform> locators = new List<Transform>(__instance.locators);
+                while(locators.Count <= Global.code.playerCombatParty.items.Count)
+                {
+                    Transform t = Instantiate(locators[locators.Count - 1], locators[locators.Count - 1].parent);
+                    locators.Add(t);
+                }
+                __instance.locators = locators.ToArray();
+            }
             static void Postfix(UICombatParty __instance)
             {
                 if (!modEnabled.Value)

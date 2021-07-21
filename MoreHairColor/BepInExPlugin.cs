@@ -270,7 +270,7 @@ namespace MoreHairColor
             Color[] data = hairTemplate.GetPixels();
             for(int i = 0; i < data.Length; i++)
             {
-                data[i] = Color.Lerp(data[i], color, 0.75f);
+                data[i] = Color.Lerp(data[i], color, 0.50f);
             }
             temp.SetPixels(data);
             temp.Apply();
