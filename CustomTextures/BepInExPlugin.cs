@@ -2,8 +2,12 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 namespace CustomTextures
@@ -17,6 +21,14 @@ namespace CustomTextures
         public static ConfigEntry<bool> isDebug;
 
         public static ConfigEntry<string> hotKey;
+        private string assetPath;
+
+        public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
+        public static Dictionary<string, DateTime> fileWriteTimes = new Dictionary<string, DateTime>();
+        public static List<string> texturesToLoad = new List<string>();
+        public static List<string> layersToLoad = new List<string>();
+        public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
+
         //public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -31,135 +43,100 @@ namespace CustomTextures
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             
-            hotKey = Config.Bind<string>("Options", "HotKey", "space", "Hotkey to jump.");
+            hotKey = Config.Bind<string>("Options", "HotKey", "page up", "Hotkey to reload textures.");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
+            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
+            if (!Directory.Exists(assetPath))
+            {
+                Dbgl("Creating mod folder");
+                Directory.CreateDirectory(assetPath);
+            }
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
+            GetTextureFiles();
         }
 
-
-        [HarmonyPatch(typeof(ThirdPersonCharacter), "Snap")]
-        static class Snap_Patch
+        private void GetTextureFiles()
         {
-            static bool Prefix(ThirdPersonCharacter __instance)
+            texturesToLoad.Clear();
+
+            foreach (string file in Directory.GetFiles(assetPath, "*.*", SearchOption.AllDirectories))
             {
-                if (!modEnabled.Value)
-                    return true;
+                string fileName = Path.GetFileName(file);
+                string id = Path.GetFileNameWithoutExtension(fileName);
 
-                AccessTools.Method(typeof(ThirdPersonCharacter), "CheckGroundStatus").Invoke(__instance, null);
 
-                return false;
+                if (!fileWriteTimes.ContainsKey(id) || (cachedTextures.ContainsKey(id) && !DateTime.Equals(File.GetLastWriteTimeUtc(file), fileWriteTimes[id])))
+                {
+                    cachedTextures.Remove(id);
+                    texturesToLoad.Add(id);
+                    layersToLoad.Add(Regex.Replace(id, @"_[^_]+\.", "."));
+                    fileWriteTimes[id] = File.GetLastWriteTimeUtc(file);
+                    Dbgl($"adding new custom texture {id}.");
+                }
+
+                customTextures[id] = file;
             }
         }
 
-        [HarmonyPatch(typeof(ThirdPersonCharacter), "CheckGroundStatus")]
-        static class ThirdPersonCharacter_CheckGroundStatus_Patch
+        private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, LoadSceneMode arg1)
         {
-            static bool Prefix(ThirdPersonCharacter __instance, ref Vector3 ___m_GroundNormal, int ___layerMask, CharacterCustomization ___customization, Rigidbody ___m_Rigidbody)
+            List<string> dump = new List<string>();
+            GameObject[] allGOs = FindObjectsOfType<GameObject>();
+            Dictionary<string, SkinnedMeshRenderer> namedRenderers = new Dictionary<string, SkinnedMeshRenderer>();
+            foreach(GameObject go in allGOs)
             {
-                if (!modEnabled.Value)
-                    return true;
-                __instance.m_IsGrounded = true;
-                RaycastHit raycastHit;
-                if (___m_Rigidbody.velocity.y < 5f && Physics.Raycast(__instance.transform.position + Vector3.up * 0.1f, Vector3.down, out raycastHit, 0.5f, ___layerMask))
+                var smr = go.GetComponent<SkinnedMeshRenderer>();
+                var mr = go.GetComponent<MeshRenderer>();
+
+                if (!smr && !mr)
+                    continue;
+                string name = null;
+                try
                 {
-                    ___m_GroundNormal = raycastHit.normal;
-                    __instance.m_IsGrounded = true;
-                    if (!Player.code.focusedInteraction)
+                    if (customTextures.ContainsKey($"object_{go.name}_MainTex"))
+                        name = $"object_{go.name}_MainTex";
+                    else if (customTextures.ContainsKey($"renderer_{mr?.material?.mainTexture?.name}_MainTex"))
+                        name = $"renderer_{mr?.material?.mainTexture?.name}_MainTex";
+                    else if (customTextures.ContainsKey($"renderer_{smr?.material?.mainTexture?.name}_MainTex"))
+                        name = $"renderer_{smr?.material?.mainTexture?.name}_MainTex";
+
+                    if (name != null)
                     {
-                        __instance.transform.position = new Vector3(__instance.transform.position.x, raycastHit.point.y, __instance.transform.position.z);
+                        Dbgl($"Found custom texture for {go.name}: {name}");
+
+                        Texture2D tex = new Texture2D(2, 2);
+                        if (cachedTextures.ContainsKey(name))
+                        {
+                            tex = cachedTextures[name];
+                        }
+                        else
+                        {
+                            var bytes = File.ReadAllBytes(customTextures[name]);
+                            tex.LoadImage(bytes);
+                            tex.name = name;
+                            tex.Apply();
+                            cachedTextures[name] = tex;
+                        }
+                        if(smr)
+                            smr.material.mainTexture = tex;
+                        else
+                            mr.material.mainTexture = tex;
                     }
-                    ___customization.curSurfaceTag = raycastHit.collider.tag;
-                    return false;
+                    dump.Add($"{go.name}, smr: {smr?.name} {smr?.material?.mainTexture?.name}, mr: {mr?.name} {mr?.material?.mainTexture?.name}");
                 }
-                __instance.m_IsGrounded = false;
-                ___m_GroundNormal = Vector3.up;
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(ThirdPersonCharacter), "Move")]
-        static class ThirdPersonCharacter_Move_Patch
-        {
-            static void Postfix(ThirdPersonCharacter __instance, bool crouch, bool jump, Vector3 move)
-            {
-                if (!modEnabled.Value || !jump)
-                    return;
-
-                Dbgl($"character move, grounded {__instance.m_IsGrounded}");
-
-                if (multiJump.Value)
+                catch
                 {
-                    AccessTools.Method(typeof(ThirdPersonCharacter), "HandleGroundedMovement").Invoke(__instance, new object[] { crouch, jump });
-                    AccessTools.Method(typeof(ThirdPersonCharacter), "UpdateAnimator").Invoke(__instance, new object[] { move });
-
+                    continue;
                 }
 
             }
-        }
-
-        private static int frames = 0;
-
-
-        [HarmonyPatch(typeof(Player), "Update")]
-        static class Player_Update_Patch
-        {
-            static void Prefix(Player __instance, ref bool ___m_Jump, ThirdPersonCharacter ___m_Character)
-            {
-                if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value))
-                    return;
-                Dbgl($"Jumping");
-                //frames = 1;
-                AccessTools.Field(typeof(ThirdPersonCharacter), "m_JumpPower").SetValue(___m_Character, jumpPower.Value);
-                ___m_Jump = true;
-                RM.code.PlayOneShot(RM.code.femaleJumps[Random.Range(0, RM.code.femaleJumps.Length - 1)]);
-            }
-            static void Postfix(Player __instance, ref bool ___m_Jump, ThirdPersonCharacter ___m_Character)
-            {
-                if (frames == 0)
-                    return;
-                if (frames < 10)
-                {
-                    Dbgl($"player velocity {__instance.rigidbody.velocity}");
-                }
-                else
-                {
-                    frames = 0;
-                    return;
-                }
-                frames++;
-
-            }
-        }
-        [HarmonyPatch(typeof(ThirdPersonCharacter), "HandleGroundedMovement")]
-        static class HandleGroundedMovement_Patch
-        {
-            static bool Prefix(ThirdPersonCharacter __instance, bool crouch, bool jump, Rigidbody ___m_Rigidbody, ref float ___m_JumpPower, ref bool ___m_IsGrounded, ref float ___m_GroundCheckDistance, Animator ___m_Animator)
-            {
-                if (!modEnabled.Value || !jump)
-                    return true;
-
-                Dbgl($"handle grounded movement");
-
-                if (jump && !crouch)
-                {
-                    Dbgl("Applying jump vel");
-                    ___m_Rigidbody.velocity = new Vector3(___m_Rigidbody.velocity.x, ___m_JumpPower, ___m_Rigidbody.velocity.z);
-                    ___m_IsGrounded = false;
-                    ___m_GroundCheckDistance = 0.5f;
-                    //___m_Animator.SetTrigger("Jump")
-                }
-                return false;
-            }
-            static void Postfix(ThirdPersonCharacter __instance, bool crouch, bool jump, Rigidbody ___m_Rigidbody, float ___m_JumpPower)
-            {
-                if (!modEnabled.Value || !jump)
-                    return;
-                Dbgl($"Jumping {jump}, power {___m_JumpPower}, vel: {___m_Rigidbody.velocity}");
-            }
+            if (!File.Exists(Path.Combine(assetPath, arg0.name + "_dump.txt")))
+                File.WriteAllLines(Path.Combine(assetPath, arg0.name +"_dump.txt"), dump.ToArray());
         }
     }
 }

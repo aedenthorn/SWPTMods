@@ -8,13 +8,16 @@ using UnityEngine;
 
 namespace BetterFireball
 {
-    [BepInPlugin("aedenthorn.BetterFireball", "Better Fireball", "0.1.0")]
+    [BepInPlugin("aedenthorn.BetterFireball", "Better Fireball", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
+        public static ConfigEntry<bool> spellsGoThroughFriends;
+        public static ConfigEntry<bool> spellsHurtFriends;
+        public static ConfigEntry<float> radiusMultiplier;
 
         //ConfigEntry<int> nexusID;
 
@@ -32,6 +35,9 @@ namespace BetterFireball
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
+            spellsGoThroughFriends = Config.Bind<bool>("Options", "SpellsGoThroughFriends", true, "Spells will pass through friends.");
+            spellsHurtFriends = Config.Bind<bool>("Options", "SpellsHurtFriends", true, "Spells will damage friends.");
+            radiusMultiplier = Config.Bind<float>("Options", "RadiusMultiplier", 1, "Explosion radius multiplier.");
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Info.Metadata.GUID);
             Dbgl("Plugin awake");
 
@@ -42,10 +48,14 @@ namespace BetterFireball
         {
             static bool Prefix(MagicExplosion __instance)
             {
-                if (!modEnabled.Value || __instance.transform.name != "FireBall")
+                if (!modEnabled.Value)
                     return true;
 
-                Dbgl($"fireball, caster: {__instance.owner?.name}");
+                __instance.radius *= radiusMultiplier.Value;
+
+                Dbgl($"radius: {__instance.radius}");
+
+                //Dbgl($"Explosion: {__instance.transform.name}, caster: {__instance.owner?.name}");
 
 
                 bool friendlyDamage = true;
@@ -54,15 +64,19 @@ namespace BetterFireball
                 {
                     if (__instance.owner.GetComponent<CharacterCustomization>())
                     {
-                        Dbgl("Will not damage friends");
+                        //Dbgl("Will not damage friends");
                         friendlyDamage = false;
                     }
                     else if (__instance.owner.GetComponent<Monster>())
                     {
-                        Dbgl("Will not damage enemies");
+                        //Dbgl("Will not damage enemies");
                         enemyDamage = false;
                     }
                 }
+
+                int enemyCount = 0;
+                int friendCount = 0;
+
                 if (enemyDamage)
                 {
                     List<Transform> enemies = new List<Transform>(Global.code.enemies.items);
@@ -71,11 +85,13 @@ namespace BetterFireball
                         Transform transform = enemies[i];
                         if (transform && Vector3.Distance(__instance.transform.position, transform.position) < __instance.radius)
                         {
+                            enemyCount++;
+
                             AccessTools.Method(typeof(MagicExplosion), "DealElementalDamage").Invoke(__instance, new object[] { transform });
                         }
                     }
                 }
-                if (friendlyDamage)
+                if (friendlyDamage || spellsHurtFriends.Value)
                 {
                     List<Transform> friends = new List<Transform>(Global.code.friendlies.items);
                     for (int i = friends.Count - 1; i >= 0; i--)
@@ -83,33 +99,39 @@ namespace BetterFireball
                         Transform transform = friends[i];
                         if (transform && Vector3.Distance(__instance.transform.position, transform.position) < __instance.radius)
                         {
+                            friendCount++;
+
                             AccessTools.Method(typeof(MagicExplosion), "DealElementalDamage").Invoke(__instance, new object[] { transform });
                         }
                     }
                 }
 
-                int enemyCount = 0;
-                foreach (Transform transform in Global.code.enemies.items)
-                {
-                    if (transform && Vector3.Distance(__instance.transform.position, transform.position) < __instance.radius)
-                    {
-                        enemyCount++;
-                    }
-                }
-
-
-                int friendCount = 0;
-                foreach (Transform transform in Global.code.friendlies.items)
-                {
-                    if (transform && Vector3.Distance(__instance.transform.position, transform.position) < __instance.radius)
-                    {
-                        friendCount++;
-                    }
-                }
-
-
-                Dbgl($"Magic explosion, caster {__instance.owner.name}, position {__instance.transform.position}, radius {__instance.radius}, enemies in range {enemyCount}, friends in range {friendCount}");
+                Dbgl($"Magic explosion, caster {__instance.owner.name}, position {__instance.transform.position}, radius {__instance.radius}, enemies hurt: {enemyCount}, friends hurt: {friendCount}");
                 return false;
+            }
+        }
+        [HarmonyPatch(typeof(RFX4_PhysicsMotion), "InitializeRigid")]
+        static class InitializeRigid_Patch
+        {
+            static void Postfix(RFX4_PhysicsMotion __instance, SphereCollider ___collid)
+            {
+                if (!modEnabled.Value || !spellsGoThroughFriends.Value || !___collid || !__instance.root.caster.GetComponent<CharacterCustomization>())
+                    return;
+
+                Dbgl("Friendly firing spell");
+
+                foreach (Transform t in Global.code.playerCombatParty.items)
+                {
+                    //Dbgl($"Ignoring collision with {t.name}");
+                    Physics.IgnoreCollision(___collid, t.GetComponent<Collider>());
+
+                    foreach (Collider c in t.GetComponentsInChildren<Collider>())
+                    {
+                        //Dbgl($"Ignoring collision between {__instance.name} and {c.name}");
+                        Physics.IgnoreCollision(___collid, c);
+                    }
+                }
+
             }
         }
         [HarmonyPatch(typeof(ID), nameof(ID.AddElementalDamage))]

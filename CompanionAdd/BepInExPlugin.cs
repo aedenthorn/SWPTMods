@@ -74,9 +74,34 @@ namespace CompanionAdd
 
                     if (c != null)
                     {
-                        Dbgl($"adding {c.name} to army");
-
                         Transform companion = Utility.Instantiate(c);
+                        if(Global.code.companions.items.Exists(t => t.name == c.name))
+                        {
+                            string name = null;
+    
+                            List<string> names = new List<string>(Global.code.uiNameChanger.namelist);
+                            AedenthornUtils.ShuffleList(names);
+                            foreach(string n in names)
+                            {
+                                if (!Global.code.companions.items.Exists(t => t.name == n))
+                                {
+                                    name = n;
+                                    break;
+                                }
+                            }
+                            if(name == null)
+                            {
+                                name = c.name + "_";
+                                while (Global.code.companions.items.Exists(t => t.name == name))
+                                    name += "_";
+                            }
+
+                            companion.name = name;
+                            companion.GetComponent<CharacterCustomization>().characterName = companion.name;
+
+                        }
+
+                        Dbgl($"adding {companion.name} to army");
                         Global.code.AddCompanionToPlayerArmy(companion);
                     }
                     Scene.code.SpawnCompanions();
@@ -99,6 +124,32 @@ namespace CompanionAdd
                 var value = list[k];
                 list[k] = list[n];
                 list[n] = value;
+            }
+        }
+        [HarmonyPatch(typeof(Mainframe), "LoadCompanions")]
+        static class LoadCompanions_Patch
+        {
+            static void Prefix(Mainframe __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                List<string> list = ES2.LoadList<string>(__instance.GetFolderName() + "Global.txt?tag=companionlist");
+                if (list.Count > 0)
+                {
+                    foreach (string text in list)
+                    {
+                        if (text != "")
+                        {
+                            if (!RM.code.allCompanions.CheckItemByName(text))
+                            {
+                                Transform companion = Utility.Instantiate(RM.code.allCompanions.items[0]);
+                                companion.name = text;
+                                RM.code.allCompanions.AddItem(companion);
+                            }
+
+                        }
+                    }
+                }
             }
         }
         //[HarmonyPatch(typeof(UIResult), "Open")]

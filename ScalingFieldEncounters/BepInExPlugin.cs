@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.2.0")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -22,6 +22,7 @@ namespace ScalingFieldEncounters
         public static ConfigEntry<float> enemySpawnMult;
         public static ConfigEntry<float> enemyTotalMult;
         public static ConfigEntry<float> statScaleMult ;
+        public static ConfigEntry<float> levelScaleMult;
         public static ConfigEntry<float> damageScaleMult ;
         public static ConfigEntry<float> goldCrystalScaleMult ;
         public static ConfigEntry<float> lootAmountScaleMult;
@@ -43,8 +44,9 @@ namespace ScalingFieldEncounters
             wonFactor = Config.Bind<float>("Options", "WonFactor", 0.1f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
             enemySpawnMult = Config.Bind<float>("Options", "EnemySpawnMult", 1f, "Scale number of enemies per spawn by the scale multiplier times this number.");
             enemyTotalMult  = Config.Bind<float>("Options", "EnemyTotalMult", 1f, "Scale number of total enemies per battle by the scale multiplier times this number.");
-            statScaleMult  = Config.Bind<float>("Options", "StatScaleMult", 5f, "Scale enemy stats by the scale multiplier times this number.");
-            damageScaleMult  = Config.Bind<float>("Options", "DamageScaleMult", 5f, "Scale enemy damage by the scale multiplier times this number.");
+            levelScaleMult  = Config.Bind<float>("Options", "LevelScaleMult", 1f, "Scale skirmish level by the scale multiplier times this number.");
+            statScaleMult  = Config.Bind<float>("Options", "StatScaleMult", 1f, "Scale enemy stats by the scale multiplier times this number.");
+            damageScaleMult  = Config.Bind<float>("Options", "DamageScaleMult", 1f, "Scale enemy damage by the scale multiplier times this number.");
             goldCrystalScaleMult = Config.Bind<float>("Options", "GoldCrystalScaleMult", 0.5f, "Scale gold and crystal amounts by the scale multiplier times this number.");
             lootAmountScaleMult = Config.Bind<float>("Options", "LootAmountScaleMult", 0.5f, "Scale frequency and number of loot drops by the scale multiplier times this number.");
 
@@ -56,18 +58,28 @@ namespace ScalingFieldEncounters
         }
 
 
-        [HarmonyPatch(typeof(ID), "AddHealth")]
-        static class AddHealth_Patch
+        [HarmonyPatch(typeof(Weapon), "DealDamage")]
+        static class DealDamage_Patch
         {
-            static void Prefix(ID __instance, ref float pt, Transform source)
+            static void Prefix(Weapon __instance, Item ____Item, ref float __state)
             {
-                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || !source.GetComponent<ID>()?.monster)
+                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || !____Item.owner.GetComponent<ID>()?.monster)
                     return;
 
                 float mult = GetMult() * damageScaleMult .Value;
 
+                __state = ____Item.owner.GetComponent<ID>().damage;
+
                 //Dbgl($"damage: {pt} mult: {mult}");
-                pt *= mult;
+
+                ____Item.owner.GetComponent<ID>().damage *= mult;
+            }
+            static void Postfix(Weapon __instance, Item ____Item, float __state)
+            {
+                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || !____Item.owner.GetComponent<ID>()?.monster)
+                    return;
+
+                ____Item.owner.GetComponent<ID>().damage = __state;
             }
         }
 
@@ -165,8 +177,12 @@ namespace ScalingFieldEncounters
                     return;
                 float mult = GetMult();
 
-                __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(_location.unitsCount.ToString(), _location.unitsCount * Mathf.Max(1, Mathf.CeilToInt(mult * enemyTotalMult.Value))+"");
-                __instance.txtname.text = __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + (_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScaleMult .Value))) + "");
+                string num = _location.unitsCount.ToString();
+
+                _location.unitsCount = _location.maxUnitsCount * Mathf.RoundToInt(Mathf.Max(1, mult * enemyTotalMult.Value));
+
+                __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(num, _location.unitsCount+"");
+                __instance.txtname.text = __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + (_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * levelScaleMult.Value))) + "");
                 //Dbgl($"{__instance.txtname.text}, scaled {_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScale.Value))}, level {_location.level}");
             }
         }
@@ -184,7 +200,7 @@ namespace ScalingFieldEncounters
                 
                 ID id = __result.GetComponent<ID>();
 
-                id.level = Mathf.RoundToInt(id.level * statMult);
+                id.level = Mathf.RoundToInt(id.level * levelScaleMult.Value * mult);
                 id.maxHealth *= Mathf.Max(1, statMult);
                 id.maxStamina *= Mathf.Max(1, statMult);
                 id.maxMana *= Mathf.Max(1, statMult);
@@ -223,9 +239,6 @@ namespace ScalingFieldEncounters
                 int count = Mathf.RoundToInt(Global.code.curlocation.maxUnitsCount * Mathf.Max(1, mult * enemyTotalMult .Value));
 
                 Dbgl($"Vanilla units count: {Global.code.curlocation.maxUnitsCount}, new units count {count}");
-
-                Global.code.curlocation.maxUnitsCount = count;
-                Global.code.curlocation.unitsCount = count;
 
                 return;
                 /*
@@ -348,9 +361,13 @@ namespace ScalingFieldEncounters
                     //Dbgl($"Monster ID not found");
                     continue;
                 }
-                id.level = Mathf.RoundToInt(id.level * statMult);
-                id.maxHealth = id.maxHealth * statMult;
-                id.maxStamina = id.maxStamina * statMult;
+                while(id.level < Mathf.RoundToInt(id.level * levelScaleMult.Value * mult))
+                {
+                    id.GetNextExp();
+                    id.AddExp(id.nextExp - id.curExp);
+                }
+                //id.maxHealth = id.maxHealth * statMult;
+                //id.maxStamina = id.maxStamina * statMult;
                 id.maxMana = id.maxMana * statMult;
             }
 
