@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickSwapItems
 {
-    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap Items", "0.1.0")]
+    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap Items", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -28,7 +28,7 @@ namespace QuickSwapItems
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            hotKeys = Config.Bind<string>("Options", "HotKeys", "1,2,3,4,5,6", "Comma-separated list of hotkeys to switch inventories or send selected item to specific inventory. First entry refers to the player. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            hotKeys = Config.Bind<string>("Options", "HotKeyArray", "1,2,3,4,5,6,7,8", "Comma-separated list of hotkeys to switch inventories or send selected item to specific inventory. First entry refers to the player. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
@@ -50,28 +50,37 @@ namespace QuickSwapItems
                 {
                     if (AedenthornUtils.CheckKeyDown(keyarray[i]))
                     {
+                        CharacterCustomization cc;
+                        if (i == 0)
+                        {
+                            cc = Player.code.customization;
+                        }
+                        else if (Global.code.curlocation.locationType == LocationType.home && i <= Global.code.companions.items.Count)
+                        {
+                            cc = Global.code.companions.items[i-1].GetComponent<CharacterCustomization>();
+                        }
+                        else if (Global.code.curlocation.locationType != LocationType.home && i <= Global.code.playerCombatParty.items.Count)
+                        {
+                            cc = Global.code.playerCombatParty.items[i-1].GetComponent<CharacterCustomization>();
+                        }
+                        else
+                            break;
+
+                        if (__instance.curCustomization == cc)
+                            break;
+
                         if (Global.code.selectedItem)
                         {
-                            if (i == 0 && __instance.curCustomization != Player.code.customization && Player.code.customization.storage.AutoAddItem(Global.code.selectedItem, true, true, true))
+                            if (cc.storage.AutoAddItem(Global.code.selectedItem, true, true, true))
                             {
                                 Global.code.selectedItem = null;
                                 __instance.curStorage.inventory.Refresh();
-                                Player.code.customization.storage.inventory.Refresh();
-                            }
-                            else if(i > 0 && Global.code.playerCombatParty.items?.Count >= i && __instance.curCustomization != Global.code.playerCombatParty.items[i - 1].GetComponent<ID>().customization && Global.code.playerCombatParty.items[i - 1].GetComponent<ID>().customization.storage.AutoAddItem(Global.code.selectedItem, true, true, true))
-                            {
-                                Global.code.selectedItem = null;
-                                __instance.curStorage.inventory.Refresh();
-                                Global.code.playerCombatParty.items[i - 1].GetComponent<ID>().customization.storage.inventory.Refresh();
-
+                                cc.storage.inventory.Refresh();
                             }
                         }
                         else
                         {
-                            if (i == 0 && __instance.curCustomization != Player.code.customization)
-                                Global.code.uiInventory.Open(Player.code.customization);
-                            else if(i > 0 && Global.code.playerCombatParty.items?.Count >= i && __instance.curCustomization != Global.code.playerCombatParty.items[i - 1].GetComponent<ID>().customization)
-                                Global.code.uiInventory.Open(Global.code.playerCombatParty.items[i - 1].GetComponent<ID>().customization);
+                            Global.code.uiInventory.Open(cc);
                         }
                         break;
                     }

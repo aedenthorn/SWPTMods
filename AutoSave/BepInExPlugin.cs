@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace AutoSave
 {
-    [BepInPlugin("aedenthorn.AutoSave", "Auto Save", "0.1.0")]
+    [BepInPlugin("aedenthorn.AutoSave", "Auto Save", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -118,7 +118,7 @@ namespace AutoSave
                 }
 
                 timeSinceLastSave += Time.deltaTime;
-                if(timeSinceLastSave >= autoSaveInterval.Value * 60 && (!Global.code.onGUI || saveInUI.Value))
+                if(autoSaveInterval.Value > 0 && timeSinceLastSave >= autoSaveInterval.Value * 60 && (!Global.code.onGUI || saveInUI.Value))
                 {
                     if (Global.code.curlocation.locationType != LocationType.home)
                     {

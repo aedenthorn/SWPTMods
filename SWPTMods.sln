@@ -43,7 +43,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomTextures", "CustomTex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FieldOfView", "FieldOfView\FieldOfView.csproj", "{F8895EB4-356A-4F3B-8A19-2BECD86F1ED5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoSave", "AutoSave\AutoSave.csproj", "{6B7E4B5C-9B6F-4F23-A384-1FEA5EC03AF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSave", "AutoSave\AutoSave.csproj", "{6B7E4B5C-9B6F-4F23-A384-1FEA5EC03AF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnhancedFreePose", "EnhancedFreePose\EnhancedFreePose.csproj", "{7FEE5AD2-7177-439B-BE3C-B750C08908BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +137,10 @@ Global
 		{6B7E4B5C-9B6F-4F23-A384-1FEA5EC03AF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B7E4B5C-9B6F-4F23-A384-1FEA5EC03AF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B7E4B5C-9B6F-4F23-A384-1FEA5EC03AF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

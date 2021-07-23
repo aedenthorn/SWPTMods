@@ -4,6 +4,7 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CompanionAdd
 {
@@ -150,6 +151,41 @@ namespace CompanionAdd
                         }
                     }
                 }
+            }
+        }
+        [HarmonyPatch(typeof(UICombat), "ShowSuccubusIcons")]
+        static class ShowSuccubusIcons_Patch
+        {
+            static void Prefix(UICombat __instance)
+            {
+                if (!modEnabled.Value || __instance.succubusIconGroup.parent.name == "ScrollView")
+                    return;
+
+                Dbgl("Adding scroll view");
+
+                //GameObject content = new GameObject() { name = "Content" };
+                GameObject sv = Instantiate(new GameObject(), __instance.succubusIconGroup.parent);
+                ScrollRect sr = sv.AddComponent<ScrollRect>();
+                sv.name = "ScrollView";
+                sv.GetComponent<RectTransform>().anchoredPosition = __instance.succubusIconGroup.GetComponent<RectTransform>().anchoredPosition;
+
+                GameObject mask = Instantiate(new GameObject(), sv.transform);
+                mask.name = "Mask";
+
+                __instance.succubusIconGroup.SetParent(mask.transform);
+                __instance.succubusIconGroup.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+
+                sr.viewport = mask.GetComponent<RectTransform>();
+                sr.content = __instance.succubusIconGroup.GetComponent<RectTransform>();
+
+                //GameObject cc = Instantiate(content, sv.transform);
+                //cc.AddComponent<HorizontalLayoutGroup>();
+                //__instance.succubusIconGroup.gameObject.SetActive(false);
+                //Destroy(__instance.succubusIconGroup.gameObject);
+                //__instance.succubusIconGroup = cc.transform;
+                //__instance.succubusIconGroup.SetParent(sv.transform);
+
+
             }
         }
         //[HarmonyPatch(typeof(UIResult), "Open")]

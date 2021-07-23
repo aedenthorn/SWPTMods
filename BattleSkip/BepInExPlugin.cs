@@ -10,13 +10,14 @@ using Random = UnityEngine.Random;
 
 namespace BattleSkip
 {
-    [BepInPlugin("aedenthorn.BattleSkip", "Battle Skip", "0.1.0")]
+    [BepInPlugin("aedenthorn.BattleSkip", "Battle Skip", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
+        public static ConfigEntry<bool> endDayOnSkip;
         public static ConfigEntry<bool> useAverageLevel;
         public static ConfigEntry<float> reqLevelDiffFactor;
         public static ConfigEntry<string> skipButtonText;
@@ -34,6 +35,7 @@ namespace BattleSkip
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             
+            endDayOnSkip = Config.Bind<bool>("Options", "EndDayOnSkip", false, "If true, will end the day each time you skip the battle, just as though you had completed it manually.");
             useAverageLevel = Config.Bind<bool>("Options", "IncludeCompanionLevels", true, "If true, will take the average of levels for all party members. If false, will just consider player's level.");
 
             reqLevelDiffFactor = Config.Bind<float>("Options", "ReqLevelDiffFactor", 0.5f, "Difference as fraction of player level required between player level and location level in order to skip, rounded up (e.g. 0.25 = >25% level difference, i.e. enemy's level is less than 75% of the player's level).");
@@ -77,6 +79,16 @@ namespace BattleSkip
                 if (!modEnabled.Value)
                     return;
                 Global.code.curlocation = Global.code.currentHome;
+            }
+        }
+        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.GetMatchLevelItems))]
+        static class GetMatchLevelItems_Patch
+        {
+            static void Prefix(List<Transform> list)
+            {
+                if (!modEnabled.Value)
+                    return;
+                Dbgl(list.Count + " items to match");
             }
         }
         [HarmonyPatch(typeof(UICombatParty), nameof(UICombatParty.Open))]
@@ -159,6 +171,9 @@ namespace BattleSkip
 
             Global.code.CloseAllUI();
             Global.code.uiWorldMap.Close();
+
+            if(endDayOnSkip.Value)
+                Global.code.EndDay();
 
             int exp = GetExperience();
             Dbgl($"Total experience from encounter: {exp}");
@@ -312,51 +327,54 @@ namespace BattleSkip
 
                     List<Transform> matchLevelWeapons = ld.GetMatchLevelItems(RM.code.allWeapons.items);
                     List<Transform> matchLevelArmors = ld.GetMatchLevelItems(RM.code.allArmors.items);
+
+                    Dbgl($"counts: {RM.code.allWeapons.items.Count} {RM.code.allArmors.items.Count} {matchLevelWeapons?.Count} {matchLevelArmors?.Count}");
+
                     for (int i = 0; i < ld.maxAmount; i++)
                     {
-                        int rnd = Random.Range(0, 100);
-                        if (rnd < 7)
+                        int num = Random.Range(0, 100);
+                        if (num < 7)
                         {
-                            if (matchLevelWeapons.Count > 0)
+                            if (matchLevelWeapons?.Count > 0)
                             {
                                 TryGetItem(ld, matchLevelWeapons[Random.Range(0, matchLevelWeapons.Count)]);
                             }
                         }
-                        else if (rnd < 15)
+                        else if (num < 15)
                         {
-                            if (matchLevelArmors.Count > 0)
+                            if (matchLevelArmors?.Count > 0)
                             {
                                 TryGetItem(ld, matchLevelArmors[Random.Range(0, matchLevelArmors.Count)]);
                             }
                         }
-                        else if (rnd < 25)
+                        else if (num < 25)
                         {
                             if (RM.code.allPotions.items.Count > 0)
                             {
                                 TryGetItem(ld, RM.code.allPotions.items[Random.Range(0, RM.code.allPotions.items.Count)]);
                             }
                         }
-                        else if (rnd < 27)
+                        else if (num < 27)
                         {
                             if (RM.code.allAmmos.items.Count > 0)
                             {
                                 TryGetItem(ld, RM.code.allAmmos.items[Random.Range(0, RM.code.allAmmos.items.Count)]);
                             }
                         }
-                        else if (rnd < 32)
+                        else if (num < 32)
                         {
                             if (RM.code.allTreasures.items.Count > 0)
                             {
                                 TryGetItem(ld, RM.code.allTreasures.items[Random.Range(0, RM.code.allTreasures.items.Count)]);
                             }
                         }
-                        else if (rnd < 36 && RM.code.allMiscs.items.Count > 0)
+                        else if (num < 36 && RM.code.allMiscs.items.Count > 0)
                         {
                             TryGetItem(ld, RM.code.allMiscs.items[Random.Range(0, RM.code.allMiscs.items.Count)]);
                         }
                     }
 
-                    Dbgl("Getting random gold 1");
+                    //Dbgl("Getting random gold 1");
 
                     for (int j = 0; j < ld.maxAmount; j++)
                     {
@@ -366,7 +384,7 @@ namespace BattleSkip
                         }
                     }
 
-                    Dbgl("Getting random lingerie");
+                    //Dbgl("Getting random lingerie");
 
                     int numLingerieTries = 0;
                     while (numLingerieTries < ld.maxAmount * 0.5f)
@@ -378,7 +396,7 @@ namespace BattleSkip
                         numLingerieTries++;
                     }
 
-                    Dbgl("Getting random gold 2");
+                    //Dbgl("Getting random gold 2");
 
                     if (Random.Range(0, 100) < 3)
                     {
@@ -389,7 +407,7 @@ namespace BattleSkip
                         }
                     }
 
-                    Dbgl("Getting random crystals");
+                    //Dbgl("Getting random crystals");
 
                     int crystalChance = 2;
                     int crystals = 1;
@@ -424,7 +442,7 @@ namespace BattleSkip
                     {
                         //Transform crystalItem = Utility.Instantiate(RM.code.crystal);
                         //crystalItem.GetComponent<Item>().amount = amount;
-                        Dbgl($"Got {crystals} crystals");
+                        //Dbgl($"Got {crystals} crystals");
                         Global.code.AddCrystals(crystals);
                     }
                 }
@@ -461,7 +479,7 @@ namespace BattleSkip
             gold = (int)(gold * Random.Range(0.7f, 1f));
             //Transform goldItem = Utility.Instantiate(RM.code.gold);
             //goldItem.GetComponent<Item>().amount = gold;
-            Dbgl($"Got {gold} gold, rarity {ld.rarity}, level {id.level}");
+            //Dbgl($"Got {gold} gold, rarity {ld.rarity}, level {id.level}");
             Global.code.AddGold(gold);
         }
 
