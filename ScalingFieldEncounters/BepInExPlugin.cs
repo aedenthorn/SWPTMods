@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.3.1")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -44,7 +44,7 @@ namespace ScalingFieldEncounters
             wonFactor = Config.Bind<float>("Options", "WonFactor", 0.1f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
             enemySpawnMult = Config.Bind<float>("Options", "EnemySpawnMult", 1f, "Scale number of enemies per spawn by the scale multiplier times this number.");
             enemyTotalMult  = Config.Bind<float>("Options", "EnemyTotalMult", 1f, "Scale number of total enemies per battle by the scale multiplier times this number.");
-            levelScaleMult  = Config.Bind<float>("Options", "LevelScaleMult", 1f, "Scale skirmish level by the scale multiplier times this number.");
+            levelScaleMult  = Config.Bind<float>("Options", "LevelScaleMult", 1f, "Scale enemy level by the scale multiplier times this number.");
             statScaleMult  = Config.Bind<float>("Options", "StatScaleMult", 1f, "Scale enemy stats by the scale multiplier times this number.");
             damageScaleMult  = Config.Bind<float>("Options", "DamageScaleMult", 1f, "Scale enemy damage by the scale multiplier times this number.");
             goldCrystalScaleMult = Config.Bind<float>("Options", "GoldCrystalScaleMult", 0.5f, "Scale gold and crystal amounts by the scale multiplier times this number.");
@@ -58,7 +58,7 @@ namespace ScalingFieldEncounters
         }
 
 
-        [HarmonyPatch(typeof(Weapon), "DealDamage")]
+        //[HarmonyPatch(typeof(Weapon), "DealDamage")]
         static class DealDamage_Patch
         {
             static void Prefix(Weapon __instance, Item ____Item, ref float __state)
@@ -182,7 +182,7 @@ namespace ScalingFieldEncounters
                 _location.unitsCount = _location.maxUnitsCount * Mathf.RoundToInt(Mathf.Max(1, mult * enemyTotalMult.Value));
 
                 __instance.txtcompliance.text = __instance.txtcompliance.text.Replace(num, _location.unitsCount+"");
-                __instance.txtname.text = __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + (_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * levelScaleMult.Value))) + "");
+                //__instance.txtname.text = __instance.txtname.text.Replace(" lv: " + _location.level, " lv: " + (_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * levelScaleMult.Value))) + "");
                 //Dbgl($"{__instance.txtname.text}, scaled {_location.level * Mathf.Max(1, Mathf.CeilToInt(mult * statScale.Value))}, level {_location.level}");
             }
         }
@@ -193,19 +193,9 @@ namespace ScalingFieldEncounters
             {
                 if (!modEnabled.Value || Global.code.curlocation.locationType != LocationType.fieldarmy)
                     return;
-                float mult = GetMult();
-                
-                float statMult = mult * statScaleMult .Value;
-                float countMult = mult * enemySpawnMult.Value;
-                
-                ID id = __result.GetComponent<ID>();
 
-                id.level = Mathf.RoundToInt(id.level * levelScaleMult.Value * mult);
-                id.maxHealth *= Mathf.Max(1, statMult);
-                id.maxStamina *= Mathf.Max(1, statMult);
-                id.maxMana *= Mathf.Max(1, statMult);
-
-                while(countMult >= 2)
+                float countMult = GetMult() * enemySpawnMult.Value;
+                while (countMult >= 2)
                 {
                     Transform enemy = Utility.Instantiate(__result);
                     enemy.GetComponent<ID>().isFriendly = false;
@@ -220,6 +210,44 @@ namespace ScalingFieldEncounters
                     if (countMult < 2 && countMult - 1 < Random.value)
                         break;
                 }
+
+
+            }
+        }
+        [HarmonyPatch(typeof(Balancer), "GetMonsterStats")]
+        static class Balancer_GetMonsterStats_Patch
+        {
+            static void Postfix(Balancer __instance, Monster monster)
+            {
+                if (!modEnabled.Value || Global.code?.curlocation?.locationType != LocationType.fieldarmy || !monster)
+                    return;
+
+                float mult = GetMult();
+
+                float statMult = mult * statScaleMult.Value;
+                float damageMult = mult * damageScaleMult.Value;
+                ID id = monster._ID;
+
+                Dbgl($"enemy {monster.name}: old level {id.level} health {id.maxHealth}, stamina {id.maxStamina }, mana {id.maxMana}, damage {monster._ID.damage}");
+
+                id.level = Mathf.RoundToInt(id.level * levelScaleMult.Value * mult);
+
+                monster._ID.damage = Mathf.RoundToInt(monster._ID.damage * damageMult);
+                monster._ID.fireDamage = Mathf.RoundToInt(monster._ID.fireDamage * damageMult);
+                monster._ID.coldDamage = Mathf.RoundToInt(monster._ID.coldDamage * damageMult);
+                monster._ID.lighteningDamage = Mathf.RoundToInt(monster._ID.lighteningDamage * damageMult);
+                monster._ID.poisonDamage = Mathf.RoundToInt(monster._ID.poisonDamage * damageMult);
+                monster._ID.fireResist = Mathf.RoundToInt(monster._ID.fireResist * damageMult);
+                monster._ID.coldResist = Mathf.RoundToInt(monster._ID.coldResist * damageMult);
+                monster._ID.lighteningResist = Mathf.RoundToInt(monster._ID.lighteningResist * damageMult);
+                monster._ID.poisonResist = Mathf.RoundToInt(monster._ID.poisonResist * damageMult);
+
+                id.maxHealth *= Mathf.Max(1, statMult);
+                id.maxStamina *= Mathf.Max(1, statMult);
+                id.maxMana *= Mathf.Max(1, statMult);
+
+                Dbgl($"enemy {monster.name}: new level {id.level} health {id.maxHealth}, stamina {id.maxStamina }, mana {id.maxMana}, damage {monster._ID.damage}");
+
             }
         }
         [HarmonyPatch(typeof(Scene), "Start")]

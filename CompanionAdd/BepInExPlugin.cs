@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CompanionAdd
 {
-    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.1.0")]
+    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -33,7 +33,7 @@ namespace CompanionAdd
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             
-            allowDuplicates = Config.Bind<bool>("General", "AllowDuplicates", false, "Allow adding a companion you already have (seems to be problematic, resetting levels and stuff).");
+            allowDuplicates = Config.Bind<bool>("General", "AllowDuplicates", false, "Allow adding a companion you already have.");
 
             hotKey = Config.Bind<string>("Options", "HotKey", "f2", "Hotkey to add a random companion. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             recallHotKey = Config.Bind<string>("Options", "RecallHotKey", "f3", "Hotkey to call companions to player's location. Use https://docs.unity3d.com/Manual/class-InputManager.html");
@@ -42,9 +42,7 @@ namespace CompanionAdd
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
-
         }
-
 
         [HarmonyPatch(typeof(Player), "Update")]
         static class Player_Update_Patch
@@ -78,28 +76,7 @@ namespace CompanionAdd
                         Transform companion = Utility.Instantiate(c);
                         if(Global.code.companions.items.Exists(t => t.name == c.name))
                         {
-                            string name = null;
-    
-                            List<string> names = new List<string>(Global.code.uiNameChanger.namelist);
-                            AedenthornUtils.ShuffleList(names);
-                            foreach(string n in names)
-                            {
-                                if (!Global.code.companions.items.Exists(t => t.name == n))
-                                {
-                                    name = n;
-                                    break;
-                                }
-                            }
-                            if(name == null)
-                            {
-                                name = c.name + "_";
-                                while (Global.code.companions.items.Exists(t => t.name == name))
-                                    name += "_";
-                            }
-
-                            companion.name = name;
-                            companion.GetComponent<CharacterCustomization>().characterName = companion.name;
-
+                            GiveNewName(companion);
                         }
 
                         Dbgl($"adding {companion.name} to army");
@@ -153,39 +130,135 @@ namespace CompanionAdd
                 }
             }
         }
+        [HarmonyPatch(typeof(UICombat), nameof(UICombat.HidePanels))]
+        static class HidePanels_Patch
+        {
+            static void Postfix(UICombat __instance)
+            {
+                if (!modEnabled.Value || !Global.code || !scrollObject)
+                    return;
+                scrollObject.SetActive(false);
+            }
+        }
+        [HarmonyPatch(typeof(Global), nameof(Global.AddCompanionToPlayerArmy))]
+        static class AddCompanionToPlayerArmy_Patch
+        {
+            static void Prefix(Global __instance, Transform companion)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                if (Global.code.companions.items.Exists(t => t.name == companion.name))
+                {
+                    GiveNewName(companion);
+                }
+
+            }
+        }
+
+        private static void GiveNewName(Transform companion)
+        {
+            string name = null;
+
+            List<string> names = new List<string>(Global.code.uiNameChanger.namelist);
+            AedenthornUtils.ShuffleList(names);
+            foreach (string n in names)
+            {
+                if (!Global.code.companions.items.Exists(t => t.name == n))
+                {
+                    name = n;
+                    break;
+                }
+            }
+            if (name == null)
+            {
+                name = companion.name + "_";
+                while (Global.code.companions.items.Exists(t => t.name == name))
+                    name += "_";
+            }
+
+            companion.name = name;
+            companion.GetComponent<CharacterCustomization>().characterName = companion.name;
+        }
+
+        private static Texture2D tex;
+        private static GameObject scrollObject;
+
         [HarmonyPatch(typeof(UICombat), "ShowSuccubusIcons")]
         static class ShowSuccubusIcons_Patch
         {
-            static void Prefix(UICombat __instance)
+            static void Postfix(UICombat __instance)
             {
-                if (!modEnabled.Value || __instance.succubusIconGroup.parent.name == "ScrollView")
+                if (!modEnabled.Value)
                     return;
 
-                Dbgl("Adding scroll view");
+                if (!scrollObject)
+                {
+                    Dbgl("Adding scroll view");
+                    /*
+                    tex = new Texture2D(2, 2);
+                    Color[] color = new Color[tex.width * tex.height];
+                    for (int i = 0; i < color.Length; i++)
+                    {
+                        color[i] = Color.white;
 
-                //GameObject content = new GameObject() { name = "Content" };
-                GameObject sv = Instantiate(new GameObject(), __instance.succubusIconGroup.parent);
-                ScrollRect sr = sv.AddComponent<ScrollRect>();
-                sv.name = "ScrollView";
-                sv.GetComponent<RectTransform>().anchoredPosition = __instance.succubusIconGroup.GetComponent<RectTransform>().anchoredPosition;
+                    }
+                    tex.SetPixels(color);
+                    tex.Apply();
+                    */
 
-                GameObject mask = Instantiate(new GameObject(), sv.transform);
-                mask.name = "Mask";
-
-                __instance.succubusIconGroup.SetParent(mask.transform);
-                __instance.succubusIconGroup.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
-
-                sr.viewport = mask.GetComponent<RectTransform>();
-                sr.content = __instance.succubusIconGroup.GetComponent<RectTransform>();
-
-                //GameObject cc = Instantiate(content, sv.transform);
-                //cc.AddComponent<HorizontalLayoutGroup>();
-                //__instance.succubusIconGroup.gameObject.SetActive(false);
-                //Destroy(__instance.succubusIconGroup.gameObject);
-                //__instance.succubusIconGroup = cc.transform;
-                //__instance.succubusIconGroup.SetParent(sv.transform);
+                    scrollObject = Instantiate(new GameObject(), __instance.succubusIconGroup.parent);
+                    scrollObject.name = "ScrollView";
 
 
+                    ScrollRect sr = scrollObject.AddComponent<ScrollRect>();
+                    sr.movementType = ScrollRect.MovementType.Clamped;
+
+                    //Image image = scrollObject.AddComponent<Image>();
+                    //image.sprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), Vector2.zero);
+
+                    GameObject mask = Instantiate(new GameObject(), scrollObject.transform);
+                    mask.name = "Mask";
+
+
+                    //Image image = mask.AddComponent<Image>();
+                    //image.sprite = Sprite.Create(tex, sv.GetComponent<RectTransform>().rect,Vector2.zero);
+                    //Mask m = mask.AddComponent<Mask>();
+                    //m.showMaskGraphic = false;
+
+                    __instance.succubusIconGroup.SetParent(mask.transform);
+
+
+                    sr.viewport = mask.GetComponent<RectTransform>();
+                    sr.content = __instance.succubusIconGroup.GetComponent<RectTransform>();
+
+                    scrollObject.GetComponent<RectTransform>().localScale = __instance.succubusIconGroup.GetComponent<RectTransform>().localScale;
+                    __instance.succubusIconGroup.GetComponent<RectTransform>().localScale = Vector3.one;
+
+                    Dbgl("Added scroll view");
+
+                }
+
+                scrollObject.SetActive(true);
+
+                Dbgl("Adjusting layout");
+
+                float listWidth = __instance.succubusIconGroup.GetChild(0).GetComponent<RectTransform>().rect.width * (Global.code.companions.items.Count + 1) + __instance.succubusIconGroup.GetComponent<HorizontalLayoutGroup>().spacing * Global.code.companions.items.Count;
+
+
+                RectTransform rtp = scrollObject.GetComponent<RectTransform>();
+                RectTransform rtc = __instance.succubusIconGroup.GetComponent<RectTransform>();
+
+                float maxWidth = rtp.transform.parent.GetComponent<RectTransform>().rect.width / rtp.localScale.x;
+
+                rtc.sizeDelta = new Vector2(listWidth, rtc.sizeDelta.y);
+                rtp.sizeDelta = new Vector2(Mathf.Min(maxWidth, rtc.rect.width), rtc.rect.height);
+
+                Dbgl($"list width {listWidth}, max width {maxWidth}, parent size {scrollObject.transform.parent.GetComponent<RectTransform>().rect.size} rtp size {rtp.rect.size}, rtc size {rtc.rect.size}");
+
+                rtp.anchorMin = new Vector2(1, 0);
+                rtp.anchorMax = new Vector2(1, 0);
+                rtp.pivot = new Vector2(1, 0);
             }
         }
         //[HarmonyPatch(typeof(UIResult), "Open")]

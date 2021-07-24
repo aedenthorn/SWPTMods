@@ -45,7 +45,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FieldOfView", "FieldOfView\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSave", "AutoSave\AutoSave.csproj", "{6B7E4B5C-9B6F-4F23-A384-1FEA5EC03AF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnhancedFreePose", "EnhancedFreePose\EnhancedFreePose.csproj", "{7FEE5AD2-7177-439B-BE3C-B750C08908BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnhancedFreePose", "EnhancedFreePose\EnhancedFreePose.csproj", "{7FEE5AD2-7177-439B-BE3C-B750C08908BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GearTypeDisplay", "GearTypeDisplay\GearTypeDisplay.csproj", "{339833D7-B0C1-4B46-841B-9B456BB08D2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomPortrait", "CustomPortrait\CustomPortrait.csproj", "{09155CB8-3AA1-4082-971C-931577E1DA73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -141,6 +145,14 @@ Global
 		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FEE5AD2-7177-439B-BE3C-B750C08908BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{339833D7-B0C1-4B46-841B-9B456BB08D2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{339833D7-B0C1-4B46-841B-9B456BB08D2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{339833D7-B0C1-4B46-841B-9B456BB08D2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{339833D7-B0C1-4B46-841B-9B456BB08D2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09155CB8-3AA1-4082-971C-931577E1DA73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09155CB8-3AA1-4082-971C-931577E1DA73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09155CB8-3AA1-4082-971C-931577E1DA73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09155CB8-3AA1-4082-971C-931577E1DA73}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
