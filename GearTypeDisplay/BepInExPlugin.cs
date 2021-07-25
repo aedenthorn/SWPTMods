@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace GearTypeDisplay
 {
-    [BepInPlugin("aedenthorn.GearTypeDisplay", "Gear Type Display", "0.1.0")]
+    [BepInPlugin("aedenthorn.GearTypeDisplay", "Gear Type Display", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -172,7 +172,7 @@ namespace GearTypeDisplay
                         __instance.descriptionHolder.GetChild(i).GetComponent<Text>().text = __instance.descriptionHolder.GetChild(i).GetComponent<Text>().text.Replace(old, old + " " + Localization.GetContent(type, new object[0]));
                     }
                 }
-                Dbgl($"show info for {item.name}, type: {type}, string: {__instance.descriptionHolder.GetChild(0).GetComponent<Text>().text}");
+                //Dbgl($"show info for {item.name}, type: {type}, string: {__instance.descriptionHolder.GetChild(0).GetComponent<Text>().text}");
             }
         }
     }

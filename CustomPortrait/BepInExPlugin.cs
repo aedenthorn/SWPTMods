@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomPortrait
 {
-    [BepInPlugin("aedenthorn.CustomPortrait", "Custom Portrait", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomPortrait", "Custom Portrait", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -151,6 +151,26 @@ namespace CustomPortrait
             static void Prefix(CharacterCustomization _customization)
             {
                 if (!modEnabled.Value)
+                    return;
+                if (cachedPortraits.ContainsKey(_customization.characterName))
+                {
+                    _customization.icon = cachedPortraits[_customization.characterName];
+                }
+                else if(File.Exists(Path.Combine(assetPath, "Portraits", _customization.characterName + ".png")))
+                {
+                    byte[] bytes = File.ReadAllBytes(Path.Combine(assetPath, "Portraits", _customization.characterName + ".png"));
+                    _customization.icon.LoadImage(bytes);
+
+                }
+            }
+        }
+                
+        [HarmonyPatch(typeof(FreeposeCompanionIcon), nameof(FreeposeCompanionIcon.Initiate))]
+        static class FreeposeCompanionIcon_Initiate_Patch
+        {
+            static void Prefix(CharacterCustomization _customization)
+            {
+                if (!modEnabled.Value || !_customization)
                     return;
                 if (cachedPortraits.ContainsKey(_customization.characterName))
                 {

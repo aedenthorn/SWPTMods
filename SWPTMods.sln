@@ -49,7 +49,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnhancedFreePose", "Enhance
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GearTypeDisplay", "GearTypeDisplay\GearTypeDisplay.csproj", "{339833D7-B0C1-4B46-841B-9B456BB08D2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomPortrait", "CustomPortrait\CustomPortrait.csproj", "{09155CB8-3AA1-4082-971C-931577E1DA73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomPortrait", "CustomPortrait\CustomPortrait.csproj", "{09155CB8-3AA1-4082-971C-931577E1DA73}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvancedMerchantTables", "AdvancedMerchantTables\AdvancedMerchantTables.csproj", "{A48CAEFC-4CBD-4E2D-AB84-8BB5B9EBA694}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Resurrection", "Resurrection\Resurrection.csproj", "{2AACF43E-E001-4390-96DF-11126A66B656}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoveFromFreePose", "RemoveFromFreePose\RemoveFromFreePose.csproj", "{E49E529D-C555-4490-8B66-9C53681D8B76}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +159,18 @@ Global
 		{09155CB8-3AA1-4082-971C-931577E1DA73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09155CB8-3AA1-4082-971C-931577E1DA73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09155CB8-3AA1-4082-971C-931577E1DA73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A48CAEFC-4CBD-4E2D-AB84-8BB5B9EBA694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A48CAEFC-4CBD-4E2D-AB84-8BB5B9EBA694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A48CAEFC-4CBD-4E2D-AB84-8BB5B9EBA694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A48CAEFC-4CBD-4E2D-AB84-8BB5B9EBA694}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AACF43E-E001-4390-96DF-11126A66B656}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AACF43E-E001-4390-96DF-11126A66B656}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AACF43E-E001-4390-96DF-11126A66B656}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AACF43E-E001-4390-96DF-11126A66B656}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E49E529D-C555-4490-8B66-9C53681D8B76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E49E529D-C555-4490-8B66-9C53681D8B76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E49E529D-C555-4490-8B66-9C53681D8B76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E49E529D-C555-4490-8B66-9C53681D8B76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

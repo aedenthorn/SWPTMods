@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickSwapItems
 {
-    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap Items", "0.2.0")]
+    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -38,49 +38,93 @@ namespace QuickSwapItems
         }
 
 
-        [HarmonyPatch(typeof(UIInventory), nameof(UIInventory.Update))]
-        static class UIInventory_Update_Patch
+        [HarmonyPatch(typeof(Global), "Update")]
+        static class Global_Update_Patch
         {
-            static void Postfix(UIInventory __instance)
+            static void Postfix(Global __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !Player.code)
                     return;
+
                 string[] keyarray = hotKeys.Value.Split(',');
                 for(int i = 0; i < keyarray.Length; i++)
                 {
                     if (AedenthornUtils.CheckKeyDown(keyarray[i]))
                     {
+                        Dbgl($"Pressed {keyarray[i]}");
                         CharacterCustomization cc;
                         if (i == 0)
                         {
                             cc = Player.code.customization;
                         }
-                        else if (Global.code.curlocation.locationType == LocationType.home && i <= Global.code.companions.items.Count)
+                        else if (__instance.curlocation.locationType == LocationType.home && i <= __instance.companions.items.Count)
                         {
-                            cc = Global.code.companions.items[i-1].GetComponent<CharacterCustomization>();
+                            cc = __instance.companions.items[i-1].GetComponent<CharacterCustomization>();
                         }
-                        else if (Global.code.curlocation.locationType != LocationType.home && i <= Global.code.playerCombatParty.items.Count)
+                        else if (__instance.curlocation.locationType != LocationType.home && i <= __instance.playerCombatParty.items.Count)
                         {
-                            cc = Global.code.playerCombatParty.items[i-1].GetComponent<CharacterCustomization>();
+                            cc = __instance.playerCombatParty.items[i-1].GetComponent<CharacterCustomization>();
                         }
                         else
                             break;
 
-                        if (__instance.curCustomization == cc)
-                            break;
-
-                        if (Global.code.selectedItem)
+                        if (__instance.uiInventory.gameObject.activeSelf)
                         {
-                            if (cc.storage.AutoAddItem(Global.code.selectedItem, true, true, true))
+                            if (__instance.uiInventory.curCustomization == cc)
+                                break;
+
+                            if (__instance.selectedItem && !__instance.selectedItem.GetComponent<Item>().isGoods)
                             {
-                                Global.code.selectedItem = null;
-                                __instance.curStorage.inventory.Refresh();
-                                cc.storage.inventory.Refresh();
+                                Dbgl("Trying to move item");
+                                if (cc.storage.AutoAddItem(__instance.selectedItem, true, true, true))
+                                {
+                                    __instance.selectedItem = null;
+                                    __instance.uiInventory.curStorage.inventory.Refresh();
+                                    cc.storage.inventory.Refresh();
+                                    Dbgl("Item moved");
+                                }
+                            }
+                            else
+                            {
+                                __instance.uiInventory.Open(cc);
+                                Dbgl("Switched inventory");
+                            }
+
+                        }
+                        else if (__instance.uiCustomization.gameObject.activeSelf)
+                        {
+                            if (__instance.uiCustomization.curCharacterCustomization != cc)
+                            {
+                                __instance.uiCustomization.curCharacterCustomization = cc;
+                                __instance.uiCustomization.SwitchToCustomization();
+                                Dbgl("Switched character");
                             }
                         }
-                        else
+                        else if (__instance.uiMakeup.gameObject.activeSelf)
                         {
-                            Global.code.uiInventory.Open(cc);
+                            if (__instance.uiMakeup.curCustomization != cc)
+                            {
+                                __instance.uiMakeup.curCustomization = cc;
+                                __instance.uiMakeup.SwitchToMakeup();
+                                Dbgl("Switched character");
+                            }
+                        }
+                        else if (__instance.uiNameChanger.gameObject.activeSelf)
+                        {
+                            if (__instance.uiNameChanger.curcustomization != cc)
+                            {
+                                __instance.uiNameChanger.curcustomization = cc;
+                                __instance.uiCustomization.SwitchToCharacter();
+                                Dbgl("Switched character");
+                            }
+                        }
+                        else if (__instance.uiCharacter.gameObject.activeSelf)
+                        {
+                            if (__instance.uiCharacter.curCustomization != cc)
+                            {
+                                __instance.uiCharacter.Open(cc);
+                                Dbgl("Switched character");
+                            }
                         }
                         break;
                     }

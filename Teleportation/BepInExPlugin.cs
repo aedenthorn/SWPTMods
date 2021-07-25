@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace Teleportation
 {
-    [BepInPlugin("aedenthorn.Teleportation", "Teleportation", "0.1.0")]
+    [BepInPlugin("aedenthorn.Teleportation", "Teleportation", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -34,15 +34,6 @@ namespace Teleportation
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
 
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-        }
-
-        private static void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, LoadSceneMode arg1)
-        {
-            if (!Player.code)
-                return;
-            startPosition = Player.code.transform.position;
-            startRotation = Player.code.transform.rotation;
         }
 
         private void Awake()
@@ -63,9 +54,19 @@ namespace Teleportation
 
             //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
 
+        }
+
+        private static void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, LoadSceneMode arg1)
+        {
+            if (!Player.code)
+                return;
+            startPosition = Player.code.transform.position;
+            startRotation = Player.code.transform.rotation;
         }
 
 
