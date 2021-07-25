@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace WeaponSpeed
 {
-    [BepInPlugin("aedenthorn.WeaponSpeed", "Weapon Speed", "0.1.0")]
+    [BepInPlugin("aedenthorn.WeaponSpeed", "Weapon Speed", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -27,9 +27,6 @@ namespace WeaponSpeed
         public static ConfigEntry<float> twoHandAxeSpeedMult;
         public static ConfigEntry<float> oneHandAxeSpeedMult;
 
-        private static Vector3 startPosition;
-        private static Quaternion startRotation;
-
         //public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -37,15 +34,6 @@ namespace WeaponSpeed
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
 
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
-        }
-
-        private static void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, LoadSceneMode arg1)
-        {
-            if (!Player.code)
-                return;
-            startPosition = Player.code.transform.position;
-            startRotation = Player.code.transform.rotation;
         }
 
         private void Awake()
@@ -89,7 +77,7 @@ namespace WeaponSpeed
 
                 origSpeed = __instance.anim.speed;
 
-                Dbgl($"Attacking, orig speed {origSpeed}");
+                //Dbgl($"Attacking, orig speed {origSpeed}");
 
                 switch (transform.GetComponent<Weapon>().weaponType)
                 {
@@ -137,7 +125,7 @@ namespace WeaponSpeed
 
                 __instance.anim.speed = origSpeed;
 
-                Dbgl($"Reset attack, orig speed {origSpeed}");
+                //Dbgl($"Reset attack, orig speed {origSpeed}");
 
             }
         }

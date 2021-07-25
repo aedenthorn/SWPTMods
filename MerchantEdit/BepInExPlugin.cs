@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 namespace MerchantEdit
 {
-    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.0")]
+    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -126,7 +127,8 @@ namespace MerchantEdit
 
                 go = Instantiate(modelObjects["Bartender"]);
                 Destroy(go.transform.Find("Morganas Desire").gameObject);
-                go.AddComponent<Rigidbody>();
+                var rb = go.AddComponent<Rigidbody>();
+                rb.constraints = RigidbodyConstraints.FreezeAll;
                 var cc = go.AddComponent<CharacterCustomization>();
                 cc.isDisplay = true;
                 cc.showArmor = false;
@@ -161,6 +163,7 @@ namespace MerchantEdit
                 cc.suspenders = ccc.suspenders;
                 cc.heels = ccc.heels;
                 cc.RefreshEquipment();
+
 
                 //go.transform.Find("Genesis8Female").Find("Genesis8Female.Shape").GetComponent<SkinnedMeshRenderer>().sharedMesh = RM.code.allCompanions.items.First(t => t.name == custom).Find("Genesis8Female").Find("Genesis8Female.Shape").GetComponent<SkinnedMeshRenderer>().sharedMesh;
             }

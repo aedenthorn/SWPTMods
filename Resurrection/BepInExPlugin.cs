@@ -3,12 +3,10 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.SceneManagement;
 
 namespace Resurrection
 {
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.0")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -46,7 +44,7 @@ namespace Resurrection
 
         }
 
-
+        
         [HarmonyPatch(typeof(Utility), nameof(Utility.GetNearestObject))]
         static class Utility_GetNearestObject_Patch
         {
@@ -56,6 +54,20 @@ namespace Resurrection
                     return;
 
                 __result = null;
+            }
+        }
+
+        [HarmonyPatch(typeof(CompanionCombatIcon), "Update")]
+        static class CompanionCombatIcon_Update_Patch
+        {
+            static void Postfix(CompanionCombatIcon __instance)
+            {
+                if (!modEnabled.Value || !__instance.customization || __instance.customization._ID.health <= 0f || !__instance.icondeath.activeSelf)
+                    return;
+
+                __instance.healthbar.color = new Color(0f, 1f, 0f, 1.0f);
+                __instance.icondeath.SetActive(false);
+
             }
         }
 
@@ -70,6 +82,7 @@ namespace Resurrection
                 __instance.gameObject.AddComponent<Interaction>();
             }
         }
+
         [HarmonyPatch(typeof(Interaction), nameof(Interaction.Interact))]
         static class Interaction_Interact_Patch
         {
@@ -79,6 +92,7 @@ namespace Resurrection
                     return true;
 
                 CharacterCustomization patient = __instance.GetComponent<CharacterCustomization>();
+
 
                 if (customization.healaura < healingSpellLevel.Value)
                 {
@@ -95,6 +109,7 @@ namespace Resurrection
                     return true;
                 }
 
+                DestroyImmediate(patient.GetComponent<Interaction>());
 
                 customization._ID.AddMana(-customization.skillHealingAura.manaConsumption * manaConsumptionMult.Value);
 
@@ -124,9 +139,20 @@ namespace Resurrection
                         transform.GetComponent<Collider>().enabled = false;
                     }
                 }
+
+                if (patient.GetComponent<MapIcon>())
+                {
+                    Dbgl($"Removing old map icon");
+                    DestroyImmediate(patient.gameObject.GetComponent<MapIcon>());
+                }
+                patient.gameObject.AddComponent<MapIcon>();
+                patient.GetComponent<MapIcon>().healthBarColor = Color.green;
+                patient.GetComponent<MapIcon>().id = patient.GetComponent<ID>();
+                patient.GetComponent<MapIcon>().posBias = new Vector3(0f, 2.3f, 0f);
+                patient.GetComponent<MapIcon>().visibleRange = 300f;
+
                 Dbgl($"Patient restored to {patient._ID.health}/{patient._ID.maxHealth} health");
 
-                Destroy(patient.GetComponent<Interaction>());
                 Global.code.curInteractingCustomization = null;
                 return false;
             }
