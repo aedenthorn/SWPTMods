@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace MerchantEdit
 {
-    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.1")]
+    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -24,7 +24,7 @@ namespace MerchantEdit
         public static ConfigEntry<string> orcFighterModel;
         public static ConfigEntry<string> littleDemonModel;
 
-        //ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -44,7 +44,7 @@ namespace MerchantEdit
             littleDemonModel = Config.Bind<string>("Options", "LittleDemonModel", "Little_Demon", "Model to use for black market merchant");
             removeMaidOutfit = Config.Bind<bool>("Options", "RemoveMaidOutfit", false, "Remove the maid's clothing.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 6, "Nexus mod ID for updates");
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 

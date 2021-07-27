@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace Teleportation
 {
-    [BepInPlugin("aedenthorn.Teleportation", "Teleportation", "0.1.1")]
+    [BepInPlugin("aedenthorn.Teleportation", "Teleportation", "0.1.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -27,7 +27,7 @@ namespace Teleportation
         private static Vector3 startPosition;
         private static Quaternion startRotation;
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -50,9 +50,9 @@ namespace Teleportation
             returnToHomeKey = Config.Bind<string>("Options", "ReturnToHomeKey", "[+]", "Hotkey to return home.");
             recallCompanionKey = Config.Bind<string>("Options", "RecallCompanionKey", "[/]", "Hotkey to return home.");
             blinkTeleportModKey = Config.Bind<string>("Options", "BlinkTeleportModKey", "right shift", "modifier to teleport instead of moving. Leave blank to disable.");
-            blinkTeleportDistance = Config.Bind<float>("Options", "BlinkTeleportDistance", 5, "Distance to move when blink teleporting.");
+            blinkTeleportDistance = Config.Bind<float>("Options", "BlinkTeleportDistance", 10, "Distance to move when blink teleporting.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 15, "Nexus mod ID for updates");
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 

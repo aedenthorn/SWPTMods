@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace WeaponSpeed
 {
-    [BepInPlugin("aedenthorn.WeaponSpeed", "Weapon Speed", "0.1.1")]
+    [BepInPlugin("aedenthorn.WeaponSpeed", "Weapon Speed", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -27,7 +27,7 @@ namespace WeaponSpeed
         public static ConfigEntry<float> twoHandAxeSpeedMult;
         public static ConfigEntry<float> oneHandAxeSpeedMult;
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -54,7 +54,7 @@ namespace WeaponSpeed
             twoHandAxeSpeedMult = Config.Bind<float>("Options", "TwoHandAxeSpeedMult", 1, "twoHandAxeSpeedMult");
             oneHandAxeSpeedMult = Config.Bind<float>("Options", "OneHandAxeSpeedMult", 1, "oneHandAxeSpeedMult");
 
-        //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+        nexusID = Config.Bind<int>("General", "NexusID", 16, "Nexus mod ID for updates");
 
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

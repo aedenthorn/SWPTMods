@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace CleanMerchantArea
 {
-    [BepInPlugin("aedenthorn.CleanMerchantArea", "Clean Merchant Area", "0.1.0")]
+    [BepInPlugin("aedenthorn.CleanMerchantArea", "Clean Merchant Area", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -18,7 +18,7 @@ namespace CleanMerchantArea
         public static ConfigEntry<string> removePrefixes;
         public static ConfigEntry<string> parentTransforms;
 
-        //ConfigEntry<int> nexusID;
+        ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -35,7 +35,7 @@ namespace CleanMerchantArea
             removePrefixes = Config.Bind<string>("Options", "RemovePrefixes", "trunk,chest", "Remove any object with names starting with these, comma-separated.");
             parentTransforms = Config.Bind<string>("Options", "ParentTransforms", "/Scene/Statics/Bar", "Look for objects in these transforms, comma-separated.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 9, "Nexus mod ID for updates");
 
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 

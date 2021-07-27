@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace HideHeadgear
 {
-    [BepInPlugin("aedenthorn.HideHeadgear", "HideHeadgear", "0.1.1")]
+    [BepInPlugin("aedenthorn.HideHeadgear", "HideHeadgear", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -21,7 +21,7 @@ namespace HideHeadgear
         public static ConfigEntry<string> alwaysShow;
 
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -43,7 +43,7 @@ namespace HideHeadgear
             neverShow = Config.Bind<string>("Options", "NeverShow", "", "Comma-separated list of names of characters to never show headgear.");
             alwaysShow = Config.Bind<string>("Options", "AlwaysShow", "", "Comma-separated list of names of characters to always show headgear.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 24, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

@@ -117,7 +117,7 @@ namespace AdvancedGraphicsSettings
 
         private static void SetGraphicsSettings()
         {
-            QualitySettings.anisotropicFiltering = (AnisotropicFiltering) anisotropicFiltering.Value;
+            QualitySettings.anisotropicFiltering = anisotropicFiltering.Value;
             QualitySettings.antiAliasing = antiAliasing.Value;
             QualitySettings.asyncUploadBufferSize = asyncUploadBufferSize.Value;
             QualitySettings.asyncUploadPersistentBuffer = asyncUploadPersistentBuffer.Value;
@@ -135,12 +135,12 @@ namespace AdvancedGraphicsSettings
             QualitySettings.shadowCascade4Split = shadowCascade4Split.Value;
             QualitySettings.shadowCascades = shadowCascades.Value;
             QualitySettings.shadowDistance = shadowDistance.Value;
-            QualitySettings.shadowmaskMode = (ShadowmaskMode) shadowmaskMode.Value;
+            QualitySettings.shadowmaskMode = shadowmaskMode.Value;
             QualitySettings.shadowNearPlaneOffset = shadowNearPlaneOffset.Value;
-            QualitySettings.shadowProjection = (ShadowProjection) shadowProjection.Value;
-            QualitySettings.shadowResolution = (ShadowResolution) shadowResolution.Value;
-            QualitySettings.shadows = (ShadowQuality) shadows.Value;
-            QualitySettings.skinWeights = (SkinWeights) skinWeights.Value;
+            QualitySettings.shadowProjection = shadowProjection.Value;
+            QualitySettings.shadowResolution = shadowResolution.Value;
+            QualitySettings.shadows = shadows.Value;
+            QualitySettings.skinWeights = skinWeights.Value;
             QualitySettings.softParticles = softParticles.Value;
             QualitySettings.softVegetation = softVegetation.Value;
             QualitySettings.streamingMipmapsActive = streamingMipmapsActive.Value;

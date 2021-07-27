@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EnhancedFreePose
 {
-    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.1.0")]
+    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -16,7 +16,7 @@ namespace EnhancedFreePose
 
         public static ConfigEntry<int> maxModels;
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -32,7 +32,7 @@ namespace EnhancedFreePose
 
             maxModels = Config.Bind<int>("Options", "MaxModels", 8, "Maximum number of models to allow.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 18, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

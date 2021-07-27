@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Respec
 {
-    [BepInPlugin("aedenthorn.Respec", "Respec", "0.1.0")]
+    [BepInPlugin("aedenthorn.Respec", "Respec", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -15,7 +15,7 @@ namespace Respec
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<string> modKey;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -31,7 +31,7 @@ namespace Respec
 
             modKey = Config.Bind<string>("Options", "ModKey", "left shift", "Modifier key to subtract point from skills. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 4, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

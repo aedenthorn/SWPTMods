@@ -18,7 +18,7 @@ namespace Jump
         public static ConfigEntry<bool> multiJump;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<float> jumpPower;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -37,7 +37,7 @@ namespace Jump
             hotKey = Config.Bind<string>("Options", "HotKey", "space", "Hotkey to jump.");
             jumpPower = Config.Bind<float>("Options", "JumpPower", 6, "Player jump power.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 12, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

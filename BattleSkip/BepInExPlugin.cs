@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace BattleSkip
 {
-    [BepInPlugin("aedenthorn.BattleSkip", "Battle Skip", "0.1.1")]
+    [BepInPlugin("aedenthorn.BattleSkip", "Battle Skip", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -21,7 +21,7 @@ namespace BattleSkip
         public static ConfigEntry<bool> useAverageLevel;
         public static ConfigEntry<float> reqLevelDiffFactor;
         public static ConfigEntry<string> skipButtonText;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -41,7 +41,7 @@ namespace BattleSkip
             reqLevelDiffFactor = Config.Bind<float>("Options", "ReqLevelDiffFactor", 0.5f, "Difference as fraction of player level required between player level and location level in order to skip, rounded up (e.g. 0.25 = >25% level difference, i.e. enemy's level is less than 75% of the player's level).");
             skipButtonText = Config.Bind<string>("Options", "SkipButtonText", "Skip", "Text to show on skip button.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

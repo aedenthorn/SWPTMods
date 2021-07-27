@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.4.0")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.4.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -26,7 +26,7 @@ namespace ScalingFieldEncounters
         public static ConfigEntry<float> damageScaleMult ;
         public static ConfigEntry<float> goldCrystalScaleMult ;
         public static ConfigEntry<float> lootAmountScaleMult;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -50,7 +50,7 @@ namespace ScalingFieldEncounters
             goldCrystalScaleMult = Config.Bind<float>("Options", "GoldCrystalScaleMult", 0.5f, "Scale gold and crystal amounts by the scale multiplier times this number.");
             lootAmountScaleMult = Config.Bind<float>("Options", "LootAmountScaleMult", 0.5f, "Scale frequency and number of loot drops by the scale multiplier times this number.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 13, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

@@ -70,6 +70,25 @@
     </Reference>
   </ItemGroup>
 
+  <!-- Add Third-Parth references -->
+  <ItemGroup Label="3rd">
+    <Reference Include="umod">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\UMod.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="umod-shared">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\UMod-Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
   <!-- Add Unity references -->
   <ItemGroup Label="Unity">
     <Reference Include="UnityEngine">

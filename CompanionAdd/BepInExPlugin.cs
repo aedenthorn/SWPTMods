@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CompanionAdd
 {
-    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.2.1")]
+    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -19,7 +19,7 @@ namespace CompanionAdd
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<string> recallHotKey;
         public static ConfigEntry<float> rewardChance;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -38,7 +38,7 @@ namespace CompanionAdd
             hotKey = Config.Bind<string>("Options", "HotKey", "f2", "Hotkey to add a random companion. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             recallHotKey = Config.Bind<string>("Options", "RecallHotKey", "f3", "Hotkey to call companions to player's location. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 8, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

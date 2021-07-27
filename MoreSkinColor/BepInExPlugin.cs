@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace MoreSkinColor
 {
-    [BepInPlugin("aedenthorn.MoreSkinColor", "More Skin Color", "0.1.0")]
+    [BepInPlugin("aedenthorn.MoreSkinColor", "More Skin Color", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -33,7 +33,7 @@ namespace MoreSkinColor
         private static Transform blueSlider;
         private static Transform saveButton;
 
-        //ConfigEntry<int> nexusID;
+        ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -50,7 +50,7 @@ namespace MoreSkinColor
             modKey = Config.Bind<string>("General", "ModKey", "left shift", "Modifier key to overwrite an existing custom color on click");
             delModKey = Config.Bind<string>("General", "DelModKey", "left ctrl", "Modifier key to remove an existing custom color on click (warning, this shifts hair choice for characters with custom hair already!)");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 14, "Nexus mod ID for updates");
 
             assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
             if (!Directory.Exists(assetPath))

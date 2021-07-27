@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace WarPartySize
 {
-    [BepInPlugin("aedenthorn.WarPartySize", "War Party Size", "0.2.0")]
+    [BepInPlugin("aedenthorn.WarPartySize", "War Party Size", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -15,7 +15,7 @@ namespace WarPartySize
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> partySize;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -31,7 +31,7 @@ namespace WarPartySize
 
             partySize = Config.Bind<int>("Options", "PartySize", 5, "Maximum number of companions in party.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 3, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

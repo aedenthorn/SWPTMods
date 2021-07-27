@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CheatMenu
 {
-    [BepInPlugin("aedenthorn.CheatMenu", "Cheat Menu", "0.1.0")]
+    [BepInPlugin("aedenthorn.CheatMenu", "Cheat Menu", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -16,7 +16,7 @@ namespace CheatMenu
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<string> hotKey;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -32,7 +32,7 @@ namespace CheatMenu
 
             hotKey = Config.Bind<string>("Options", "HotKey", "f5", "Hotkey to toggle cheat menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

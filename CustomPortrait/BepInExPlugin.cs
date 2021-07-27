@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomPortrait
 {
-    [BepInPlugin("aedenthorn.CustomPortrait", "Custom Portrait", "0.1.1")]
+    [BepInPlugin("aedenthorn.CustomPortrait", "Custom Portrait", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -35,7 +35,7 @@ namespace CustomPortrait
         private static GameObject rectImage;
         private static Dictionary<string, Texture2D> cachedPortraits = new Dictionary<string, Texture2D>();
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -64,7 +64,7 @@ namespace CustomPortrait
                 Directory.CreateDirectory(Path.Combine(assetPath,"Portraits"));
             }
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 20, "Nexus mod ID for updates");
 
             borderTexture = new Texture2D(1, 1);
 

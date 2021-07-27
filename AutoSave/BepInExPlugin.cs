@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace AutoSave
 {
-    [BepInPlugin("aedenthorn.AutoSave", "Auto Save", "0.1.1")]
+    [BepInPlugin("aedenthorn.AutoSave", "Auto Save", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -26,7 +26,7 @@ namespace AutoSave
         public static ConfigEntry<bool> saveInUI;
 
         public static float timeSinceLastSave = 0;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -46,7 +46,7 @@ namespace AutoSave
             autoSaveInterval = Config.Bind<float>("Options", "AutoSaveInterval", 10f, "Interval in minutes to auto save (can be decimal, set to 0 to disable timed autosave).");
             autoSaveOnHome = Config.Bind<bool>("Options", "AutoSaveOnHome", true, "Autosave when going home.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 17, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

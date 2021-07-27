@@ -4,11 +4,10 @@ using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.SceneManagement;
 
 namespace RemoveFromFreePose
 {
-    [BepInPlugin("aedenthorn.RemoveFromFreePose", "RemoveFromFreePose", "0.1.0")]
+    [BepInPlugin("aedenthorn.RemoveFromFreePose", "Remove From Free Pose", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -18,7 +17,7 @@ namespace RemoveFromFreePose
 
         public static ConfigEntry<string> modKey;
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -35,7 +34,7 @@ namespace RemoveFromFreePose
 
             modKey = Config.Bind<string>("Options", "ModKey", "left shift", "Modifier key to remove companion.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 26, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
@@ -44,7 +43,7 @@ namespace RemoveFromFreePose
 
 
         [HarmonyPatch(typeof(FreeposeCompanionIcon), nameof(FreeposeCompanionIcon.Click))]
-        static class Click_Patch
+        static class FreeposeCompanionIcon_Click_Patch
         {
             static bool Prefix(FreeposeCompanionIcon __instance)
             {

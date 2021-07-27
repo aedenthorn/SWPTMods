@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BetterFireball
 {
-    [BepInPlugin("aedenthorn.BetterFireball", "Better Fireball", "0.2.1")]
+    [BepInPlugin("aedenthorn.BetterFireball", "Better Fireball", "0.2.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -19,7 +19,7 @@ namespace BetterFireball
         public static ConfigEntry<bool> spellsHurtFriends;
         public static ConfigEntry<float> radiusMultiplier;
 
-        //ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -33,7 +33,7 @@ namespace BetterFireball
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 10, "Nexus mod ID for updates");
 
             spellsGoThroughFriends = Config.Bind<bool>("Options", "SpellsGoThroughFriends", true, "Spells will pass through friends.");
             spellsHurtFriends = Config.Bind<bool>("Options", "SpellsHurtFriends", false, "Spells will damage friends.");

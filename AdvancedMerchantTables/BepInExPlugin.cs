@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace AdvancedMerchantTables
 {
-    [BepInPlugin("aedenthorn.AdvancedMerchantTables", "Advanced Merchant Tables", "0.1.1")]
+    [BepInPlugin("aedenthorn.AdvancedMerchantTables", "Advanced Merchant Tables", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -24,7 +24,7 @@ namespace AdvancedMerchantTables
         
         public static List<Merchant> merchants = new List<Merchant>();
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -42,7 +42,7 @@ namespace AdvancedMerchantTables
             merchantRefreshInterval = Config.Bind<int>("Options", "MerchantRefreshInterval", 1000, "Interval in seconds to refresh merchant inventory.");
             //refreshOnDayEnd = Config.Bind<bool>("Options", "RefreshOnDayEnd", false, "Refresh inventory at the end of every day.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 21, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");

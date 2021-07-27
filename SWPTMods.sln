@@ -57,9 +57,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Resurrection", "Resurrectio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoveFromFreePose", "RemoveFromFreePose\RemoveFromFreePose.csproj", "{E49E529D-C555-4490-8B66-9C53681D8B76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HideHeadgear", "HideHeadgear\HideHeadgear.csproj", "{7BDD8585-6203-4D4F-B66C-7CDFCA3C47A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideHeadgear", "HideHeadgear\HideHeadgear.csproj", "{7BDD8585-6203-4D4F-B66C-7CDFCA3C47A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedGraphicsSettings", "AdvancedGraphicsSettings\AdvancedGraphicsSettings.csproj", "{9B64974A-A414-4F27-9D74-3C5870424651}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvancedGraphicsSettings", "AdvancedGraphicsSettings\AdvancedGraphicsSettings.csproj", "{9B64974A-A414-4F27-9D74-3C5870424651}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JoinCompanion", "JoinCompanion\JoinCompanion.csproj", "{83AC32DF-DD9B-4DF3-A0F8-88F265BB821F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomBuildings", "CustomBuildings\CustomBuildings.csproj", "{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExModSupport", "BepInExModSupport\BepInExModSupport.csproj", "{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,6 +189,18 @@ Global
 		{9B64974A-A414-4F27-9D74-3C5870424651}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B64974A-A414-4F27-9D74-3C5870424651}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B64974A-A414-4F27-9D74-3C5870424651}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83AC32DF-DD9B-4DF3-A0F8-88F265BB821F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83AC32DF-DD9B-4DF3-A0F8-88F265BB821F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83AC32DF-DD9B-4DF3-A0F8-88F265BB821F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83AC32DF-DD9B-4DF3-A0F8-88F265BB821F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

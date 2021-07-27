@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Resurrection
 {
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.2")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -18,7 +18,7 @@ namespace Resurrection
         public static ConfigEntry<float> resurrectedHealthPercent;
         public static ConfigEntry<float> manaConsumptionMult;
 
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -37,7 +37,7 @@ namespace Resurrection
             resurrectedHealthPercent = Config.Bind<float>("Options", "resurrectedHealthPercent", 20, "Health restored to resurrected companions.");
             manaConsumptionMult = Config.Bind<float>("Options", "ManaConsumptionMult", 2f, "Multiplier for mana required, based on healing aura cost.");
 
-            //nexusID = Config.Bind<int>("General", "NexusID", 1, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 22, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
@@ -45,7 +45,7 @@ namespace Resurrection
         }
 
         
-        [HarmonyPatch(typeof(Utility), nameof(Utility.GetNearestObject))]
+        //[HarmonyPatch(typeof(Utility), nameof(Utility.GetNearestObject))]
         static class Utility_GetNearestObject_Patch
         {
             static void Postfix(ref Transform __result, Transform origin)
@@ -79,7 +79,8 @@ namespace Resurrection
                 if (!modEnabled.Value || __instance._Player)
                     return;
 
-                __instance.gameObject.AddComponent<Interaction>();
+                if(!__instance.gameObject.GetComponent<Interaction>())
+                    __instance.gameObject.AddComponent<Interaction>();
             }
         }
 
@@ -109,7 +110,7 @@ namespace Resurrection
                     return true;
                 }
 
-                DestroyImmediate(patient.GetComponent<Interaction>());
+                //DestroyImmediate(patient.GetComponent<Interaction>());
 
                 customization._ID.AddMana(-customization.skillHealingAura.manaConsumption * manaConsumptionMult.Value);
 
