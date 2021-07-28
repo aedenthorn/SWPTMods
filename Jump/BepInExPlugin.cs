@@ -8,7 +8,7 @@ using Random = UnityEngine.Random;
 
 namespace Jump
 {
-    [BepInPlugin("aedenthorn.Jump", "Jump", "0.1.0")]
+    [BepInPlugin("aedenthorn.Jump", "Jump", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

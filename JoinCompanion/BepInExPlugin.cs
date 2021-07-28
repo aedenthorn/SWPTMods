@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JoinCompanion
 {
-    [BepInPlugin("aedenthorn.JoinCompanion", "Join Companion", "0.1.1")]
+    [BepInPlugin("aedenthorn.JoinCompanion", "Join Companion", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

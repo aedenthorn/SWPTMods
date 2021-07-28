@@ -1,0 +1,9 @@
+{
+	"buildingName": "Large Carpet",
+	"templateObject": "Interactions/Bedroom/Carpet",
+	"categoryName": "Flooring",
+	"sceneName": "The Palace",
+	"rarity": 1,
+	"scale":{"x":2.3,"y":2.3,"z":2.3},
+	"tag":"Carpet"
+}

@@ -86,7 +86,7 @@ namespace ScalingFieldEncounters
         [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.GetMatchLevelItems))]
         static class LootDrop_GetMatchLevelItems_Patch
         {
-            static bool Prefix(LootDrop __instance, List<Transform> list, List<Transform> __result)
+            static bool Prefix(LootDrop __instance, List<Transform> list, ref List<Transform> __result)
             {
                 if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || list.Count <= 0)
                     return true;

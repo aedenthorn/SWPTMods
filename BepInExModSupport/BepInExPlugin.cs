@@ -26,6 +26,8 @@ namespace BepInExModSupport
 
         public static ConfigEntry<bool> checkUpdates;
         public static ConfigEntry<bool> loadImages;
+
+        public static ConfigEntry<string> checkText;
         public static ConfigEntry<string> visitText;
         public static ConfigEntry<string> updatedText;
         public static ConfigEntry<string> updateText;
@@ -35,7 +37,7 @@ namespace BepInExModSupport
 
         public static ConfigEntry<int> minUpdateInterval;
         public static ConfigEntry<long> lastUpdate;
-        
+
         private static Dictionary<int, Transform> updateSigns = new Dictionary<int, Transform>();
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -51,14 +53,15 @@ namespace BepInExModSupport
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
             minUpdateInterval = Config.Bind<int>("Options", "MinUpdateInterval", 0, "Minimum update interval in minutes.");
-            
+
+            checkText = Config.Bind<string>("Text", "CheckText", "Check", "Text to show on update check button");
             disableText = Config.Bind<string>("Text", "DisableText", "Disable", "Text to show instead of Uninstall");
             enableText = Config.Bind<string>("Text", "EnableText", "Enable", "Text to show instead of Uninstall");
             visitText = Config.Bind<string>("Text", "VisitText", "Visit", "Text to show on the visit buttons");
             updateText = Config.Bind<string>("Text", "UpdateText", "Update available!", "Text to show if update available.");
             updatedText = Config.Bind<string>("Text", "UpdatedText", "Latest Version.", "Text to show if latest version installed.");
             problemText = Config.Bind<string>("Text", "ProblemText", "Problem checking update.", "Text to show if problem checking for update.");
-            
+
             lastUpdate = Config.Bind<long>("ZAuto", "LastUpdate", 0, "Last update time (this is automatically changed on each update).");
 
             nexusID = Config.Bind<int>("General", "NexusID", 31, "Nexus mod ID for updates");
@@ -74,12 +77,26 @@ namespace BepInExModSupport
         }
 
         [HarmonyPatch(typeof(UIModBrowse), "ShowDownload")]
-        static class GetMods_Patch
+        static class ShowDownload_Patch
         {
             static void Postfix(UIModBrowse __instance)
             {
                 if (!modEnabled.Value)
                     return;
+
+                if(!__instance.Uploadbtn.transform.parent.Find("Check Button"))
+                {
+                    Button checkButton = Instantiate(__instance.Uploadbtn.transform, __instance.Uploadbtn.transform.parent).GetComponent<Button>();
+                    checkButton.transform.name = "Check Button";
+                    checkButton.GetComponent<RectTransform>().anchoredPosition += new Vector2(checkButton.GetComponent<RectTransform>().rect.width, 0);
+                    checkButton.onClick = new Button.ButtonClickedEvent();
+                    checkButton.onClick.AddListener(delegate ()
+                    {
+                        lastUpdate.Value = 0;
+                        AccessTools.Method(typeof(UIModBrowse), "ShowPanel").Invoke(__instance, new object[] { 0 });
+                    });
+                    checkButton.GetComponentInChildren<Text>().text = checkText.Value;
+                }
 
                 updateSigns.Clear();
 
@@ -189,6 +206,8 @@ namespace BepInExModSupport
             //Dictionary<string, string> ignores = GetIgnores();
             foreach (var kvp in mods)
             {
+                if (Mainframe.code?.uiModBrowse.gameObject.activeSelf != true)
+                    yield break;
 
                 Version currentVersion = kvp.Value.Metadata.Version;
                 string pluginName = kvp.Value.Metadata.Name;
@@ -203,6 +222,9 @@ namespace BepInExModSupport
 
                 UnityWebRequest uwr = UnityWebRequest.Get($"https://www.nexusmods.com/shewillpunishthem/mods/{id}");
                 yield return uwr.SendWebRequest();
+
+                if (Mainframe.code?.uiModBrowse.gameObject.activeSelf != true)
+                    yield break;
 
                 if (uwr.isNetworkError)
                 {

@@ -1,0 +1,9 @@
+{
+	"buildingName": "Med. Carpet",
+	"templateObject": "Interactions/Bedroom/Carpet",
+	"categoryName": "Flooring",
+	"sceneName": "The Palace",
+	"rarity": 1,
+	"scale":{"x":1.6,"y":1.6,"z":1.6},
+	"tag":"Carpet"
+}

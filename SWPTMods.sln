@@ -63,9 +63,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvancedGraphicsSettings", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JoinCompanion", "JoinCompanion\JoinCompanion.csproj", "{83AC32DF-DD9B-4DF3-A0F8-88F265BB821F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomBuildings", "CustomBuildings\CustomBuildings.csproj", "{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomFurniture", "CustomFurniture\CustomFurniture.csproj", "{C7910EE6-64DA-49EE-B714-8CCC49C3D80A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExModSupport", "BepInExModSupport\BepInExModSupport.csproj", "{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BepInExModSupport", "BepInExModSupport\BepInExModSupport.csproj", "{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationManager", "ConfigurationManager\ConfigurationManager.csproj", "{192DD6EF-AC02-4D7E-BA48-18CF6CAD1491}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -201,6 +203,10 @@ Global
 		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AA1609C-E4D0-4568-8159-EF5FBB87AF2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{192DD6EF-AC02-4D7E-BA48-18CF6CAD1491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{192DD6EF-AC02-4D7E-BA48-18CF6CAD1491}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{192DD6EF-AC02-4D7E-BA48-18CF6CAD1491}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{192DD6EF-AC02-4D7E-BA48-18CF6CAD1491}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
