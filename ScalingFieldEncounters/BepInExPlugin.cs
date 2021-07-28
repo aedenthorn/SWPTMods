@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.4.1")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -17,6 +17,7 @@ namespace ScalingFieldEncounters
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         
+        public static ConfigEntry<float> levelBasedLootWeighting;
         public static ConfigEntry<float> levelFactor;
         public static ConfigEntry<float> wonFactor;
         public static ConfigEntry<float> enemySpawnMult;
@@ -39,6 +40,8 @@ namespace ScalingFieldEncounters
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+
+            levelBasedLootWeighting = Config.Bind<float>("Options", "LevelBasedLootWeighting", 0, "Fraction weighting for preferring loot that matches the player level (1 is vanilla, only match with player level, and 0 means totally not level-matched). Preference is still for items with levels closer to the player.");
 
             levelFactor = Config.Bind<float>("Options", "LevelFactor", 0.1f, "Difficulty scale factor based on level (1 = 1-to-1 scaling per player level, set to 0 for no effect).");
             wonFactor = Config.Bind<float>("Options", "WonFactor", 0.1f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
@@ -97,7 +100,18 @@ namespace ScalingFieldEncounters
                     Item component = transform.GetComponent<Item>();
                     if (component)
                     {
-                        if (component.level <= Global.code.curlocation.level && component.level > Random.value * (Global.code.curlocation.level - 2))
+                        float add;
+                        if (Player.code.customization._ID.level > component.level)
+                        {
+                            add = (Player.code.customization._ID.level / 2f - component.level) / Player.code.customization._ID.level;
+                        }
+                        else
+                        {
+                            add = -(Player.code.customization._ID.level * 1.5f - component.level) / component.level; // 6 12, 9 - 12 / 12 = -0.25 // 10 12, 15 - 12 / 12 = 0.25
+                        }
+                        //Dbgl($"Item level {t.GetComponent<Item>().level}, extra chance {add}");
+
+                        if (Random.value > levelBasedLootWeighting.Value * (1 + add))
                         {
                             list2.Add(transform);
                         }

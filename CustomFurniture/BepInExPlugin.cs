@@ -46,7 +46,6 @@ namespace CustomFurniture
             if (!Directory.Exists(assetPath))
             {
                 Directory.CreateDirectory(assetPath);
-                return;
             }
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);

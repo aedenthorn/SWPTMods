@@ -11,11 +11,11 @@ using UnityEngine.SceneManagement;
 
 namespace MerchantEdit
 {
-    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.2")]
+    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
-
+        
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<bool> removeMaidOutfit;
@@ -126,6 +126,8 @@ namespace MerchantEdit
                 CharacterCustomization ccc = companion.GetComponent<CharacterCustomization>();
 
                 go = Instantiate(modelObjects["Bartender"]);
+                go.SetActive(true);
+                go.name = "CustomMerchant_" + vanilla;
                 Destroy(go.transform.Find("Morganas Desire").gameObject);
                 var rb = go.AddComponent<Rigidbody>();
                 rb.constraints = RigidbodyConstraints.FreezeAll;
@@ -185,7 +187,7 @@ namespace MerchantEdit
         {
             static bool Prefix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value || !__instance.gameObject.name.StartsWith("Bartender"))
+                if (!modEnabled.Value || !__instance.gameObject.name.StartsWith("CustomMerchant"))
                     return true;
                 return false;
             }
@@ -196,24 +198,10 @@ namespace MerchantEdit
         {
             static bool Prefix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value || !__instance.gameObject.name.StartsWith("Bartender"))
+                if (!modEnabled.Value || !__instance.gameObject.name.StartsWith("CustomMerchant"))
                     return true;
                 return false;
             }
         }
-
-        [HarmonyPatch(typeof(CharacterCustomization), "RefreshClothesVisibility")]
-        static class CharacterCustomization_RefreshClothesVisibility_Patch
-        {
-            static void Prefix(CharacterCustomization __instance)
-            {
-                if (!modEnabled.Value || !__instance.gameObject.name.StartsWith("Bartender"))
-                    return;
-
-                Dbgl($"anim {__instance.anim == null}");
-                Dbgl($"body {__instance.body == null}");
-            }
-        }
-
     }
 }
