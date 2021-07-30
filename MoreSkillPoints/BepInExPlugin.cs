@@ -7,13 +7,14 @@ using UnityEngine.UI;
 
 namespace MoreSkillPoints
 {
-    [BepInPlugin("aedenthorn.MoreSkillPoints", "More Skill Points", "0.2.0")]
+    [BepInPlugin("aedenthorn.MoreSkillPoints", "More Skill Points", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
+        public static ConfigEntry<int> maxSkillPointsPerSkill;
         public static ConfigEntry<int> extraSkillPointsPerLevel;
         public static ConfigEntry<int> extraAttributePointsPerLevel;
         public static ConfigEntry<int> nexusID;
@@ -29,6 +30,7 @@ namespace MoreSkillPoints
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            maxSkillPointsPerSkill = Config.Bind<int>("Options", "MaxSkillPointsPerSkill", 10, "Max skill points per skill.");
             extraSkillPointsPerLevel = Config.Bind<int>("Options", "ExtraSkillPointsPerLevel", 2, "Extra skill points per level (added to the default 2).");
             extraAttributePointsPerLevel = Config.Bind<int>("Options", "ExtraAttributePointsPerLevel", 1, "Extra attribute points per level  (added to the default 1).");
 
@@ -41,6 +43,18 @@ namespace MoreSkillPoints
         }
 
 
+        [HarmonyPatch(typeof(SkillBox), nameof(SkillBox.Initiate))]
+        static class SkillBox_Initiate_Patch
+        {
+            static void Prefix(SkillBox __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                __instance.maxPoints = maxSkillPointsPerSkill.Value;
+            }
+        }
+        
         [HarmonyPatch(typeof(ID), nameof(ID.GetNextExp))]
         static class GetNextExp_Patch
         {

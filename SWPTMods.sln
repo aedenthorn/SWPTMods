@@ -73,9 +73,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EyebrowColors", "EyebrowCol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Potions", "Potions\Potions.csproj", "{90B1CB9C-CE84-4E0A-BAB6-3B691B6FECF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealCompanions", "HealCompanions\HealCompanions.csproj", "{F99898E9-04B3-4EFF-8B6D-8AC691F8F433}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HealCompanions", "HealCompanions\HealCompanions.csproj", "{F99898E9-04B3-4EFF-8B6D-8AC691F8F433}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareEquipment", "CompareEquipment\CompareEquipment.csproj", "{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompareEquipment", "CompareEquipment\CompareEquipment.csproj", "{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowHideWeaponArmor", "ShowHideWeaponArmor\ShowHideWeaponArmor.csproj", "{49A20903-DF86-4B9C-8AB6-DFA95B008DA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -231,6 +233,10 @@ Global
 		{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49A20903-DF86-4B9C-8AB6-DFA95B008DA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49A20903-DF86-4B9C-8AB6-DFA95B008DA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49A20903-DF86-4B9C-8AB6-DFA95B008DA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49A20903-DF86-4B9C-8AB6-DFA95B008DA5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

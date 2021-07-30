@@ -12,13 +12,16 @@ namespace CompareEquipment
     {
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
-        //public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static BepInExPlugin context;
         
         public static bool showingCompare = false;
         public static Transform comparePanel;
         public static Transform compareHolder;
+        public static Text compareName;
+        public static Text comparePrice;
+        public static bool compareAsGoods = false;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -30,21 +33,33 @@ namespace CompareEquipment
             context = this;
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            //nexusID = Config.Bind<int>("General", "NexusID", 169, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
 
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
 
+        [HarmonyPatch(typeof(UICombat), "Update")]
+        static class UICombat_Update_Patch
+        {
+            static void Postfix(UICombat __instance)
+            {
+                if (!modEnabled.Value || !comparePanel || !comparePanel.gameObject.activeSelf)
+                    return;
+                //comparePanel.GetComponent<RectTransform>().anchoredPosition = __instance.descriptionsPanel.transform.Find("panel").GetComponent<RectTransform>().anchoredPosition - new Vector2(0, __instance.descriptionsPanel.transform.Find("panel").GetComponent<RectTransform>().rect.height);
+            }
+        }
         [HarmonyPatch(typeof(UICombat), nameof(UICombat.ShowInfo))]
         static class ShowInfo_Patch
         {
-            static void Prefix(UICombat __instance, Item item)
+            static void Prefix(UICombat __instance)
             {
                 if (!modEnabled.Value || !showingCompare)
                     return;
                 __instance.descriptionHolder = compareHolder;
+                __instance.lineName = compareName;
+                __instance.linePrice = comparePrice;
             }
             static void Postfix(UICombat __instance, Item item)
             {
@@ -55,17 +70,22 @@ namespace CompareEquipment
                 {
                     comparePanel = Instantiate(__instance.descriptionsPanel.transform.Find("panel"), __instance.descriptionsPanel.transform);
                     comparePanel.name = "compared";
-                    comparePanel.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, __instance.descriptionsPanel.transform.Find("panel").GetComponent<RectTransform>().rect.height);
                     compareHolder = comparePanel.Find("group");
+                    compareName = comparePanel.Find("name (1)").GetComponent<Text>();
+                    comparePrice = comparePanel.Find("line price").GetComponent<Text>();
                 }
 
                 if (showingCompare)
                 {
+                    if(compareAsGoods)
+                        __instance.linePrice.text = Localization.GetContent("Gold", new object[0]) + " " + item.cost.ToString();
                     __instance.descriptionHolder = __instance.descriptionsPanel.transform.Find("panel/group");
+                    __instance.lineName = __instance.descriptionsPanel.transform.Find("panel/name (1)").GetComponent<Text>();
+                    __instance.linePrice = __instance.descriptionsPanel.transform.Find("panel/line price").GetComponent<Text>();
                     return;
                 }
 
-                Item compared;
+                Item compared = null;
 
                 switch (item.slotType)
                 {
@@ -88,20 +108,20 @@ namespace CompareEquipment
                         compared = Global.code.uiInventory.curCustomization.shoes?.GetComponent<Item>();
                         break;
                     default:
-                        return;
+                        break;
                 }
 
-                if (compared == null)
+                if (compared == null || compared == item)
                 {
                     comparePanel.gameObject.SetActive(false);
                     return;
                 }
 
-                Dbgl($"name: {compareHolder?.name}");
-
                 showingCompare = true;
+                compareAsGoods = item.isGoods;
                 comparePanel.gameObject.SetActive(true);
                 __instance.ShowInfo(compared);
+                comparePanel.GetComponent<RectTransform>().anchoredPosition = __instance.descriptionsPanel.transform.Find("panel").GetComponent<RectTransform>().anchoredPosition - new Vector2(0, __instance.descriptionsPanel.transform.Find("panel").GetComponent<RectTransform>().rect.height + 20);
                 showingCompare = false;
 
 

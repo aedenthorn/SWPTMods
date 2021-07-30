@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace GearTypeDisplay
 {
-    [BepInPlugin("aedenthorn.GearTypeDisplay", "Gear Type Display", "0.1.2")]
+    [BepInPlugin("aedenthorn.GearTypeDisplay", "Gear Type Display", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -17,6 +17,8 @@ namespace GearTypeDisplay
         public static ConfigEntry<bool> isDebug;
 
         public static ConfigEntry<int> nexusID;
+
+        public static Item thisItem;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -41,14 +43,23 @@ namespace GearTypeDisplay
         [HarmonyPatch(typeof(UICombat), nameof(UICombat.ShowInfo))]
         static class ShowInfo_Patch
         {
-            static void Postfix(UICombat __instance, Item item)
+
+            static void Prefix(UICombat __instance, Item item)
             {
-                if (!modEnabled.Value || !item)
+                thisItem = item;
+            }
+        }
+        [HarmonyPatch(typeof(UICombat), nameof(UICombat.CreateLine))]
+        static class CreateLine_Patch
+        {
+            static void Prefix(UICombat __instance, ref string txt)
+            {
+                if (!modEnabled.Value || !thisItem)
                     return;
 
                 string old = null;
 
-                switch (item.rarity)
+                switch (thisItem.rarity)
                 {
                     case Rarity.one:
                         old = Localization.GetContent("Common", Array.Empty<object>());
@@ -69,17 +80,17 @@ namespace GearTypeDisplay
                         old = Localization.GetContent("Ultra Legendary", Array.Empty<object>());
                         break;
                 }
-                if (old == null)
+                if (old == null || txt != old)
                     return;
 
                 string type = null;
-                switch (item.slotType)
+                switch (thisItem.slotType)
                 {
                     case SlotType.helmet:
                         type = "Helmet";
                         break;
                     case SlotType.weapon:
-                        Weapon weapon = item.GetComponent<Weapon>();
+                        Weapon weapon = thisItem.GetComponent<Weapon>();
                         switch (weapon.weaponType)
                         {
                             case WeaponType.onehand:
@@ -164,15 +175,7 @@ namespace GearTypeDisplay
                     default:
                         return;
                 }
-
-                if (type != null)
-                {
-                    for (int i = 0; i < __instance.descriptionHolder.childCount; i++)
-                    {
-                        __instance.descriptionHolder.GetChild(i).GetComponent<Text>().text = __instance.descriptionHolder.GetChild(i).GetComponent<Text>().text.Replace(old, old + " " + Localization.GetContent(type, new object[0]));
-                    }
-                }
-                //Dbgl($"show info for {item.name}, type: {type}, string: {__instance.descriptionHolder.GetChild(0).GetComponent<Text>().text}");
+                txt = old + " " + Localization.GetContent(type, new object[0]);
             }
         }
     }

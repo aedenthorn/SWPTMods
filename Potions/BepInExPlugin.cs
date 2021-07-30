@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace Potions
 {
-    [BepInPlugin("aedenthorn.Potions", "Potions", "0.1.0")]
+    [BepInPlugin("aedenthorn.Potions", "Potions", "0.1.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -123,6 +123,7 @@ namespace Potions
                     }
 
                     __instance.allPotions.AddItemDifferentName(t);
+                    __instance.allItems.AddItemDifferentName(t);
 
                     Dbgl($"Added potion to RM: {pd.id}");
                 }
@@ -151,23 +152,13 @@ namespace Potions
                 }
             }
         }
-        //[HarmonyPatch(typeof(LootDrop), "DropItem")]
-        static class DropItem_Patch
-        {
-            static void Prefix(Transform item)
-            {
-                if (!modEnabled.Value || !item.GetComponent<Potion>())
-                    return;
-                Dbgl($"trying to drop {item.name}");
-            }
-        }
 
         [HarmonyPatch(typeof(Player), "Update")]
         static class Player_Update_Patch
         {
             static void Postfix(Player __instance)
             {
-                if (!modEnabled.Value || __instance.gameObject.tag == "D")
+                if (!modEnabled.Value || __instance.gameObject.tag == "D" || Global.code.onGUI || Global.code.uiInventory.gameObject.activeSelf)
                     return;
 
                 foreach (PotionData pd in potionDataDict.Values)
@@ -181,7 +172,6 @@ namespace Potions
                             if (transform && transform.GetComponent<Potion>() && transform.name == pd.id)
                             {
                                 UsePotion(__instance.customization, transform.GetComponent<Item>(), pd);
-                                Player.code.customization.storage.RemoveItem(transform);
                                 return;
                             }
                         }
@@ -212,7 +202,6 @@ namespace Potions
                     return true;
 
                 UsePotion(user, __instance, potionDataDict[__instance.name]);
-                Player.code.customization.storage.RemoveItem(__instance.transform);
                 return false;
             }
         }
@@ -256,6 +245,10 @@ namespace Potions
                 customization._ID.attributePoints += Mathf.RoundToInt(pd.attributePoints * mult);
                 Dbgl($"Potion added {Mathf.RoundToInt(pd.attributePoints * mult)} attribute points");
             }
+            Global.code.uiCombat.CS();
+            customization.storage.RemoveItem(item.transform);
+            Destroy(item.transform.gameObject);
+            customization.storage.RemoveItem(item.transform);
         }
     }
 }

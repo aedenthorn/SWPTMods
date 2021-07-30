@@ -57,6 +57,7 @@ namespace HideHeadgear
             {
                 if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value) || Global.code.uiNameChanger.gameObject.activeSelf)
                     return;
+
                 showHeadgear.Value = !showHeadgear.Value;
                 Dbgl($"Show headgear: {showHeadgear.Value}");
             }

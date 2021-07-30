@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JoinCompanion
 {
-    [BepInPlugin("aedenthorn.JoinCompanion", "Join Companion", "0.1.2")]
+    [BepInPlugin("aedenthorn.JoinCompanion", "Join Companion", "0.1.4")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -44,6 +44,15 @@ namespace JoinCompanion
 
         }
 
+        [HarmonyPatch(typeof(Furniture), nameof(Furniture.InteractWithOnlyPoses))]
+        static class InteractWithOnlyPoses_Patch
+        {
+            static bool Prefix(Furniture __instance)
+            {
+                return !modEnabled.Value || __instance != joinedFurniture;
+            }
+        }
+        
         [HarmonyPatch(typeof(CharacterCustomization), "Awake")]
         static class CharacterCustomization_Awake_Patch
         {
@@ -88,7 +97,7 @@ namespace JoinCompanion
 
                     return false;
                 }
-                if(__instance.GetComponent<CharacterCustomization>() && __instance.gameObject.tag != "D")
+                if(__instance.GetComponent<CharacterCustomization>() && __instance.gameObject.tag != "D" && Global.code.curlocation.locationType == LocationType.home)
                 {
 
                     Dbgl($"Interacting with character {__instance.GetComponent<CharacterCustomization>().characterName}");
@@ -137,7 +146,7 @@ namespace JoinCompanion
                 
                 Vector3 position = joinedChar.curInteractionLoc.position;
                 var rotation = joinedChar.curInteractionLoc.rotation;
-
+                rotation.eulerAngles = new Vector3(0, rotation.eulerAngles.y, 0);
                 //joinedFurniture.QuitInteractWithOnlyPoses(joinedChar);
                 //Scene.code.SpawnCompanion(joinedChar.transform);
 

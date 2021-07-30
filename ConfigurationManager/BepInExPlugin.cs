@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace ConfigurationManager
 {
-    [BepInPlugin("aedenthorn.ConfigurationManager", "BepInEx Configuration Manager", "0.5.3")]
+    [BepInPlugin("aedenthorn.ConfigurationManager", "BepInEx Configuration Manager", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static void Dbgl(string str = "", bool pref = true)
@@ -173,7 +173,7 @@ namespace ConfigurationManager
         {
             if (DisplayingWindow)
             {
-                if (Event.current.type == EventType.KeyUp && Event.current.keyCode == _keybind.Value.MainKey)
+                if (Event.current.type == EventType.KeyUp && (Event.current.keyCode == _keybind.Value.MainKey || Event.current.keyCode == KeyCode.Escape))
                 {
                     DisplayingWindow = false;
                     return;
