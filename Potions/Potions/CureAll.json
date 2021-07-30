@@ -1,0 +1,15 @@
+{
+  "id": "Cure All Potion",
+  "nameEN": "Cure All Potion",
+  "nameCN": "",
+  "nameRU": "",
+  "health": 50,
+  "mana": 50,
+  "stamina": 50,
+  "rage": 0,
+  "cost": 5000,
+  "rarity": 3,
+  "skillPoints": 0,
+  "attributePoints": 0,
+  "hotKey": "6"
+}

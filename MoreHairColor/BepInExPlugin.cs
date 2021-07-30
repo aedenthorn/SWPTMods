@@ -14,26 +14,26 @@ namespace MoreHairColor
     [BepInPlugin("aedenthorn.MoreHairColor", "More Hair Color", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<string> modKey;
         public static ConfigEntry<string> delModKey;
 
-        private static string assetPath;
-        private static readonly string buttonPrefix = "CustomHair";
-        private static List<Color> hairColorList;
-        private static Transform customHairColor;
-        private static Texture2D hairTemplate;
-        private static Texture2D saveButtonTexture;
+        public static string assetPath;
+        public static readonly string buttonPrefix = "CustomHair";
+        public static List<Color> hairColorList;
+        public static Transform customHairColor;
+        public static Texture2D hairTemplate;
+        public static Texture2D saveButtonTexture;
 
-        private static Transform redSlider;
-        private static Transform greenSlider;
-        private static Transform blueSlider;
-        private static Transform saveButton;
+        public static Transform redSlider;
+        public static Transform greenSlider;
+        public static Transform blueSlider;
+        public static Transform saveButton;
 
-        ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -95,7 +95,7 @@ namespace MoreHairColor
 
         }
 
-        private static bool forceSliders = false;
+        public static bool forceSliders = false;
 
         [HarmonyPatch(typeof(UIMakeup), "ButtonCustomizationButtonClicked")]
         static class ButtonCustomizationButtonClicked_Patch
@@ -233,7 +233,7 @@ namespace MoreHairColor
             }
         }
 
-        private static void ChangeCurrentColor(float arg0)
+        public static void ChangeCurrentColor(float arg0)
         {
             if (forceSliders)
                 return;
@@ -242,7 +242,7 @@ namespace MoreHairColor
             Global.code.uiMakeup.curCustomization.RefreshAppearence();
         }
 
-        private static void AddHairColor()
+        public static void AddHairColor()
         {
             Color newColor = customHairColor.GetComponent<CustomizationItem>().color;
             Dbgl($"Adding new color {newColor} to hair list");
@@ -255,7 +255,7 @@ namespace MoreHairColor
             RM.code.allHairColors.AddItem(newTransform);
             SaveHairColors();
         }
-        private static void SaveHairColors()
+        public static void SaveHairColors()
         {
             Dbgl("Saving hair file");
             string json = JsonUtility.ToJson(new HairColorList() { colors = hairColorList });
@@ -263,7 +263,7 @@ namespace MoreHairColor
             Global.code.uiMakeup.ButtonHair();
         }
 
-        private static Texture2D MakeHairTexture(Color color)
+        public static Texture2D MakeHairTexture(Color color)
         {
             Texture2D temp = new Texture2D(hairTemplate.width, hairTemplate.height);
             
@@ -276,7 +276,7 @@ namespace MoreHairColor
             temp.Apply();
             return temp;
         }
-        private static void LoadHairColors()
+        public static void LoadHairColors()
         {
             string file = Path.Combine(assetPath, "hair_colors.json");
             if (File.Exists(file))

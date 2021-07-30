@@ -81,16 +81,7 @@ namespace BattleSkip
                 Global.code.curlocation = Global.code.currentHome;
             }
         }
-        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.GetMatchLevelItems))]
-        static class GetMatchLevelItems_Patch
-        {
-            static void Prefix(List<Transform> list)
-            {
-                if (!modEnabled.Value)
-                    return;
-                Dbgl(list.Count + " items to match");
-            }
-        }
+
         [HarmonyPatch(typeof(UICombatParty), nameof(UICombatParty.Open))]
         static class UICombatParty_Open_Patch
         {
