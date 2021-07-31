@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JoinCompanion
 {
-    [BepInPlugin("aedenthorn.JoinCompanion", "Join Companion", "0.1.4")]
+    [BepInPlugin("aedenthorn.JoinCompanion", "Join Companion", "0.1.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -35,7 +35,7 @@ namespace JoinCompanion
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
-            modKey = Config.Bind<string>("Options", "ModKey", "left shift", "Modifier key to join companion.");
+            modKey = Config.Bind<string>("Options", "ModKey", "left shift", "Modifier key to join companion. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
             nexusID = Config.Bind<int>("General", "NexusID", 27, "Nexus mod ID for updates");
 

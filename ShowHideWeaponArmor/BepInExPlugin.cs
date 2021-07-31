@@ -306,9 +306,12 @@ namespace ShowHideWeaponArmor
             if (!modEnabled.Value || !Player.code || !Global.code)
                 return;
 
+
             Player.code.customization.RefreshClothesVisibility();
             for (int i = 0; i < Global.code.companions.items.Count; i++)
             {
+                if (Global.code.companions.items[i].GetComponent<CharacterCustomization>().anim == null)
+                    continue;
                 Global.code.companions.items[i].GetComponent<CharacterCustomization>().RefreshClothesVisibility();
             }
         }

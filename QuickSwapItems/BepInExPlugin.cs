@@ -114,7 +114,7 @@ namespace QuickSwapItems
                             if (__instance.uiNameChanger.curcustomization != cc)
                             {
                                 __instance.uiNameChanger.curcustomization = cc;
-                                __instance.uiCustomization.SwitchToCharacter();
+                                __instance.uiNameChanger.SwitchToCharacter();
                                 Dbgl("Switched character");
                             }
                         }

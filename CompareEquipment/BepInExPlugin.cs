@@ -7,12 +7,13 @@ using UnityEngine.UI;
 
 namespace CompareEquipment
 {
-    [BepInPlugin("aedenthorn.CompareEquipment", "Compare Equipment", "0.1.0")]
+    [BepInPlugin("aedenthorn.CompareEquipment", "Compare Equipment", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<string> equippedText;
 
         public static BepInExPlugin context;
         
@@ -34,6 +35,7 @@ namespace CompareEquipment
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
+            equippedText = Config.Bind<string>("Options", "EquippedText", "<color=#FFFF00>Equipped: </color>", "Text to show before equipped item's name.");
 
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
@@ -66,17 +68,19 @@ namespace CompareEquipment
                 if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf)
                     return;
 
-                if(__instance.descriptionsPanel.transform.Find("compared") == null)
+                if (__instance.descriptionsPanel.transform.Find("compared") == null)
                 {
                     comparePanel = Instantiate(__instance.descriptionsPanel.transform.Find("panel"), __instance.descriptionsPanel.transform);
                     comparePanel.name = "compared";
                     compareHolder = comparePanel.Find("group");
                     compareName = comparePanel.Find("name (1)").GetComponent<Text>();
                     comparePrice = comparePanel.Find("line price").GetComponent<Text>();
+                    compareName.supportRichText = true;
                 }
 
                 if (showingCompare)
                 {
+                    compareName.text = equippedText.Value + compareName.text;
                     if(compareAsGoods)
                         __instance.linePrice.text = Localization.GetContent("Gold", new object[0]) + " " + item.cost.ToString();
                     __instance.descriptionHolder = __instance.descriptionsPanel.transform.Find("panel/group");

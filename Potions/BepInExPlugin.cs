@@ -85,11 +85,12 @@ namespace Potions
                 if (!modEnabled.Value)
                     return;
                 Transform template = __instance.allPotions.items[0];
+                GameObject parent = new GameObject() { name = "CustomPotions" };
+                DontDestroyOnLoad(parent);
                 foreach(PotionData pd in potionDataDict.Values)
                 {
-                    Transform t = Instantiate(template);
+                    Transform t = Instantiate(template, parent.transform);
                     t.name = pd.id;
-                    DontDestroyOnLoad(t.gameObject);
 
                     DestroyImmediate(t.GetComponent<Potion>());
                     t.gameObject.AddComponent<Potion>();

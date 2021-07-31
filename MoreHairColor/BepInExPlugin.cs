@@ -282,10 +282,11 @@ namespace MoreHairColor
             if (File.Exists(file))
             {
                 hairColorList = JsonUtility.FromJson<HairColorList>(File.ReadAllText(file)).colors;
+                GameObject parent = new GameObject() { name = "CustomHair" };
                 for (int i = 0; i < hairColorList.Count; i++)
                 {
-                    Transform t = Instantiate(RM.code.allHairColors.items[0], RM.code.allHairColors.items[0].parent);
-                    DontDestroyOnLoad(t.gameObject);
+                    DontDestroyOnLoad(parent);
+                    Transform t = Instantiate(RM.code.allHairColors.items[0], parent.transform);
                     t.GetComponent<CustomizationItem>().color = hairColorList[i];
                     t.GetComponent<CustomizationItem>().icon = MakeHairTexture(hairColorList[i]);
                     t.name = buttonPrefix + (i + 1);

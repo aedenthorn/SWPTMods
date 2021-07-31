@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EnhancedFreePose
 {
-    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.4.1")]
+    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.4.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -120,14 +120,14 @@ namespace EnhancedFreePose
         {
             public static void Prefix(Transform ___mytransform, ref Vector3 __state)
             {
-                if (!modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf)
+                if (!modEnabled.Value || Global.code?.uiFreePose.gameObject.activeSelf != true)
                     return;
 
                 __state = ___mytransform.eulerAngles;
             }
             public static void Postfix(Transform ___mytransform, Vector3 __state)
             {
-                if (!modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf)
+                if (!modEnabled.Value || Global.code?.uiFreePose.gameObject.activeSelf != true)
                     return;
 
                 ___mytransform.eulerAngles = __state;
