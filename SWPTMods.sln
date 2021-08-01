@@ -83,7 +83,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eyes", "Eyes\Eyes.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomMainMenu", "CustomMainMenu\CustomMainMenu.csproj", "{74F4D016-E5F5-453D-8F27-5D2A8FCE31CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomizationFix", "CustomizationFix\CustomizationFix.csproj", "{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomizationFix", "CustomizationFix\CustomizationFix.csproj", "{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transmogrification", "Transmogrification\Transmogrification.csproj", "{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveBackup", "SaveBackup\SaveBackup.csproj", "{5771530A-2264-406F-B1D6-A3CC2F8197FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -255,6 +259,14 @@ Global
 		{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

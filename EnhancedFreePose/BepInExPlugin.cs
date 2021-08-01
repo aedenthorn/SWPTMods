@@ -98,7 +98,7 @@ namespace EnhancedFreePose
         {
             public static void Prefix(FreelookCamera __instance)
             {
-                if (!modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf)
+                if (!modEnabled.Value || Global.code?.uiFreePose.gameObject.activeSelf != true)
                     return;
                 __instance.Speed = freeCameraSpeed.Value;
                 __instance.BoostSpeed = freeCameraSpeed.Value * freeCameraBoostMult.Value;

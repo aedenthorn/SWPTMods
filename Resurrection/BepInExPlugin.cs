@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -44,19 +45,23 @@ namespace Resurrection
 
         }
 
-        
-        //[HarmonyPatch(typeof(Utility), nameof(Utility.GetNearestObject))]
+        /*
+        HarmonyPatch(typeof(Utility), nameof(Utility.GetNearestObject))]
         static class Utility_GetNearestObject_Patch
         {
-            static void Postfix(ref Transform __result, Transform origin)
+            static void Prefix(ref List<Transform> _object, Transform origin)
             {
-                if (!modEnabled.Value || !__result || !__result.GetComponent<Interaction>() || !__result.GetComponent<CharacterCustomization>() || __result.gameObject.tag != "D" || !origin || !origin.GetComponent<CharacterCustomization>() || origin.GetComponent<CharacterCustomization>().healaura >= healingSpellLevel.Value)
+                if (!modEnabled.Value || Global.code.curlocation.locationType == LocationType.home || !origin || !origin.GetComponent<CharacterCustomization>())
                     return;
 
-                __result = null;
+                _object = new List<Transform>(_object);
+                for(int i = _object.Count - 1; i >= 0; i--)
+                {
+                    if(_object[i].GetComponent<Interaction>() && _object[i].GetComponent<CharacterCustomization>() && 
+                }
             }
         }
-
+        */
         [HarmonyPatch(typeof(CompanionCombatIcon), "Update")]
         static class CompanionCombatIcon_Update_Patch
         {
