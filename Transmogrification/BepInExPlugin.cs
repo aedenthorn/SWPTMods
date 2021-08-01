@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Transmogrification
 {
-    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.1.0")]
+    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -56,11 +56,12 @@ namespace Transmogrification
         }
 
         [HarmonyPatch(typeof(UICombat), nameof(UICombat.ShowInfo))]
+        [HarmonyPriority(Priority.First)]
         static class ShowInfo_Patch
         {
             static void Postfix(UICombat __instance, Item item)
             {
-                if (!modEnabled.Value || !itemAppearances.ContainsKey(item.transform.GetInstanceID()) || appearString.Value.Trim() == "")
+                if (!modEnabled.Value || !item || !itemAppearances.ContainsKey(item.transform.GetInstanceID()) || appearString.Value.Trim() == "")
                     return;
                 __instance.CreateLine(string.Format(appearString.Value, itemAppearances[item.transform.GetInstanceID()]), appearStringColor.Value);
                     
@@ -139,13 +140,13 @@ namespace Transmogrification
         {
             static void Postfix(UIInventory __instance)
             {
-                if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf || !currentSlot || !currentSlot.item || !AedenthornUtils.CheckKeyDown(hotKey.Value) || currentSlot.slotType == SlotType.weapon)
+                if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf || !currentSlot || !currentSlot.item || !AedenthornUtils.CheckKeyDown(hotKey.Value))
                     return;
 
                 Dbgl($"Pressed hotkey on slot with item {currentSlot.item.GetInstanceID()}");
 
                 Transform source;
-                if (AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false) && Global.code.selectedItem && currentSlot.slotType == Global.code.selectedItem.GetComponent<Item>().slotType)
+                if (AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false) && Global.code.selectedItem && currentSlot.slotType == Global.code.selectedItem.GetComponent<Item>().slotType && (currentSlot.slotType != SlotType.weapon || currentSlot.item.GetComponent<Item>().itemType == Global.code.selectedItem.GetComponent<Item>().itemType))
                 {
                     Dbgl($"Transmogrifying {currentSlot.item.name} into {Global.code.selectedItem.name}");
                     source = Global.code.selectedItem;

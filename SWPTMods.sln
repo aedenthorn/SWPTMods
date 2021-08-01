@@ -85,9 +85,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomMainMenu", "CustomMai
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomizationFix", "CustomizationFix\CustomizationFix.csproj", "{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transmogrification", "Transmogrification\Transmogrification.csproj", "{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Transmogrification", "Transmogrification\Transmogrification.csproj", "{F9F95C0D-E0F0-4E1F-A1B8-AC40AA6E4C12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveBackup", "SaveBackup\SaveBackup.csproj", "{5771530A-2264-406F-B1D6-A3CC2F8197FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SaveBackup", "SaveBackup\SaveBackup.csproj", "{5771530A-2264-406F-B1D6-A3CC2F8197FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmorParts", "ArmorParts\ArmorParts.csproj", "{3D672270-507F-4416-A5D6-0EC73B33D441}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AedenthornUtils", "AedenthornUtils\AedenthornUtils.csproj", "{75A7D2A6-030B-4FAF-AC2D-53CBD892E032}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mirror", "Mirror\Mirror.csproj", "{D698504F-878B-4C8E-A1EF-3F0E39E02D61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SortInventory", "SortInventory\SortInventory.csproj", "{D714A41A-619F-4C25-80F6-301DD4DDE07E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -267,6 +275,22 @@ Global
 		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5771530A-2264-406F-B1D6-A3CC2F8197FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D672270-507F-4416-A5D6-0EC73B33D441}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D672270-507F-4416-A5D6-0EC73B33D441}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D672270-507F-4416-A5D6-0EC73B33D441}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D672270-507F-4416-A5D6-0EC73B33D441}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75A7D2A6-030B-4FAF-AC2D-53CBD892E032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75A7D2A6-030B-4FAF-AC2D-53CBD892E032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75A7D2A6-030B-4FAF-AC2D-53CBD892E032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75A7D2A6-030B-4FAF-AC2D-53CBD892E032}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D698504F-878B-4C8E-A1EF-3F0E39E02D61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D698504F-878B-4C8E-A1EF-3F0E39E02D61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D698504F-878B-4C8E-A1EF-3F0E39E02D61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D698504F-878B-4C8E-A1EF-3F0E39E02D61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using UnityEngine;
 
 public class AedenthornUtils
@@ -8,6 +10,17 @@ public class AedenthornUtils
         try
         {
             return Input.GetKeyDown(value.ToLower());
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    public static bool CheckKeyUp(string value)
+    {
+        try
+        {
+            return Input.GetKeyUp(value.ToLower());
         }
         catch
         {
@@ -37,5 +50,9 @@ public class AedenthornUtils
             list[k] = list[n];
             list[n] = value;
         }
+    }
+    public static string GetAssetPath(string name)
+    {
+        return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), name);
     }
 }

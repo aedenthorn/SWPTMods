@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace CompareEquipment
 {
-    [BepInPlugin("aedenthorn.CompareEquipment", "Compare Equipment", "0.3.0")]
+    [BepInPlugin("aedenthorn.CompareEquipment", "Compare Equipment", "0.3.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -41,7 +41,7 @@ namespace CompareEquipment
             context = this;
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 43, "Nexus mod ID for updates");
             equippedText = Config.Bind<string>("Options", "EquippedText", "<color=#FFFF00>Equipped: </color>", "Text to show before equipped item's name.");
             weaponModKey = Config.Bind<string>("Options", "WeaponModKey", "left shift", "Modifier key to compare to off-hand equipped weapon. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
@@ -108,7 +108,12 @@ namespace CompareEquipment
             static void Postfix(UICombat __instance, Item item)
             {
                 if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf)
+                {
+                    comparedItem = null;
+                    curItem = null;
+                    comparePanel.gameObject.SetActive(false);
                     return;
+                }
 
                 if (__instance.descriptionsPanel.transform.Find("compared") == null)
                 {
@@ -145,6 +150,7 @@ namespace CompareEquipment
 
                 if (compared == null || compared == item)
                 {
+                    comparedItem = null;
                     comparePanel.gameObject.SetActive(false);
                     return;
 
@@ -162,6 +168,9 @@ namespace CompareEquipment
         }
         private static Item GetComparedItem(Item item, bool offhand = false)
         {
+            if (item == null || !Global.code.uiInventory.gameObject.activeSelf || Global.code.uiInventory.curCustomization == null)
+                return null;
+
             Item compared = null;
 
             switch (item.slotType)

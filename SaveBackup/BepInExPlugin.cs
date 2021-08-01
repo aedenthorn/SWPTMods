@@ -16,6 +16,8 @@ namespace SaveBackup
         public static ConfigEntry<bool> isDebug;
 
         public static ConfigEntry<int> nexusID;
+        
+        public static ConfigEntry<string> backupText;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -29,8 +31,9 @@ namespace SaveBackup
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            //nexusID = Config.Bind<int>("General", "NexusID", 39, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 44, "Nexus mod ID for updates");
 
+            backupText = Config.Bind<string>("Options", "BackupText", " (Backup)", "Text to indicate that a save is a backup");
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
 
@@ -39,7 +42,6 @@ namespace SaveBackup
         [HarmonyPatch(typeof(Mainframe), "DeleteAllSavedGames")]
         static class SaveGame_Patch
         {
-
             static void Prefix(Mainframe __instance)
             {
                 if (!modEnabled.Value)
@@ -53,6 +55,24 @@ namespace SaveBackup
                     Directory.Delete(dest);
                 }
                 Directory.Move(Path.Combine(Application.persistentDataPath, __instance.foldername), dest);
+            }
+        }
+
+        [HarmonyPatch(typeof(UILoadGame), "Open")]
+        static class UILoadGame_Open_Patch
+        {
+            static void Postfix(UILoadGame __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                for (int i = 0; i < __instance.iconGroup.childCount; i++)
+                {
+                    if (__instance.iconGroup.GetChild(i) && __instance.iconGroup.GetChild(i).GetComponent<LoadGameIcon>().foldername.EndsWith("_bkp"))
+                    {
+                        __instance.iconGroup.GetChild(i).GetComponent<LoadGameIcon>().txtname.text += backupText.Value;
+                    }
+                }
             }
         }
     }
