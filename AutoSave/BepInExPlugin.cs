@@ -71,36 +71,6 @@ namespace AutoSave
             }
         }
 
-        //[HarmonyPatch(typeof(RM), "LoadResources")]
-        static class LoadResources_Patch
-        {
-            static void Postfix()
-            {
-                if (!modEnabled.Value)
-                    return;
-
-                List<string> armors = new List<string>();
-                foreach(Transform t in RM.code.allArmors.items)
-                {
-                    armors.Add(t.name);
-                }
-                List<string> blackMarket = new List<string>();
-                foreach(Transform t in RM.code.allBlackmarketItems.items)
-                {
-                    blackMarket.Add(t.name);
-                }
-                List<string> weapons = new List<string>();
-                foreach(Transform t in RM.code.allWeapons.items)
-                {
-                    weapons.Add(t.name);
-                }
-
-                string output = "Armors:\n\n\t" + string.Join("\n\t", armors) + "\n\n\nWeapons:\n\t" + string.Join("\n\t", weapons) + "\n\n\nBlack Market Items:\n\t" + string.Join("\n\t", blackMarket);
-
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "item_dump.txt"), output);
-            }
-        }
-
         [HarmonyPatch(typeof(Player), "Update")]
         static class Player_Update_Patch
         {

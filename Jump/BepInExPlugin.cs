@@ -113,7 +113,7 @@ namespace Jump
         {
             static void Prefix(Player __instance, ref bool ___m_Jump, ThirdPersonCharacter ___m_Character)
             {
-                if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value))
+                if (!modEnabled.Value || Global.code.onGUI || !AedenthornUtils.CheckKeyDown(hotKey.Value))
                     return;
                 Dbgl($"Jumping");
                 //frames = 1;

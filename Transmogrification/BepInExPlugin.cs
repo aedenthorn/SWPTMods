@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Transmogrification
 {
-    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.1.1")]
+    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -97,22 +97,19 @@ namespace Transmogrification
 
             static void Postfix(Mainframe __instance, Transform item)
             {
-                if (!modEnabled.Value)
-                    return;
+                try
+                {
 
-                if (!itemAppearances.ContainsKey(item.GetInstanceID()))
-                {
-                    if (ES2.Exists(Mainframe.code.GetFolderName() + "Items.txt?tag=transmog" + item.GetInstanceID()))
-                        ES2.Delete(Mainframe.code.GetFolderName() + "Items.txt?tag=transmog" + item.GetInstanceID());
-                }
-                else
-                {
+                    if (!modEnabled.Value || !itemAppearances.ContainsKey(item.GetInstanceID()))
+                        return;
+
                     string name = itemAppearances[item.GetInstanceID()];
 
                     Dbgl($"saving item {item.name} appearance as {name}");
 
                     ES2.Save<string>(name, __instance.GetFolderName() + "Items.txt?tag=transmog" + item.GetInstanceID());
                 }
+                catch { }
             }
         }
 
@@ -127,7 +124,7 @@ namespace Transmogrification
 
                 string name = ES2.Load<string>(__instance.GetFolderName() + "Items.txt?tag=transmog" + id);
 
-                Dbgl($"setting loaded item {__result.name} {__result.GetInstanceID()} appearance as {name}");
+                Dbgl($"setting loaded item {__result.name} {id} appearance as {name}");
 
                 Transform source = RM.code.allItems.GetItemWithName(name);
                 ReplaceAppearance(source, __result);
@@ -143,10 +140,10 @@ namespace Transmogrification
                 if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf || !currentSlot || !currentSlot.item || !AedenthornUtils.CheckKeyDown(hotKey.Value))
                     return;
 
-                Dbgl($"Pressed hotkey on slot with item {currentSlot.item.GetInstanceID()}");
+                Dbgl($"Pressed hotkey on slot with item {currentSlot.item.name}");
 
                 Transform source;
-                if (AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false) && Global.code.selectedItem && currentSlot.slotType == Global.code.selectedItem.GetComponent<Item>().slotType && (currentSlot.slotType != SlotType.weapon || currentSlot.item.GetComponent<Item>().itemType == Global.code.selectedItem.GetComponent<Item>().itemType))
+                if (AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false) && !AedenthornUtils.CheckKeyHeld(modKeyOff.Value, true) && Global.code.selectedItem && currentSlot.slotType == Global.code.selectedItem.GetComponent<Item>().slotType && (currentSlot.slotType != SlotType.weapon || currentSlot.item.GetComponent<Item>().itemType == Global.code.selectedItem.GetComponent<Item>().itemType))
                 {
                     Dbgl($"Transmogrifying {currentSlot.item.name} into {Global.code.selectedItem.name}");
                     source = Global.code.selectedItem;
@@ -186,11 +183,16 @@ namespace Transmogrification
         private static void ReplaceAppearance(Transform source, Transform destination)
         {
             for (int i = 0; i < destination.childCount; i++)
+            {
+                Dbgl($"Removing child {destination.GetChild(i).name}");
+
                 Destroy(destination.GetChild(i).gameObject);
+            }
             for (int i = 0; i < source.childCount; i++)
             {
                 Transform t = Instantiate(source.GetChild(i), destination);
                 t.name = source.GetChild(i).name;
+                Dbgl($"Adding child {t.name}");
             }
             destination.GetComponent<Item>().icon = source.GetComponent<Item>().icon;
         }

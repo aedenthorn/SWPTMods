@@ -148,7 +148,7 @@ namespace ArmorParts
 
             static void Postfix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value || !__instance.showArmor || !__instance.armor)
+                if (!modEnabled.Value || !__instance.showArmor || !__instance.armor || !Global.code.uiInventory)
                     return;
                 Transform t;
                 

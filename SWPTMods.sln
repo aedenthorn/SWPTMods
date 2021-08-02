@@ -81,7 +81,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShowHideWeaponArmor", "Show
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eyes", "Eyes\Eyes.csproj", "{EDB1482D-217A-4393-8B6A-3F37A7DFF9F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomMainMenu", "CustomMainMenu\CustomMainMenu.csproj", "{74F4D016-E5F5-453D-8F27-5D2A8FCE31CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomMainMenu", "CustomMainMenu\CustomMainMenu.csproj", "{74F4D016-E5F5-453D-8F27-5D2A8FCE31CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomizationFix", "CustomizationFix\CustomizationFix.csproj", "{D83ECFB6-CFF4-4D4C-BE09-F45C17EE591D}"
 EndProject
@@ -93,9 +93,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmorParts", "ArmorParts\Ar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AedenthornUtils", "AedenthornUtils\AedenthornUtils.csproj", "{75A7D2A6-030B-4FAF-AC2D-53CBD892E032}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mirror", "Mirror\Mirror.csproj", "{D698504F-878B-4C8E-A1EF-3F0E39E02D61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mirror", "Mirror\Mirror.csproj", "{D698504F-878B-4C8E-A1EF-3F0E39E02D61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SortInventory", "SortInventory\SortInventory.csproj", "{D714A41A-619F-4C25-80F6-301DD4DDE07E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SortInventory", "SortInventory\SortInventory.csproj", "{D714A41A-619F-4C25-80F6-301DD4DDE07E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spawn", "Spawn\Spawn.csproj", "{B9E293D9-7EAA-4157-8A13-4CA54001BE23}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugMenu", "DebugMenu\DebugMenu.csproj", "{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -291,6 +295,14 @@ Global
 		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D714A41A-619F-4C25-80F6-301DD4DDE07E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9E293D9-7EAA-4157-8A13-4CA54001BE23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9E293D9-7EAA-4157-8A13-4CA54001BE23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9E293D9-7EAA-4157-8A13-4CA54001BE23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9E293D9-7EAA-4157-8A13-4CA54001BE23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

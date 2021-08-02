@@ -1,24 +1,48 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace CustomMainMenu
 {
-    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.1.0")]
-    public class BepInExPlugin: BaseUnityPlugin
+    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.1.2")]
+    public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
-        public static ConfigEntry<string> saveName;
-        public static ConfigEntry<string> charName;
-        public static ConfigEntry<bool> useSave;
+
+        public static ConfigEntry<int> backgroundChangeInterval;
+
+        public static ConfigEntry<string> presetName;
+        public static ConfigEntry<string> armorItem;
+        public static ConfigEntry<string> poseName;
+        public static ConfigEntry<string> backgroundName;
+
+        public static ConfigEntry<Vector3> characterRotation;
+        public static ConfigEntry<Vector3> characterPosition;
+
+        public static ConfigEntry<Vector3> light1Position;
+        public static ConfigEntry<Vector3> light2Position;
+        public static ConfigEntry<Vector3> light3Position;
+        public static ConfigEntry<Vector3> light4Position;
+
+        private static Transform mmCharacter;
+        private static Transform kiraCharacter;
 
         public static BepInExPlugin context;
+
+        public static Vector3[] lightPositions;
+
+        private static float lastBackgroundUpdate;
+        private static int lastBackgroundIndex;
+
+        private static List<string> backgroundImages = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -31,159 +55,64 @@ namespace CustomMainMenu
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             //nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
-            
-            useSave = Config.Bind<bool>("Options", "UseSave", false, "Use character from specified save file. Otherwise use preset character.");
-            saveName = Config.Bind<string>("Options", "SaveName", "", "Name of save to get character from.");
-            charName = Config.Bind<string>("Options", "CharName", "Arisha", "Name of character to use.");
 
+            presetName = Config.Bind<string>("Text", "PresetName", "", "Name of preset to use.");
+            armorItem = Config.Bind<string>("Text", "ArmorItem", "", "Name of armor to use.");
+            poseName = Config.Bind<string>("Text", "PoseName", "", "Name of pose to use (Random if left blank).");
+            backgroundName = Config.Bind<string>("Text", "BackgroundName", "", "Name of background picture to use (Random if left blank).");
+
+            backgroundChangeInterval = Config.Bind<int>("Options", "BackgroundChangeInterval", 10, "Interval to change background images if multiple and backgroundName is left blank.");
+
+            characterRotation = Config.Bind<Vector3>("Positioning", "CharacterRotation", Vector3.zero, "Custom character rotation.");
+            characterPosition = Config.Bind<Vector3>("Positioning", "CharacterPosition", Vector3.zero, "Custom character position.");
+
+            light1Position = Config.Bind<Vector3>("Positioning", "Light1Position", Vector3.zero, "Custom light position.");
+            light2Position = Config.Bind<Vector3>("Positioning", "Light2Position", Vector3.zero, "Custom light position.");
+            light3Position = Config.Bind<Vector3>("Positioning", "Light3Position", Vector3.zero, "Custom light position.");
+            light4Position = Config.Bind<Vector3>("Positioning", "Light4Position", Vector3.zero, "Custom light position.");
+
+            armorItem.SettingChanged += SettingChanged;
+            poseName.SettingChanged += PoseSettingChanged;
+            characterRotation.SettingChanged += SettingChanged;
+            characterPosition.SettingChanged += SettingChanged;
+
+
+            light1Position.SettingChanged += LightSettingChanged;
+            light2Position.SettingChanged += LightSettingChanged;
+            light3Position.SettingChanged += LightSettingChanged;
+            light4Position.SettingChanged += LightSettingChanged;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
-        }
-        [HarmonyPatch(typeof(Mainframe), "LoadCharacterCustomization")]
-        static class Mainframe_LoadCharacterCustomization_Patch
-        {
-            static void Prefix(CharacterCustomization __instance, ref bool __state)
-            {
-                if (!modEnabled.Value)
-                    return;
-                __state = false;
-                if (!Player.code)
-                {
-                    Dbgl("no player");
-                    Player.code = new Player();
-                    __state = true;
-                }
-            }
-            static void Postfix(Mainframe __instance, CharacterCustomization gen)
-            {
-                if (!modEnabled.Value)
-                    return;
-            }
-        }
-        [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.RefreshClothesVisibility))]
-        static class CharacterCustomization_RefreshClothesVisibility_Patch
-        {
-            static void Prefix(CharacterCustomization __instance, ref bool __state)
-            {
-                if (!modEnabled.Value)
-                    return;
-                __state = false;
-                if (!Player.code)
-                {
-                    Dbgl("no player");
-                    Player.code = new Player();
-                    __state = true;
-                }
-            }
-            static void Postfix(bool __state)
-            {
-                if (!modEnabled.Value)
-                    return;
-                if (__state)
-                {
-                    Player.code = null;
-                }
-            }
-        }
-        [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.IsWearingHighHeels))]
-        static class IsWearingHighHeels_Patch
-        {
+            if (!Directory.Exists(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace)))
+                Directory.CreateDirectory(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace));
+            else
+                LoadBackgroundImageFiles();
 
-            static bool Prefix(ref bool __result)
-            {
-                if (!modEnabled.Value || Global.code)
-                    return true;
-                __result = false;
-                return false;
-            }
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
         }
-        [HarmonyPatch(typeof(Mainframe), nameof(Mainframe.LoadStorage))]
-        static class LoadStorage_Patch
-        {
 
-            static bool Prefix()
-            {
-                if (!modEnabled.Value || Global.code)
-                    return true;
-                return false;
-            }
+        private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, LoadSceneMode arg1)
+        {
+            Dbgl($"Scene loaded: {arg0.name}, player {Player.code != null} ID {Player.code?._ID != null} Global {Global.code != null}");
         }
-        [HarmonyPatch(typeof(XftWeapon.XWeaponTrail), "OnEnable")]
-        static class XWeaponTrail_OnEnable_Patch
+
+        private void LightSettingChanged(object sender, EventArgs e)
         {
-            static bool Prefix()
-            {
-                if (!modEnabled.Value || Global.code)
-                    return true;
-                return false;
-            }
+            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf == true)
+                LoadCustomLightData();
         }
-        [HarmonyPatch(typeof(XftWeapon.XWeaponTrail), "OnDisable")]
-        static class XWeaponTrail_OnDisable_Patch
+
+        private void PoseSettingChanged(object sender, EventArgs e)
         {
-            static bool Prefix()
-            {
-                if (!modEnabled.Value || Global.code)
-                    return true;
-                return false;
-            }
+            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf == true)
+                LoadPoseData();
         }
-        [HarmonyPatch(typeof(ID), "OnDisable")]
-        static class ID_OnDisable_Patch
+        
+        private void SettingChanged(object sender, EventArgs e)
         {
-            static bool Prefix()
-            {
-                if (!modEnabled.Value || Global.code)
-                    return true;
-                return false;
-            }
-        }
-        [HarmonyPatch(typeof(UIDesktop), "Awake")]
-        static class UIDesktop_Awake_Patch
-        {
-            static void Postfix()
-            {
-                if (!modEnabled.Value)
-                    return;
-
-                Global.code = new Global();
-                Global.code.uiPose = new GameObject().AddComponent<UIPose>();
-                Global.code.uiPose.gameObject.SetActive(false);
-
-                Transform template;
-                if (charName.Value == "Player")
-                    template = RM.code.allCompanions.GetItemWithName("Kira");
-                else
-                    template = RM.code.allCompanions.GetItemWithName(charName.Value);
-
-                if(template == null)
-                {
-                    Dbgl("Error getting customization");
-                    return;
-                }
-                Transform character = Instantiate(template, GameObject.Find("Kira").transform.parent);
-                character.name = template.name;
-                character.localPosition = template.localPosition;
-                character.GetComponent<CharacterCustomization>().isDisplay = true;
-                Destroy(character.GetComponent<Interaction>());
-                Destroy(GameObject.Find("Kira"));
-
-                if (useSave.Value)
-                {
-                    Mainframe.code.foldername = saveName.Value;
-                    AccessTools.Method(typeof(Mainframe), "LoadCharacterCustomization").Invoke(Mainframe.code, new object[] { character.GetComponent<CharacterCustomization>() });
-                }
-                else
-                {
-
-                }
-                Destroy(character.GetComponent<CharacterCustomization>());
-                Destroy(character.GetComponent<Companion>());
-                Destroy(character.GetComponent<ID>());
-                character.GetComponent<Rigidbody>().isKinematic = true;
-                Destroy(character.GetComponent<CapsuleCollider>());
-            }
+            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf == true)
+                LoadCustomCharacter();
         }
     }
 }
