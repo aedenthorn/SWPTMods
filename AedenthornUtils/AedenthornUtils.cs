@@ -55,4 +55,5 @@ public class AedenthornUtils
     {
         return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), name);
     }
+
 }

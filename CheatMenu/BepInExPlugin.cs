@@ -15,8 +15,10 @@ namespace CheatMenu
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
-        public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
+
+        public static ConfigEntry<string> hotKey;
+        public static ConfigEntry<bool> levelBypass;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -29,10 +31,11 @@ namespace CheatMenu
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
+            levelBypass = Config.Bind<bool>("Options", "LevelBypass", false, "Enable level bypass for equipment");
             hotKey = Config.Bind<string>("Options", "HotKey", "f5", "Hotkey to toggle cheat menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
-            nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
@@ -73,6 +76,26 @@ namespace CheatMenu
                     Global.code.uiCheat.gameObject.SetActive(!Global.code.uiCheat.gameObject.activeSelf);
                 }
 
+            }
+        }
+        public static Transform lastSelected;
+        [HarmonyPatch(typeof(EquipmentSlot), nameof(EquipmentSlot.Click))]
+        public static class Click_Patch
+        {
+            public static void Prefix(EquipmentSlot __instance, ref int __state)
+            {
+                if (!modEnabled.Value || !levelBypass.Value || !Global.code.selectedItem)
+                    return;
+                lastSelected = Global.code.selectedItem;
+                __state = lastSelected.GetComponent<Item>().levelrequirement;
+                lastSelected.GetComponent<Item>().levelrequirement = 0;
+            }
+            public static void Postfix(EquipmentSlot __instance, int __state)
+            {
+                if (!modEnabled.Value || !levelBypass.Value || lastSelected == null)
+                    return;
+                lastSelected.GetComponent<Item>().levelrequirement = __state;
+                lastSelected = null;
             }
         }
     }

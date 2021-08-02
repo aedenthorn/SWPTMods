@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace ArmorParts
 {
-    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.1.0")]
+    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -27,7 +27,8 @@ namespace ArmorParts
         private static EquipmentSlot currentSlot;
         private static ItemIcon currentIcon;
 
-        private static Dictionary<int, ArmorPartsData> partsData = new Dictionary<int, ArmorPartsData>();
+        private static Dictionary<Transform, ArmorPartsData> partsTransformDict = new Dictionary<Transform, ArmorPartsData>();
+        private static Dictionary<string, ArmorPartsData> partsGUIDDict = new Dictionary<string, ArmorPartsData>();
         private static string assetPath;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -50,7 +51,48 @@ namespace ArmorParts
             assetPath = AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace);
 
             LoadFromFiles();
+            Dbgl("Plugin awake");
 
+        }
+
+        [HarmonyPatch(typeof(Mainframe), "SaveItem")]
+        static class SaveItem_Patch
+        {
+
+            static void Postfix(Mainframe __instance, Transform item)
+            {
+                if (!modEnabled.Value || item.GetComponent<Item>().slotType != SlotType.armor || !partsTransformDict.ContainsKey(item))
+                    return;
+
+                string GUID = partsTransformDict[item].GUID;
+
+                Dbgl($"saving item {item.name} GUID as {GUID}");
+
+                ES2.Save(GUID, __instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + item.GetInstanceID());
+            }
+        }
+        [HarmonyPatch(typeof(Mainframe), "LoadItem")]
+        static class LoadItem_Patch
+        {
+
+            static void Postfix(Mainframe __instance, int id, Transform __result)
+            {
+                if (!modEnabled.Value || !ES2.Exists(__instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + id))
+                    return;
+
+                string GUID = ES2.Load<string>(__instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + id);
+
+                if (!partsGUIDDict.ContainsKey(GUID))
+                {
+                    Dbgl($"armor data with {GUID} for loaded item {__result.name} not found!");
+                    return;
+                }
+
+                Dbgl($"got guid {GUID} for loaded item {__result.name}");
+
+                SetArmorParts(__result, partsGUIDDict[GUID]);
+                partsTransformDict[__result] = partsGUIDDict[GUID];
+            }
         }
 
         [HarmonyPatch(typeof(ItemIcon), nameof(ItemIcon.OnPointerEnter))]
@@ -108,31 +150,31 @@ namespace ArmorParts
             {
                 if (!modEnabled.Value || !__instance.showArmor || !__instance.armor)
                     return;
-                int id;
+                Transform t;
                 
                 if(__instance.isDisplay && Global.code.uiInventory.gameObject.activeSelf)
                 {
-                    id = Global.code.uiInventory.curCustomization.armor.GetInstanceID();
+                    t = Global.code.uiInventory.curCustomization.armor;
                 }
                 else
-                    id = __instance.armor.GetInstanceID();
+                    t = __instance.armor;
 
-                if (!partsData.ContainsKey(id))
+                if (!partsTransformDict.ContainsKey(t))
                     return;
 
                 Dbgl("checking clothing");
 
-                if (partsData[id].showBra && __instance.bra)
+                if (partsTransformDict[t].showBra && __instance.bra)
                 {
                     Dbgl("showing bra");
                     __instance.bra.gameObject.SetActive(true);
                 }
-                if (partsData[id].showPanties && __instance.panties)
+                if (partsTransformDict[t].showPanties && __instance.panties)
                 {
                     Dbgl("showing panties");
                     __instance.panties.gameObject.SetActive(true);
                 }
-                if (partsData[id].showSuspenders && __instance.suspenders)
+                if (partsTransformDict[t].showSuspenders && __instance.suspenders)
                 {
                     Dbgl("showing suspenders");
                     __instance.suspenders.gameObject.SetActive(true);
@@ -149,9 +191,9 @@ namespace ArmorParts
                 if (!modEnabled.Value || slotName != "armor")
                     return;
 
-                if (partsData.ContainsKey(item.GetInstanceID()))
+                if (partsTransformDict.ContainsKey(item))
                 {
-                    SetArmorParts(item, partsData[item.GetInstanceID()]);
+                    SetArmorParts(item, partsTransformDict[item]);
                     Dbgl($"loaded data for {item.GetInstanceID()}");
                 }
             }
@@ -185,7 +227,7 @@ namespace ArmorParts
                 {
                     ArmorPartsData data = new ArmorPartsData();
                     data.name = item.name;
-                    data.id = item.GetInstanceID();
+                    data.GUID = partsTransformDict[item].GUID;
 
                     for (int i = 0; i < item.childCount; i++)
                     {
@@ -204,10 +246,10 @@ namespace ArmorParts
                 else
                 {
                     LoadFromFiles();
-                    if (partsData.ContainsKey(item.GetInstanceID()))
+                    if (partsTransformDict.ContainsKey(item))
                     {
-                        SetArmorParts(item, partsData[item.GetInstanceID()]);
-                        Dbgl($"loaded data for {item.GetInstanceID()}");
+                        SetArmorParts(item, partsTransformDict[item]);
+                        Dbgl($"loaded data for {item.name}");
                         context.StartCoroutine(RefreshItem(item));
                     }
                 }
@@ -218,7 +260,7 @@ namespace ArmorParts
         private static void LoadFromFiles()
         {
 
-            partsData.Clear();
+            partsGUIDDict.Clear();
             if (!Directory.Exists(assetPath))
             {
                 Directory.CreateDirectory(assetPath);
@@ -229,12 +271,20 @@ namespace ArmorParts
                 try
                 {
                     ArmorPartsData apd = JsonUtility.FromJson<ArmorPartsData>(File.ReadAllText(file));
-                    partsData.Add(apd.id, apd);
+                    partsGUIDDict.Add(apd.GUID, apd);
                 }
                 catch (Exception ex)
                 {
                     Dbgl($"error loading parts for {Path.GetFileNameWithoutExtension(file)}. \n\n{ex}");
                 }
+            }
+            var keys = partsTransformDict.Keys.ToArray();
+            foreach(Transform key in keys)
+            {
+                if (!partsGUIDDict.ContainsKey(partsTransformDict[key].GUID))
+                    partsTransformDict.Remove(key);
+                else
+                    partsTransformDict[key] = partsGUIDDict[partsTransformDict[key].GUID];
             }
         }
 
@@ -242,7 +292,10 @@ namespace ArmorParts
         {
             ArmorPartsData data = new ArmorPartsData();
             data.name = item.name;
-            data.id = item.GetInstanceID();
+            if (partsTransformDict.ContainsKey(item))
+                data.GUID = partsTransformDict[item].GUID;
+            else
+                data.GUID = Guid.NewGuid().ToString();
             for (int i = 0; i < item.childCount; i++)
             {
                 if (item.GetChild(i).gameObject.activeSelf)
@@ -252,9 +305,9 @@ namespace ArmorParts
         }
         private static void SaveData(Transform item, ArmorPartsData data)
         {
-            File.WriteAllText(Path.Combine(assetPath, $"{item.name}_{item.GetInstanceID()}.json"), JsonUtility.ToJson(data));
-            Dbgl($"saved data to {Path.Combine(assetPath, $"{item.name}_{item.GetInstanceID()}.json")}");
-            partsData[item.GetInstanceID()] = data;
+            File.WriteAllText(Path.Combine(assetPath, $"{item.name}_{data.GUID}.json"), JsonUtility.ToJson(data));
+            Dbgl($"saved data to {Path.Combine(assetPath, $"{item.name}_{data.GUID}.json")}");
+            partsTransformDict[item] = data;
         }
         private static IEnumerator RefreshItem(Transform item)
         {

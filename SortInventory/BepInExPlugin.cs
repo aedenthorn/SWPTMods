@@ -1,29 +1,28 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
-namespace EnhancedFreePose
+namespace SortInventory
 {
-    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.4.2")]
+    [BepInPlugin("aedenthorn.SortInventory", "Sort Inventory", "0.1.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
-
-        public static ConfigEntry<int> maxModels;
+        
+        public static ConfigEntry<bool> autoSort;
 
         public static ConfigEntry<int> nexusID;
-        
-        public static ConfigEntry<float> freeCameraSpeed;
-        public static ConfigEntry<float> freeCameraBoostMult;
-        public static ConfigEntry<string> xRotateModKey;
-        public static ConfigEntry<string> zRotateModKey;
-
-        private static Vector3 lastCursorPoint = new Vector3(-1, -1, -1);
+        public static ConfigEntry<string> hotKey;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -36,190 +35,255 @@ namespace EnhancedFreePose
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 18, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 45, "Nexus mod ID for updates");
+            
+            autoSort = Config.Bind<bool>("Options", "AutoSort", false, "Enable auto-sorting");
+            hotKey = Config.Bind<string>("Options", "HotKey", "s", "Hot key to sort current inventory. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
-            maxModels = Config.Bind<int>("Options", "MaxModels", 8, "Maximum number of models to allow.");
-            freeCameraSpeed = Config.Bind<float>("Options", "FreeCameraSpeed", 2f, "Free camera move speed.");
-            freeCameraBoostMult = Config.Bind<float>("Options", "FreeCameraBoostMult", 3f, "Multiply camera move speed by this when holding down game's camera boost key (left shift).");
-            xRotateModKey = Config.Bind<string>("Options", "XRotateModKey", "left shift", "Modifier key to rotate around X-axis. Use https://docs.unity3d.com/Manual/class-InputManager.html");
-            zRotateModKey = Config.Bind<string>("Options", "ZRotateModKey", "left ctrl", "Modifier key to rotate around Z-axis. Use https://docs.unity3d.com/Manual/class-InputManager.html");
-
-
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Info.Metadata.GUID);
             Dbgl("Plugin awake");
 
         }
 
 
-        [HarmonyPatch(typeof(UIFreePose), "Refresh")]
-        public static class Update_Patch
+        //[HarmonyPatch(typeof(Storage), nameof(Storage.AutoAddItem))]
+        public static class Storage_AutoAddItem_Patch
         {
-            public static void Postfix(UIFreePose __instance)
+            public static void Postfix(Storage __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !autoSort.Value)
                     return;
-                __instance.transform.Find("Left").Find("group pose").Find("tools bg").GetComponent<RectTransform>().anchoredPosition = new Vector2(171, -51);
-                for (int j = 4; j < maxModels.Value; j++)
-                {
-                    Transform transform = Instantiate(__instance.companionIconPrefab);
-                    transform.SetParent(__instance.companionIconHolder);
-                    transform.localScale = Vector3.one;
-                    if (j < __instance.characters.items.Count)
-                    {
-                        Transform transform2 = __instance.characters.items[j];
-                        transform.GetComponent<FreeposeCompanionIcon>().Initiate(transform2.GetComponent<CharacterCustomization>());
-                    }
-                    else
-                    {
-                        transform.GetComponent<FreeposeCompanionIcon>().Initiate(null);
-                    }
-                }
-            }
 
+                SortStorage(__instance);
+            }
         }
 
-        [HarmonyPatch(typeof(CustomizationSlider), nameof(CustomizationSlider.ValueChange))]
-        public static class CustomizationSlider_ValueChange_Patch
+        //[HarmonyPatch(typeof(Storage), nameof(Storage.RemoveItem))]
+        public static class Storage_RemoveItem_Patch
         {
-            public static bool Prefix(CustomizationSlider __instance, float val)
+            public static void Postfix(Storage __instance)
             {
-                if (!modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf || !__instance.isEmotionController)
-                    return true;
+                if (!modEnabled.Value || !autoSort.Value)
+                    return;
 
-                Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().body.SetBlendShapeWeight(__instance.index, val);
-                Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().eyelash.SetBlendShapeWeight(__instance.index, val);
-
-                return false;
-
+                SortStorage(__instance);
             }
         }
-        [HarmonyPatch(typeof(FreelookCamera), nameof(FreelookCamera.FixedUpdate))]
-        public static class FreelookCamera_FixedUpdate_Patch
+
+        [HarmonyPatch(typeof(Global), nameof(Global.ToggleInventory))]
+        public static class ToggleInventory_Patch
         {
-            public static void Prefix(FreelookCamera __instance)
+            public static void Postfix(Global __instance)
             {
-                if (!modEnabled.Value || Global.code?.uiFreePose.gameObject.activeSelf != true)
+                if (!modEnabled.Value || !__instance.uiInventory.gameObject.activeSelf || !autoSort.Value)
                     return;
-                __instance.Speed = freeCameraSpeed.Value;
-                __instance.BoostSpeed = freeCameraSpeed.Value * freeCameraBoostMult.Value;
+
+                SortStorage(Player.code.customization.storage);
+                foreach(var t in Global.code.companions.items)
+                {
+                    if(t && t.GetComponent<CharacterCustomization>()?.storage)
+                        SortStorage(t.GetComponent<CharacterCustomization>().storage);
+                }
             }
         }
-        [HarmonyPatch(typeof(MoveObject), nameof(MoveObject.LetObjectGo))]
-        public static class LetObjectGo_Patch
-        {
-            public static void Postfix()
-            {
-                if (!modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf)
-                    return;
-                lastCursorPoint = new Vector3(-1, -1, 0);
 
+        [HarmonyPatch(typeof(UIInventory), nameof(UIInventory.Update))]
+        public static class UIInventory_Update_Patch
+        {
+            public static void Postfix(UIInventory __instance)
+            {
+                if (!modEnabled.Value || __instance.curStorage == null)
+                    return;
+
+                if (AedenthornUtils.CheckKeyDown(hotKey.Value))
+                {
+                    SortStorage(__instance.curStorage);
+                }
+                if (false && AedenthornUtils.CheckKeyDown("p"))
+                {
+                    __instance.curStorage.AutoAddItem(RM.code.allItems.GetItemWithName("Lascivious Huntress Armor"), false, false, false);
+                    __instance.curStorage.AutoAddItem(RM.code.allItems.GetItemWithName("Black Priestess Outfit"), false, false, false);
+                }
             }
         }
-        [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.LateUpdate))]
-        public static class CharacterCustomization_LateUpdate_Patch
+
+
+        private static void SortStorage(Storage storage)
         {
-            public static void Prefix(Transform ___mytransform, ref Vector3 __state)
-            {
-                try
-                {
-                    if (!modEnabled.Value || Global.code?.uiFreePose?.gameObject?.activeSelf != true || ___mytransform == null)
-                        return;
-                }
-                catch { return; }
+            var watch = new Stopwatch();
+            watch.Start();
+            if (storage.items.items.Count == 0)
+                return;
 
-                __state = ___mytransform.eulerAngles;
+            Dbgl("sorting storage");
+
+            List<Transform> items = new List<Transform>();
+            for(int i = storage.items.items.Count - 1; i >= 0; i--)
+            {
+
+                items.Add(storage.items.items[i]);
+                RemoveItem(storage, i);
             }
-            public static void Postfix(Transform ___mytransform, Vector3 __state)
-            {
-                try
+            storage.inventory.Refresh();
+
+            items.Sort(delegate (Transform a, Transform b) {
+
+                if (a.name == b.name)
                 {
-                    if (!modEnabled.Value || Global.code?.uiFreePose?.gameObject?.activeSelf != true || !___mytransform || __state == null)
-                        return;
+                    return 0;
                 }
-                catch
+                if(a.GetComponent<Item>().x == b.GetComponent<Item>().x && a.GetComponent<Item>().y == b.GetComponent<Item>().y)
                 {
-
-                    return;
-                }
-
-                ___mytransform.eulerAngles = __state;
-            }
-
-        }
-        [HarmonyPatch(typeof(MoveObject), "Update")]
-        public static class MoveObject_Update_Patch
-        {
-
-            public static void Prefix(MoveObject __instance, ref Vector3 __state)
-            {
-                if (!modEnabled.Value || !__instance.canGo || !Global.code.uiFreePose.selectedCharacter)
-                {
-                    return;
-                }
-                if(__instance.rotate)
-                    __state = Global.code.uiFreePose.selectedCharacter.transform.eulerAngles;
-                else if (__instance.move)
-                    __state = Global.code.uiFreePose.selectedCharacter.transform.position;
-            }
-            public static void Postfix(MoveObject __instance, Vector3 __state)
-            {
-                if (!modEnabled.Value || !__instance.canGo || !Global.code.uiFreePose.selectedCharacter)
-                    return;
-
-                Vector3 cursorPoint = Input.mousePosition;
-                float deltaX = cursorPoint.x - lastCursorPoint.x;
-                float deltaY = cursorPoint.y - lastCursorPoint.y;
-
-
-                if (__instance.move)
-                {
-
-                    if (lastCursorPoint.x >= 0 && lastCursorPoint.y >= 0 && Mathf.Abs(Screen.width - Mathf.Abs(deltaX)) > 100 && Mathf.Abs(Screen.height - Mathf.Abs(deltaY)) > 100)
+                    if(a.GetComponent<Item>().slotType == b.GetComponent<Item>().slotType)
                     {
-
-                        Quaternion q = Global.code.freeCamera.transform.rotation;
-                        q.z = 0;
-                        //q.eulerAngles = new Vector3(q.eulerAngles.x, 0, q.eulerAngles.z).normalized;
-                        Vector3 a = q * new Vector3(deltaX, 0, deltaY);
-                        a = new Vector3(a.x, 0, a.z).normalized * a.magnitude;
-                        //Dbgl($"q {q}, a {a}");
-                        __instance.mover.transform.position = Vector3.Lerp(__state, __state + a, Time.deltaTime / 2f);
-                    }
-                    else
-                    {
-                        __instance.mover.transform.position = __state;
-                    }
-                    lastCursorPoint = cursorPoint;
-
-                }
-                else if (__instance.rotate)
-                {
-                    if (lastCursorPoint.x >= 0 && lastCursorPoint.y >= 0 && Mathf.Abs(Screen.width - Mathf.Abs(deltaX)) > 100 && Mathf.Abs(Screen.height - Mathf.Abs(deltaY)) > 100)
-                    {
-                        if (AedenthornUtils.CheckKeyHeld(xRotateModKey.Value))
+                        if(a.GetComponent<Potion>() && b.GetComponent<Potion>())
                         {
-                            //Dbgl($"trying to rotate {__instance.mover.transform.eulerAngles} x by {__instance.deltaX}");
-                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(deltaX * __instance.speed_Rotate, 0f, 0f), Time.deltaTime / 20f);
+                            if(a.GetComponent<Potion>().addExp != b.GetComponent<Potion>().addExp)
+                                return a.GetComponent<Potion>().addExp.CompareTo(b.GetComponent<Potion>().addExp);
+                            if (a.GetComponent<Item>().cost == b.GetComponent<Item>().cost)
+                                return a.name.CompareTo(b.name);
+                            return a.GetComponent<Item>().cost.CompareTo(b.GetComponent<Item>().cost);
                         }
-                        else if (AedenthornUtils.CheckKeyHeld(zRotateModKey.Value))
+                        else if (a.GetComponent<Potion>())
+                            return 1;
+                        else if (b.GetComponent<Potion>())
+                            return -1;
+                        if (a.GetComponent<Item>().cost == b.GetComponent<Item>().cost)
+                            return a.name.CompareTo(b.name);
+                        return a.GetComponent<Item>().cost.CompareTo(b.GetComponent<Item>().cost);
+                    }
+                    return a.GetComponent<Item>().slotType.CompareTo(b.GetComponent<Item>().slotType);
+                }
+                if(a.GetComponent<Item>().y == b.GetComponent<Item>().y)
+                {
+                    return b.GetComponent<Item>().x.CompareTo(a.GetComponent<Item>().x);
+                }
+                return b.GetComponent<Item>().y.CompareTo(a.GetComponent<Item>().y);
+            });
+
+            foreach (Transform item in items)
+            {
+                /*
+                if (item.GetComponent<Item>().y == 1)
+                {
+                    for (int i = 0; i < storage.x; i++)
+                    {
+                        int j = storage.y - 1;
+                        if (storage.AddItemToSlot(item, new Vector2Int(i, j), false, false))
                         {
-                            //Dbgl($"trying to rotate {__instance.mover.transform.eulerAngles} z by {__instance.deltaX}");
-                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(0f, 0f, deltaX * __instance.speed_Rotate), Time.deltaTime / 20f);
-                        }
-                        else
-                        {
-                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(0f, -deltaX * __instance.speed_Rotate, 0f), Time.deltaTime / 20f);
+                            item.GetComponent<Item>().posX = i;
+                            item.GetComponent<Item>().posY = j;
+                            //Dbgl($"Added {item.name} to {i},{j}");
+                            goto cont;
                         }
                     }
-                    else
-                    {
-                        __instance.mover.transform.eulerAngles = __state;
-                    }
-                    lastCursorPoint = cursorPoint;
                 }
-
-                //Dbgl($"New rotation {__instance.mover.transform.eulerAngles}");
+                else if (item.GetComponent<Item>().y == 2)
+                {
+                    for (int i = 0; i < storage.x; i++)
+                    {
+                        int j = storage.y - 2;
+                        if (storage.AddItemToSlot(item, new Vector2Int(i, j), false, false))
+                        {
+                            item.GetComponent<Item>().posX = i;
+                            item.GetComponent<Item>().posY = j;
+                            //Dbgl($"Added {item.name} to {i},{j}");
+                            goto cont;
+                        }
+                    }
+                }
+                */
+                for (int i = 0; i < storage.x; i++)
+                {
+                    for (int j = 0; j < storage.y; j++)
+                    {
+                        if (AddItemToSlot(storage, item, new Vector2Int(i, j)))
+                        {
+                            item.GetComponent<Item>().posX = i;
+                            item.GetComponent<Item>().posY = j;
+                            //Dbgl($"Added {item.name} to {i},{j}");
+                            goto cont;
+                        }
+                    }
+                }
+                cont:
+                continue;
             }
+            storage.inventory.Refresh();
+            watch.Stop();
+            Dbgl($"sorted in {watch.Elapsed.TotalSeconds} seconds");
+        }
+
+        private static bool AddItemToSlot(Storage storage, Transform item, Vector2Int vec)
+        {
+            Item component = item.GetComponent<Item>();
+            List<Vector2Int> list = new List<Vector2Int>();
+            if (item.GetComponent<Item>().itemType == ItemType.lingerie)
+            {
+                MonoBehaviour.print(item.name);
+                Global.code.playerLingerieStorage.AddItemToCollection(item, true, true);
+                UnityEngine.Object.Destroy(item.gameObject);
+                return true;
+            }
+            for (int i = 0; i < item.GetComponent<Item>().x; i++)
+            {
+                for (int j = 0; j < item.GetComponent<Item>().y; j++)
+                {
+                    list.Add(vec + new Vector2Int(i, j));
+                }
+            }
+            List<InventorySlot> list2 = new List<InventorySlot>();
+            foreach (Vector2Int vector2Int in list)
+            {
+                if (vector2Int.x >= storage.x || vector2Int.y >= storage.y)
+                {
+                    return false;
+                }
+                InventorySlot component2 = storage.inventory.slots[vector2Int.x, vector2Int.y].GetComponent<InventorySlot>();
+                list2.Add(component2);
+                if (!component2 || component2.item)
+                {
+                    return false;
+                }
+            }
+            foreach (InventorySlot inventorySlot in list2)
+            {
+                inventorySlot.item = item;
+                inventorySlot.GetComponent<RawImage>().raycastTarget = false;
+                component.occupliedSlots.Add(inventorySlot);
+            }
+            component.isGoods = storage.GetComponent<Merchant>();
+            component.owner = storage.transform;
+            component.dropImpactPlayed = false;
+            component.posX = vec.x;
+            component.posY = vec.y;
+            if (item.GetComponent<Interaction>())
+            {
+                Destroy(item.GetComponent<Interaction>());
+            }
+            if (item.GetComponent<MapIcon>())
+            {
+                Destroy(item.GetComponent<MapIcon>());
+            }
+            storage.items.AddItem(item);
+            item.gameObject.SetActive(false);
+            item.SetParent(storage.transform);
+            return true;
+        }
+
+        private static void RemoveItem(Storage storage, int i)
+        {
+            Transform item = storage.items.items[i];
+            foreach (InventorySlot inventorySlot in item.GetComponent<Item>().occupliedSlots)
+            {
+                if (inventorySlot)
+                {
+                    inventorySlot.item = null;
+                    inventorySlot.GetComponent<RawImage>().raycastTarget = true;
+                }
+            }
+            storage.items.RemoveItem(item);
+            item.GetComponent<Item>().occupliedSlots.Clear();
         }
     }
 }
