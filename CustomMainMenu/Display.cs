@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using HarmonyLib;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -67,10 +68,31 @@ namespace CustomMainMenu
         }
         private static void LoadCustomCharacter()
         {
-            if (!modEnabled.Value || presetName.Value.Trim().Length == 0 || !ES2.Exists("Character Presets/" + presetName.Value.Trim() + "/CharacterPreset.txt"))
+            if (!modEnabled.Value)
+                return;
+
+            if(charOrPresetName.Value.Trim().Length == 0)
             {
-                Dbgl($"preset {presetName.Value} not found");
+                Dbgl($"no character or preset set.");
                 kiraCharacter.gameObject.SetActive(true);
+                mmCharacter?.gameObject.SetActive(false);
+                return;
+            }
+            if (saveFolder.Value.Trim().Length > 0)
+            {
+                if(!ES2.Exists(saveFolder.Value.Trim() + "/" + charOrPresetName.Value + ".txt"))
+                {
+                    Dbgl($"character {charOrPresetName.Value} for save {saveFolder.Value} not found.");
+                    kiraCharacter.gameObject.SetActive(true);
+                    mmCharacter?.gameObject.SetActive(false);
+                    return;
+                }
+            }
+            else if (!ES2.Exists("Character Presets/" + charOrPresetName.Value + "/CharacterPreset.txt"))
+            {
+                Dbgl($"preset {charOrPresetName.Value} not found.");
+                kiraCharacter.gameObject.SetActive(true);
+                mmCharacter?.gameObject.SetActive(false);
                 return;
             }
 
@@ -78,7 +100,17 @@ namespace CustomMainMenu
             {
 
                 Player.code = new Player();
-                Transform template = RM.code.allCompanions.GetItemWithName("Kira");
+
+                Transform template;
+                if (saveFolder.Value.Trim().Length > 0)
+                    template = RM.code.allCompanions.GetItemWithName(charOrPresetName.Value.Trim());
+                else
+                    template = RM.code.allCompanions.GetItemWithName("Kira");
+
+                if (!template)
+                {
+                    Dbgl($"Error loading customization {(saveFolder.Value.Trim().Length > 0 ? saveFolder.Value.Trim() : "preset")} {charOrPresetName.Value}");
+                }
 
                 Global.code = new Global();
                 Global.code.uiPose = new GameObject().AddComponent<UIPose>();
@@ -93,9 +125,8 @@ namespace CustomMainMenu
 
                 //Dbgl($"new player: npl {Player.code?.nipplesLargeIndex}, npd {Player.code?.nipplesDepthIndex}");
 
-
                 mmCharacter = Instantiate(template, GameObject.Find("Kira").transform.parent);
-                mmCharacter.name = "CustomMainMenuCharacter";
+                mmCharacter.name = charOrPresetName.Value;
 
                 mmCharacter.GetComponent<CharacterCustomization>().isDisplay = true;
 
@@ -146,14 +177,27 @@ namespace CustomMainMenu
 
             CharacterCustomization customization = mmCharacter.GetComponent<CharacterCustomization>();
 
-            Mainframe.code.LoadCharacterPreset(customization, presetName.Value);
-
-            if (RM.code.allItems.GetItemWithName(armorItem.Value))
+            if(saveFolder.Value.Trim().Length > 0)
             {
-                if (customization.armor)
-                    customization.armor.gameObject.SetActive(false);
-                customization.AddItem(Utility.Instantiate(RM.code.allItems.GetItemWithName(armorItem.Value)), "armor");
-                customization.armor.gameObject.SetActive(true);
+                Dbgl($"Loading character {charOrPresetName.Value} from save {saveFolder.Value}.");
+
+                Mainframe.code.foldername = saveFolder.Value;
+                AccessTools.Method(typeof(Mainframe), "LoadCharacterCustomization").Invoke(Mainframe.code, new object[] { customization } );
+            }
+            else
+            {
+
+                Dbgl($"Loading preset {charOrPresetName.Value}.");
+
+                Mainframe.code.LoadCharacterPreset(customization, charOrPresetName.Value);
+                if (RM.code.allItems.GetItemWithName(armorItem.Value))
+                {
+                    Dbgl($"Adding armor {armorItem.Value}.");
+                    if (customization.armor)
+                        customization.armor.gameObject.SetActive(false);
+                    customization.AddItem(Utility.Instantiate(RM.code.allItems.GetItemWithName(armorItem.Value)), "armor");
+                    customization.armor.gameObject.SetActive(true);
+                }
             }
 
             mmCharacter.transform.position = new Vector3(88.95f, 83.65f, 94.652f) + characterPosition.Value;

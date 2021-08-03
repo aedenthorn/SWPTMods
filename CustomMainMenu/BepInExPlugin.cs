@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace CustomMainMenu
 {
-    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.1.2")]
+    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -19,7 +19,8 @@ namespace CustomMainMenu
 
         public static ConfigEntry<int> backgroundChangeInterval;
 
-        public static ConfigEntry<string> presetName;
+        public static ConfigEntry<string> saveFolder;
+        public static ConfigEntry<string> charOrPresetName;
         public static ConfigEntry<string> armorItem;
         public static ConfigEntry<string> poseName;
         public static ConfigEntry<string> backgroundName;
@@ -56,8 +57,9 @@ namespace CustomMainMenu
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             //nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
 
-            presetName = Config.Bind<string>("Text", "PresetName", "", "Name of preset to use.");
-            armorItem = Config.Bind<string>("Text", "ArmorItem", "", "Name of armor to use.");
+            saveFolder = Config.Bind<string>("Text", "SaveFolder", "", "Name of save folder to load character from. If blank, will load preset name instead.");
+            charOrPresetName = Config.Bind<string>("Text", "CharOrPresetName", "", "Name of character if saveFolder is set or preset if not to use.");
+            armorItem = Config.Bind<string>("Text", "ArmorItem", "", "Name of armor to use if using a preset (saveFolder is blank).");
             poseName = Config.Bind<string>("Text", "PoseName", "", "Name of pose to use (Random if left blank).");
             backgroundName = Config.Bind<string>("Text", "BackgroundName", "", "Name of background picture to use (Random if left blank).");
 

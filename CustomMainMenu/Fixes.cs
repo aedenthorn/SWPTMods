@@ -78,7 +78,6 @@ namespace CustomMainMenu
         [HarmonyPatch(typeof(Mainframe), nameof(Mainframe.LoadStorage))]
         static class LoadStorage_Patch
         {
-
             static bool Prefix()
             {
                 if (!modEnabled.Value || SceneManager.GetActiveScene().name != "Desktop")
@@ -116,14 +115,16 @@ namespace CustomMainMenu
                 return false;
             }
         }
-        [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.SyncBlendshape))]
-        static class SyncBlendshape_Patch
+        [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.AddItem))]
+        static class AddItem_Patch
         {
-            static void Prefix(CharacterCustomization __instance)
+            static void Prefix(CharacterCustomization __instance, Transform item, string slotName)
             {
                 if (!modEnabled.Value || SceneManager.GetActiveScene().name != "Desktop")
                     return;
-                //Dbgl($"body: {__instance.body == null}, eyelash {__instance.eyelash == null}, player {Player.code == null}, npl {Player.code?.nipplesLargeIndex}, npd {Player.code?.nipplesDepthIndex}");
+                if (item.GetComponent<Item>().itemType == ItemType.lingerie)
+                    item.GetComponent<Item>().itemType = ItemType.item;
+                Dbgl($"additem {item.name} {slotName}");
             }
         }
     }

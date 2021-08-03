@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace EyebrowColors
 {
-    [BepInPlugin("aedenthorn.EyebrowColors", "Eyebrow Colors", "0.2.2")]
+    [BepInPlugin("aedenthorn.EyebrowColors", "Eyebrow Colors", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -83,6 +83,47 @@ namespace EyebrowColors
                     string colorCode = "#"+ ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=eyebrowsColor");
                     
                     Dbgl($"got saved eyebrow color: {colorCode} for {gen.characterName}");
+
+                    if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
+                    {
+                        color.a = gen.eyeBrowsStrength;
+                        Dbgl($"loaded eyebrow color: {color} for {gen.characterName}");
+
+                        eyebrowColors[gen.characterName] = color;
+
+                        gen.body.materials[1].SetColor("_Mask3_Rchannel_ColorAmountA", color);
+                        gen.body.materials[2].SetColor("_Mask3_Rchannel_ColorAmountA", color);
+                        gen.body.materials[4].SetColor("_Mask3_Rchannel_ColorAmountA", color);
+                    }
+                }
+            }
+        }
+        [HarmonyPatch(typeof(Mainframe), nameof(Mainframe.SaveCharacterPreset))]
+        static class SaveCharacterPreset_Patch
+        {
+            static void Prefix(Mainframe __instance, CharacterCustomization customization, string presetname)
+            {
+
+                Color color = eyebrowColors.ContainsKey(customization.characterName) ? eyebrowColors[customization.characterName] : Color.black;
+                color.a = customization.eyeBrowsStrength;
+
+                Dbgl($"saving eyebrow color {color} for preset {presetname} as {ColorUtility.ToHtmlStringRGBA(color)}");
+
+                ES2.Save<string>(ColorUtility.ToHtmlStringRGBA(color), "Character Presets/" + presetname + "/CharacterPreset.txt??tag=eyebrowsColor");
+
+            }
+        }
+
+        [HarmonyPatch(typeof(Mainframe), nameof(Mainframe.LoadCharacterPreset))]
+        static class LoadCharacterPreset_Patch
+        {
+            static void Postfix(Mainframe __instance, CharacterCustomization gen, string presetname)
+            {
+                if (ES2.Exists("Character Presets/" + presetname + "/CharacterPreset.txt?tag=eyebrowsColor"))
+                {
+                    string colorCode = "#"+ ES2.Load<string>("Character Presets/" + presetname + "/CharacterPreset.txt?tag=eyebrowsColor");
+                    
+                    Dbgl($"got saved eyebrow color: {colorCode} for preset {presetname}");
 
                     if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
                     {
