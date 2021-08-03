@@ -15,7 +15,7 @@ using UnityEngine.UI;
 
 namespace BepInExModSupport
 {
-    [BepInPlugin("aedenthorn.BepInExModSupport", "BepInEx Mod Support", "0.1.2")]
+    [BepInPlugin("aedenthorn.BepInExModSupport", "BepInEx Mod Support", "0.1.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -189,6 +189,12 @@ namespace BepInExModSupport
 
                         if (shouldUpdate)
                         {
+                            if (updateableMods.ContainsKey(id))
+                            {
+                                Dbgl($"Error: duplicate id {id} found in {mod.Metadata.Name} and {updateableMods[id].Metadata.Name}");
+                                continue;
+                            }
+
                             updateSigns.Add(id, element.loadSign);
                             updateableMods.Add(id, mod);
                             element.loadSign.gameObject.SetActive(false);

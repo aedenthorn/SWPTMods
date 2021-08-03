@@ -102,14 +102,17 @@ namespace CustomMainMenu
                 Player.code = new Player();
 
                 Transform template;
-                if (saveFolder.Value.Trim().Length > 0)
+                if (saveFolder.Value.Trim().Length > 0 && charOrPresetName.Value.Trim() != "Player")
+                {
                     template = RM.code.allCompanions.GetItemWithName(charOrPresetName.Value.Trim());
+                }
                 else
                     template = RM.code.allCompanions.GetItemWithName("Kira");
 
                 if (!template)
                 {
                     Dbgl($"Error loading customization {(saveFolder.Value.Trim().Length > 0 ? saveFolder.Value.Trim() : "preset")} {charOrPresetName.Value}");
+                    return;
                 }
 
                 Global.code = new Global();
@@ -189,7 +192,6 @@ namespace CustomMainMenu
 
                 Dbgl($"Loading preset {charOrPresetName.Value}.");
 
-                Mainframe.code.LoadCharacterPreset(customization, charOrPresetName.Value);
                 if (RM.code.allItems.GetItemWithName(armorItem.Value))
                 {
                     Dbgl($"Adding armor {armorItem.Value}.");
@@ -198,6 +200,7 @@ namespace CustomMainMenu
                     customization.AddItem(Utility.Instantiate(RM.code.allItems.GetItemWithName(armorItem.Value)), "armor");
                     customization.armor.gameObject.SetActive(true);
                 }
+                Mainframe.code.LoadCharacterPreset(customization, charOrPresetName.Value);
             }
 
             mmCharacter.transform.position = new Vector3(88.95f, 83.65f, 94.652f) + characterPosition.Value;

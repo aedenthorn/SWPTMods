@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace MoreHairColor
 {
-    [BepInPlugin("aedenthorn.MoreHairColor", "More Hair Color", "0.1.1")]
+    [BepInPlugin("aedenthorn.MoreHairColor", "More Hair Color", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -132,7 +132,7 @@ namespace MoreHairColor
                     if(customHairColor.GetComponent<CustomizationItem>().color == color)
                     {
                         customHairColor.GetComponent<CustomizationItem>().color = RM.code.allHairColors.items[0].GetComponent<CustomizationItem>().color;
-                        __instance.curCustomization.hairColor = RM.code.allHairColors.items[0];
+                        __instance.curCustomization.hairColor = RM.code.allHairColors.items[0].GetComponent<CustomizationItem>().color;
                         __instance.curCustomization.RefreshAppearence();
                     }
 
@@ -165,70 +165,72 @@ namespace MoreHairColor
 
             static void Postfix(UIMakeup __instance)
             {
-                if (!modEnabled.Value || __instance.panelHair.transform.Find("save button"))
+                if (!modEnabled.Value)
                     return;
 
                 Dbgl($"Total hair colors: {RM.code.allHairColors.items.Count}");
 
-                /*
-                foreach (Transform ac in RM.code.allHairColors.items)
+
+                if(!__instance.panelHair.transform.Find("save button"))
                 {
-                    Dbgl(ac.name);
+
+                    customHairColor = Instantiate(RM.code.allHairColors.items[0]);
+                    customHairColor.GetComponent<CustomizationItem>().color = Color.black;
+                    DontDestroyOnLoad(customHairColor);
+                    redSlider = Instantiate(__instance.panelLips.transform.Find("lip gloss"), __instance.panelHair.transform);
+                    Slider rs = redSlider.GetComponent<Slider>();
+                    rs.minValue = 0;
+                    rs.maxValue = 1;
+                    rs.onValueChanged = new Slider.SliderEvent();
+                    rs.onValueChanged.AddListener(ChangeCurrentColor);
+
+                    redSlider.name = "red";
+
+                    Transform rt = redSlider.Find("Text");
+                    Destroy(rt.GetComponent<LocalizationText>());
+                    rt.GetComponent<Text>().text = "Red";
+                    rt.GetComponent<RectTransform>().anchoredPosition += new Vector2(60, 0);
+
+                    redSlider.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 110);
+
+
+                    float height = 20;
+
+                    greenSlider = Instantiate(redSlider, __instance.panelHair.transform);
+                    greenSlider.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, height);
+                    greenSlider.name = "green";
+                    greenSlider.Find("Text").GetComponent<Text>().text = "Green";
+
+                    Slider gs = greenSlider.GetComponent<Slider>();
+                    gs.minValue = 0;
+                    gs.maxValue = 1;
+                    gs.onValueChanged = new Slider.SliderEvent();
+                    gs.onValueChanged.AddListener(ChangeCurrentColor);
+
+
+                    blueSlider = Instantiate(redSlider, __instance.panelHair.transform);
+                    blueSlider.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, height * 2);
+                    blueSlider.name = "blue";
+                    blueSlider.Find("Text").GetComponent<Text>().text = "Blue";
+
+                    Slider bs = blueSlider.GetComponent<Slider>();
+                    bs.minValue = 0;
+                    bs.maxValue = 1;
+                    bs.onValueChanged = new Slider.SliderEvent();
+                    bs.onValueChanged.AddListener(ChangeCurrentColor);
+
+                    saveButton = Instantiate(__instance.customizationItemButton, __instance.panelHair.transform);
+                    saveButton.GetComponent<RectTransform>().anchoredPosition = redSlider.GetComponent<RectTransform>().anchoredPosition - new Vector2(115, 20);
+                    saveButton.localScale = Vector3.one;
+                    saveButton.name = "save button";
+                    saveButton.GetComponent<RawImage>().texture = saveButtonTexture;
+                    saveButton.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
+                    saveButton.GetComponent<Button>().onClick.AddListener(AddHairColor);
                 }
-                */
-
-                customHairColor = Instantiate(RM.code.allHairColors.items[0]);
-                customHairColor.GetComponent<CustomizationItem>().color = Color.black;
-                DontDestroyOnLoad(customHairColor);
-                redSlider = Instantiate(__instance.panelLips.transform.Find("lip gloss"), __instance.panelHair.transform);
-                Slider rs = redSlider.GetComponent<Slider>();
-                rs.minValue = 0;
-                rs.maxValue = 1;
-                rs.onValueChanged = new Slider.SliderEvent();
-                rs.onValueChanged.AddListener(ChangeCurrentColor);
-
-                redSlider.name = "red";
-
-                Transform rt = redSlider.Find("Text");
-                Destroy(rt.GetComponent<LocalizationText>());
-                rt.GetComponent<Text>().text = "Red";
-                rt.GetComponent<RectTransform>().anchoredPosition += new Vector2(60,0);
-
-                redSlider.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 110);
-
-
-                float height = 20;
-
-                greenSlider = Instantiate(redSlider, __instance.panelHair.transform);
-                greenSlider.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, height);
-                greenSlider.name = "green";
-                greenSlider.Find("Text").GetComponent<Text>().text = "Green";
-
-                Slider gs = greenSlider.GetComponent<Slider>();
-                gs.minValue = 0;
-                gs.maxValue = 1;
-                gs.onValueChanged = new Slider.SliderEvent();
-                gs.onValueChanged.AddListener(ChangeCurrentColor);
-
-
-                blueSlider = Instantiate(redSlider, __instance.panelHair.transform);
-                blueSlider.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, height * 2);
-                blueSlider.name = "blue";
-                blueSlider.Find("Text").GetComponent<Text>().text = "Blue";
-
-                Slider bs = blueSlider.GetComponent<Slider>();
-                bs.minValue = 0;
-                bs.maxValue = 1;
-                bs.onValueChanged = new Slider.SliderEvent();
-                bs.onValueChanged.AddListener(ChangeCurrentColor);
-
-                saveButton = Instantiate(__instance.customizationItemButton, __instance.panelHair.transform);
-                saveButton.GetComponent<RectTransform>().anchoredPosition = redSlider.GetComponent<RectTransform>().anchoredPosition - new Vector2(115, 20);
-                saveButton.localScale = Vector3.one;
-                saveButton.name = "save button";
-                saveButton.GetComponent<RawImage>().texture = saveButtonTexture;
-                saveButton.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
-                saveButton.GetComponent<Button>().onClick.AddListener(AddHairColor);
+                Color c = __instance.curCustomization.hairColor;
+                redSlider.GetComponent<Slider>().value = c.r;
+                greenSlider.GetComponent<Slider>().value = c.g;
+                blueSlider.GetComponent<Slider>().value = c.b;
 
             }
         }
@@ -238,7 +240,7 @@ namespace MoreHairColor
             if (forceSliders)
                 return;
             customHairColor.GetComponent<CustomizationItem>().color = new Color(redSlider.GetComponent<Slider>().value, greenSlider.GetComponent<Slider>().value, blueSlider.GetComponent<Slider>().value);
-            Global.code.uiMakeup.curCustomization.hairColor = customHairColor;
+            Global.code.uiMakeup.curCustomization.hairColor = customHairColor.GetComponent<CustomizationItem>().color;
             Global.code.uiMakeup.curCustomization.RefreshAppearence();
         }
 

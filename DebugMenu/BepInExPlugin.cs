@@ -23,12 +23,15 @@ namespace DebugMenu
         public static ConfigEntry<string> language;
         public static ConfigEntry<string> spawnItemTitle;
         public static ConfigEntry<string> cancelText;
+        public static ConfigEntry<string> levelBypassNotice;
+        public static ConfigEntry<string> flyModeNotice;
 
         public static ConfigEntry<string> hotKey;
 
-        private static List<string> itemNames;
         public static ConfigEntry<bool> levelBypass;
+        public static ConfigEntry<bool> flyMode;
 
+        private static List<string> itemNames;
         public static Transform uiDebug;
 
         public static Transform lastSelected;
@@ -52,9 +55,12 @@ namespace DebugMenu
             language = Config.Bind<string>("Text", "Language", "en", "Name of language file to use for buttons.");
             spawnItemTitle = Config.Bind<string>("Text", "SpawnItemTitle", "Spawn Item", "Title for spawn item ui.");
             cancelText = Config.Bind<string>("Text", "CancelText", "Cancel", "Text for cancel button.");
+            levelBypassNotice = Config.Bind<string>("Text", "LevelBypassNotice", "Level bypass: {0}", "Text for level bypass notice. {0} is replaced with true or false.");
+            flyModeNotice = Config.Bind<string>("Text", "FlyModeNotice", "Fly mode: {0}", "Text for fly mode notice. {0} is replaced with true or false.");
             
             nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
+            flyMode = Config.Bind<bool>("Options", "FlyMode", false, "Enable fly mode");
             levelBypass = Config.Bind<bool>("Options", "LevelBypass", false, "Enable level bypass for equipment");
             hotKey = Config.Bind<string>("Options", "HotKey", "f4", "Hotkey to toggle debug menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
@@ -95,7 +101,7 @@ namespace DebugMenu
             buttonList.GetChild(count).name = names[count];
             buttonList.GetChild(count).GetComponentInChildren<Text>().text = names[count];
             buttonList.GetChild(count).GetComponentInChildren<Button>().onClick = new Button.ButtonClickedEvent();
-            buttonList.GetChild(count).GetComponentInChildren<Button>().onClick.AddListener(delegate() { levelBypass.Value = !levelBypass.Value; });
+            buttonList.GetChild(count).GetComponentInChildren<Button>().onClick.AddListener(ToggleLevelBypass);
             count++;
 
             // Spawn
@@ -113,6 +119,5 @@ namespace DebugMenu
                 count++;
             }
         }
-
     }
 }

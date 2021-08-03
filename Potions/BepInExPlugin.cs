@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace Potions
 {
-    [BepInPlugin("aedenthorn.Potions", "Potions", "0.1.3")]
+    [BepInPlugin("aedenthorn.Potions", "Potions", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -95,11 +95,7 @@ namespace Potions
                     DestroyImmediate(t.GetComponent<Potion>());
                     t.gameObject.AddComponent<Potion>();
                     Item item = t.GetComponent<Item>();
-                    item.nameEN = pd.nameEN;
-                    item.nameCN = pd.nameCN;
-                    item.nameRU = pd.nameRU;
                     item.itemType = ItemType.item;
-                    item.itemName = pd.id;
                     item.autoPickup = true;
                     item.rarity = (Rarity) pd.rarity;
                     item.cost = pd.cost;

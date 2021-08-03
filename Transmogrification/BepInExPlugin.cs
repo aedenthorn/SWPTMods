@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Transmogrification
 {
@@ -55,16 +56,33 @@ namespace Transmogrification
 
         }
 
+        public static Transform currentDescriptionHolder;
+
+        [HarmonyPatch(typeof(UICombat), nameof(UICombat.CreateLine))]
+        static class CreateLine_Patch
+        {
+            static void Postfix(UICombat __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                currentDescriptionHolder = __instance.descriptionHolder;
+                    
+            }
+        }
         [HarmonyPatch(typeof(UICombat), nameof(UICombat.ShowInfo))]
-        [HarmonyPriority(Priority.First)]
         static class ShowInfo_Patch
         {
             static void Postfix(UICombat __instance, Item item)
             {
                 if (!modEnabled.Value || !item || !itemAppearances.ContainsKey(item.transform.GetInstanceID()) || appearString.Value.Trim() == "")
                     return;
-                __instance.CreateLine(string.Format(appearString.Value, itemAppearances[item.transform.GetInstanceID()]), appearStringColor.Value);
-                    
+
+                Transform transform = UnityEngine.Object.Instantiate<Transform>(__instance.descriptionLinePrefab);
+                transform.gameObject.SetActive(true);
+                transform.SetParent(currentDescriptionHolder);
+                transform.localScale = Vector3.one;
+                transform.GetComponent<Text>().text = string.Format(appearString.Value, itemAppearances[item.transform.GetInstanceID()]);
+                transform.GetComponent<Text>().color = appearStringColor.Value;
             }
         }
         [HarmonyPatch(typeof(EquipmentSlot), nameof(EquipmentSlot.OnPointerEnter))]
