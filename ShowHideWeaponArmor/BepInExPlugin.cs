@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace ShowHideWeaponArmor
 {
-    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.2.1")]
+    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -102,7 +102,7 @@ namespace ShowHideWeaponArmor
         {
             static void Prefix(CharacterCustomization __instance, ref bool __state)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !Global.code)
                     return;
 
                 //Dbgl($"Refresh clothes pose {Global.code.uiPose.gameObject.activeSelf} freepose {Global.code.uiFreePose.gameObject.activeSelf} inv {Global.code.uiInventory.gameObject.activeSelf} home {Global.code.curlocation.locationType == LocationType.home} ");

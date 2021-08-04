@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.5.0")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.5.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -17,7 +17,6 @@ namespace ScalingFieldEncounters
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         
-        public static ConfigEntry<float> levelBasedLootWeighting;
         public static ConfigEntry<float> levelFactor;
         public static ConfigEntry<float> wonFactor;
         public static ConfigEntry<float> enemySpawnMult;
@@ -40,8 +39,6 @@ namespace ScalingFieldEncounters
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-
-            levelBasedLootWeighting = Config.Bind<float>("Options", "LevelBasedLootWeighting", 0, "Fraction weighting for preferring loot that matches the player level (1 is vanilla, only match with player level, and 0 means totally not level-matched). Preference is still for items with levels closer to the player.");
 
             levelFactor = Config.Bind<float>("Options", "LevelFactor", 0.1f, "Difficulty scale factor based on level (1 = 1-to-1 scaling per player level, set to 0 for no effect).");
             wonFactor = Config.Bind<float>("Options", "WonFactor", 0.1f, "Difficulty scale factor based on skirmishes won (1 = 1-to-1 scaling per player skirmish won, set to 0 for no effect).");
@@ -86,46 +83,6 @@ namespace ScalingFieldEncounters
             }
         }
 
-        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.GetMatchLevelItems))]
-        static class LootDrop_GetMatchLevelItems_Patch
-        {
-            static bool Prefix(LootDrop __instance, List<Transform> list, ref List<Transform> __result)
-            {
-                if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || list.Count <= 0)
-                    return true;
-
-                List<Transform> list2 = new List<Transform>();
-                foreach (Transform transform in list)
-                {
-                    Item component = transform.GetComponent<Item>();
-                    if (component)
-                    {
-                        float add;
-                        if (Player.code.customization._ID.level > component.level)
-                        {
-                            add = (Player.code.customization._ID.level / 2f - component.level) / Player.code.customization._ID.level;
-                        }
-                        else
-                        {
-                            add = -(Player.code.customization._ID.level * 1.5f - component.level) / component.level; // 6 12, 9 - 12 / 12 = -0.25 // 10 12, 15 - 12 / 12 = 0.25
-                        }
-                        //Dbgl($"Item level {t.GetComponent<Item>().level}, extra chance {add}");
-
-                        if (Random.value > levelBasedLootWeighting.Value * (1 + add))
-                        {
-                            list2.Add(transform);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError("错误道具 " + transform.name);
-                    }
-                }
-                __result = list2;
-                return false;
-            }
-        }
-        
         [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.Drop))]
         static class LootDrop_Drop_Patch
         {

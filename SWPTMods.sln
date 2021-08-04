@@ -97,9 +97,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mirror", "Mirror\Mirror.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SortInventory", "SortInventory\SortInventory.csproj", "{D714A41A-619F-4C25-80F6-301DD4DDE07E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spawn", "Spawn\Spawn.csproj", "{B9E293D9-7EAA-4157-8A13-4CA54001BE23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spawn", "Spawn\Spawn.csproj", "{B9E293D9-7EAA-4157-8A13-4CA54001BE23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebugMenu", "DebugMenu\DebugMenu.csproj", "{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugMenu", "DebugMenu\DebugMenu.csproj", "{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dungeons", "Dungeons\Dungeons.csproj", "{3018583D-D83F-4E5E-881D-0F90DCFFF7D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedLootDrops", "AdvancedLootDrops\AdvancedLootDrops.csproj", "{FFEE7447-1A3F-4597-9E15-F4EEC578A874}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -303,6 +307,14 @@ Global
 		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEDA449E-CBBA-4F2F-98AF-3B7C124E310F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3018583D-D83F-4E5E-881D-0F90DCFFF7D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3018583D-D83F-4E5E-881D-0F90DCFFF7D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3018583D-D83F-4E5E-881D-0F90DCFFF7D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3018583D-D83F-4E5E-881D-0F90DCFFF7D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFEE7447-1A3F-4597-9E15-F4EEC578A874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFEE7447-1A3F-4597-9E15-F4EEC578A874}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFEE7447-1A3F-4597-9E15-F4EEC578A874}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFEE7447-1A3F-4597-9E15-F4EEC578A874}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

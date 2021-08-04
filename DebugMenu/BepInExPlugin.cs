@@ -56,11 +56,11 @@ namespace DebugMenu
             spawnItemTitle = Config.Bind<string>("Text", "SpawnItemTitle", "Spawn Item", "Title for spawn item ui.");
             cancelText = Config.Bind<string>("Text", "CancelText", "Cancel", "Text for cancel button.");
             levelBypassNotice = Config.Bind<string>("Text", "LevelBypassNotice", "Level bypass: {0}", "Text for level bypass notice. {0} is replaced with true or false.");
-            flyModeNotice = Config.Bind<string>("Text", "FlyModeNotice", "Fly mode: {0}", "Text for fly mode notice. {0} is replaced with true or false.");
+            //flyModeNotice = Config.Bind<string>("Text", "FlyModeNotice", "Fly mode: {0}", "Text for fly mode notice. {0} is replaced with true or false.");
             
             nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
-            flyMode = Config.Bind<bool>("Options", "FlyMode", false, "Enable fly mode");
+            //flyMode = Config.Bind<bool>("Options", "FlyMode", false, "Enable fly mode");
             levelBypass = Config.Bind<bool>("Options", "LevelBypass", false, "Enable level bypass for equipment");
             hotKey = Config.Bind<string>("Options", "HotKey", "f4", "Hotkey to toggle debug menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
@@ -72,7 +72,6 @@ namespace DebugMenu
         private static void CreateDebugMenu()
         {
             Dbgl("Creating debug menu");
-            int c = 0;
 
             uiDebug = Instantiate(Global.code.uiCheat.transform, Global.code.uiCheat.transform.parent);
             uiDebug.name = "Debug Menu";

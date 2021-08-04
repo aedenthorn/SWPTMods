@@ -1,13 +1,7 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace DebugMenu
 {
@@ -97,7 +91,7 @@ namespace DebugMenu
         }
 
         [HarmonyPatch(typeof(EquipmentSlot), nameof(EquipmentSlot.Click))]
-        public static class Click_Patch
+        public static class EquipmentSlot_Click_Patch
         {
             public static void Prefix(EquipmentSlot __instance, ref int __state)
             {
@@ -113,6 +107,21 @@ namespace DebugMenu
                     return;
                 lastSelected.GetComponent<Item>().levelrequirement = __state;
                 lastSelected = null;
+            }
+        }
+        //[HarmonyPatch(typeof(Player), "Update")]
+        public static class Player_Update_Patch
+        {
+            public static void Prefix(Player __instance, ThirdPersonCharacter ___m_Character)
+            {
+                if (!modEnabled.Value || __instance.customization.isDisplay)
+                    return;
+
+                if (Input.GetKey(KeyCode.Q))
+                    __instance.transform.position += Vector3.up * 0.01f;
+                else if (Input.GetKey(KeyCode.E))
+                    __instance.transform.position -= Vector3.up * 0.01f;
+                __instance.rigidbody.useGravity = !flyMode.Value;
             }
         }
     }

@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UMod;
@@ -15,7 +16,7 @@ using UnityEngine.UI;
 
 namespace BepInExModSupport
 {
-    [BepInPlugin("aedenthorn.BepInExModSupport", "BepInEx Mod Support", "0.1.3")]
+    [BepInPlugin("aedenthorn.BepInExModSupport", "BepInEx Mod Support", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -26,6 +27,7 @@ namespace BepInExModSupport
 
         public static ConfigEntry<bool> checkUpdates;
         public static ConfigEntry<bool> loadImages;
+        public static ConfigEntry<bool> checkUpdatesOnLoad;
 
         public static ConfigEntry<string> checkText;
         public static ConfigEntry<string> visitText;
@@ -38,7 +40,13 @@ namespace BepInExModSupport
         public static ConfigEntry<int> minUpdateInterval;
         public static ConfigEntry<long> lastUpdate;
 
-        private static Dictionary<int, Transform> updateSigns = new Dictionary<int, Transform>();
+        public static ConfigDefinition enabledDef = new ConfigDefinition("General", "Enabled");
+        public static ConfigDefinition nexusIDDef = new ConfigDefinition("General", "NexusID");
+        
+        public static string filePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private static Transform modCheckImage;
+        private static Dictionary<string, PluginUpdateData> pluginUpdateDatas = new Dictionary<string, PluginUpdateData>();
+        private static bool isCheckingUpdates;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -51,8 +59,12 @@ namespace BepInExModSupport
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            nexusID = Config.Bind<int>("General", "NexusID", 31, "Nexus mod ID for updates");
+            
+            checkUpdates = Config.Bind<bool>("General", "CheckUpdates", true, "Check for updates");
+            checkUpdatesOnLoad = Config.Bind<bool>("General", "CheckUpdatesOnLoad", true, "Check for updates");
 
-            minUpdateInterval = Config.Bind<int>("Options", "MinUpdateInterval", 0, "Minimum update interval in minutes.");
+            minUpdateInterval = Config.Bind<int>("Options", "MinUpdateInterval", 60, "Minimum update interval in minutes.");
 
             checkText = Config.Bind<string>("Text", "CheckText", "Check", "Text to show on update check button");
             disableText = Config.Bind<string>("Text", "DisableText", "Disable", "Text to show instead of Uninstall");
@@ -64,27 +76,80 @@ namespace BepInExModSupport
 
             lastUpdate = Config.Bind<long>("ZAuto", "LastUpdate", 0, "Last update time (this is automatically changed on each update).");
 
-            nexusID = Config.Bind<int>("General", "NexusID", 31, "Nexus mod ID for updates");
-
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
 
-            //assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
             if (!Directory.Exists(Path.Combine(Application.streamingAssetsPath, "DownloadMods")))
                 Directory.CreateDirectory(Path.Combine(Application.streamingAssetsPath, "DownloadMods"));
 
         }
 
+        private void Start()
+        {
+            if (checkUpdatesOnLoad.Value && ShouldCheckUpdate()) 
+            {
+                LoadPluginData();
+                StartCoroutine(CheckUpdates(true));
+            }
+        }
+
+        private static void LoadPluginData()
+        {
+            pluginUpdateDatas.Clear();
+            var checkCount = 0;
+            foreach (PluginInfo mod in Chainloader.PluginInfos.Values)
+            {
+                var data = new PluginUpdateData() { pluginInfo = mod };
+
+
+                if (data.pluginInfo.Instance.Config.ContainsKey(nexusIDDef))
+                {
+                    checkCount++;
+                    data.checkable = true;
+                    data.id = (int)mod.Instance.Config[nexusIDDef].BoxedValue;
+                }
+
+                pluginUpdateDatas.Add(data.pluginInfo.Metadata.GUID, data);
+            }
+            Dbgl($"Found {pluginUpdateDatas.Count} plugins, {checkCount} with nexus ids");
+        }
+
+        private static bool ShouldCheckUpdate()
+        {
+            return checkUpdates.Value && DateTimeOffset.Now.ToUnixTimeSeconds() - lastUpdate.Value > minUpdateInterval.Value * 60;
+        }
+
+        [HarmonyPatch(typeof(UIDesktop), "Awake")]
+        static class UIDesktop_Awake_Patch
+        {
+
+            static void Postfix(UIDesktop __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                modCheckImage = Instantiate(Mainframe.code.uiModBrowse.DownloadPrefab.GetComponent<UIModElement>().loadSign, GameObject.Find("btn mod").transform);
+                for (int i = 0; i < modCheckImage.childCount; i++)
+                    Destroy(modCheckImage.GetChild(i).gameObject);
+                modCheckImage.GetComponent<RectTransform>().anchoredPosition = new Vector2(modCheckImage.parent.GetComponent<RectTransform>().rect.width / 2 - modCheckImage.GetComponent<RectTransform>().rect.width, 0);
+                modCheckImage.name = "Mod Check Image";
+                modCheckImage.gameObject.SetActive(false);
+            }
+        }
+
         [HarmonyPatch(typeof(UIModBrowse), "ShowDownload")]
-        static class ShowDownload_Patch
+        static class UIModBrowse_ShowDownload_Patch
         {
             static void Postfix(UIModBrowse __instance)
             {
                 if (!modEnabled.Value)
                     return;
 
-                if(!__instance.Uploadbtn.transform.parent.Find("Check Button"))
+                bool shouldCheckUpdate = ShouldCheckUpdate();
+
+                modCheckImage.gameObject.SetActive(false);
+
+                if (!__instance.Uploadbtn.transform.parent.Find("Check Button"))
                 {
                     Button checkButton = Instantiate(__instance.Uploadbtn.transform, __instance.Uploadbtn.transform.parent).GetComponent<Button>();
                     checkButton.transform.name = "Check Button";
@@ -98,31 +163,25 @@ namespace BepInExModSupport
                     checkButton.GetComponentInChildren<Text>().text = checkText.Value;
                 }
 
-                updateSigns.Clear();
+                if (pluginUpdateDatas.Count == 0 || shouldCheckUpdate)
+                    LoadPluginData();
 
-                string filePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                ConfigDefinition enabledDef = new ConfigDefinition("General", "Enabled");
-                ConfigDefinition nexusIDDef = new ConfigDefinition("General", "NexusID");
+                List<string> keys = pluginUpdateDatas.Keys.ToList();
 
-                Dictionary<int, PluginInfo> updateableMods = new Dictionary<int, PluginInfo>();
-
-                bool shouldUpdate = DateTimeOffset.Now.ToUnixTimeSeconds() - lastUpdate.Value > minUpdateInterval.Value * 60;
-
-                Dbgl($"Last update was {(DateTimeOffset.Now.ToUnixTimeSeconds() - lastUpdate.Value)/60} minutes ago. Updating: {false}");
-
-                foreach (PluginInfo mod in Chainloader.PluginInfos.Values)
+                foreach (string guid in keys)
                 {
-                    var canEnable = mod.Instance.Config.ContainsKey(enabledDef);
+                    PluginUpdateData data = pluginUpdateDatas[guid];
+                    var canEnable = data.pluginInfo.Instance.Config.ContainsKey(enabledDef);
 
-                    var enabled = canEnable ? (bool)mod.Instance.Config[enabledDef].BoxedValue : false;
+                    var enabled = canEnable ? (bool)data.pluginInfo.Instance.Config[enabledDef].BoxedValue : false;
 
                     Transform transform = Instantiate(__instance.DownloadPrefab, __instance.DownloadRect.content);
                     transform.gameObject.SetActive(true);
                     UIModElement element = transform.GetComponent<UIModElement>();
-                    element.Name = mod.Metadata.Name;
-                    element.Version = "V: " + mod.Metadata.Version;
+                    element.Name = data.pluginInfo.Metadata.Name;
+                    element.Version = "V: " + data.pluginInfo.Metadata.Version;
                     element.FilePath = new ModDirectory(filePath);
-                    string[] parts = mod.Metadata.GUID.Split('.');
+                    string[] parts = data.pluginInfo.Metadata.GUID.Split('.');
                     element.Author = parts.Length > 1 ? parts[parts.Length - 2] : "";
 
                     element.icon.gameObject.SetActive(false);
@@ -133,23 +192,25 @@ namespace BepInExModSupport
                     {
                         element.icon.texture = texture2D;
                     }
-                    modDirPath.GetModPath(mod.NameInfo.ModName, null).ToString();
+                    modDirPath.GetModPath(data.pluginInfo.NameInfo.ModName, null).ToString();
                     */
                     element.unloadBtn.GetComponentInChildren<Text>().text = disableText.Value;
                     element.loadBtn.GetComponentInChildren<Text>().text = enableText.Value;
                     element.unloadBtn.onClick.AddListener(delegate ()
                     {
-                        var entry = mod.Instance.Config.Bind(new ConfigDefinition("General", "Enabled"), true);
+                        var entry = data.pluginInfo.Instance.Config.Bind(new ConfigDefinition("General", "Enabled"), true);
                         entry.Value = false;
                         element.unloadBtn.gameObject.SetActive(false);
                         element.loadBtn.gameObject.SetActive(true);
+                        element.loadSign.gameObject.SetActive(false);
                     });
                     element.loadBtn.onClick.AddListener(delegate ()
                     {
-                        var entry = mod.Instance.Config.Bind(new ConfigDefinition("General", "Enabled"), true);
+                        var entry = data.pluginInfo.Instance.Config.Bind(new ConfigDefinition("General", "Enabled"), true);
                         entry.Value = true;
                         element.unloadBtn.gameObject.SetActive(true);
                         element.loadBtn.gameObject.SetActive(false);
+                        element.loadSign.gameObject.SetActive(true);
                     });
 
                     if (enabled)
@@ -170,67 +231,89 @@ namespace BepInExModSupport
                         element.unloadBtn.gameObject.SetActive(false);
                         element.loadBtn.gameObject.SetActive(false);
                     }
-                    if (mod.Instance.Config.ContainsKey(nexusIDDef))
+                    if (data.checkable && shouldCheckUpdate)
                     {
-
-                        int id = (int)mod.Instance.Config[nexusIDDef].BoxedValue;
-                        Dbgl($"{mod.Metadata.Name} has id {id}");
+                        Dbgl($"{data.pluginInfo.Metadata.Name} has id {data.id}");
                         Button visitButton = Instantiate(element.loadBtn.gameObject, transform).GetComponent<Button>();
                         visitButton.GetComponentInChildren<Text>().text = visitText.Value;
                         visitButton.onClick = new Button.ButtonClickedEvent();
                         visitButton.onClick.AddListener(delegate() {
-                            Application.OpenURL($"https://www.nexusmods.com/shewillpunishthem/mods/{id}?tab=files");
+                            Application.OpenURL($"https://www.nexusmods.com/shewillpunishthem/mods/{data.id}?tab=files");
                         });
                         visitButton.gameObject.SetActive(true);
                         float width = visitButton.GetComponent<RectTransform>().rect.width;
                         element.loadBtn.GetComponent<RectTransform>().anchoredPosition -= new Vector2(width, 0);
                         element.unloadBtn.GetComponent<RectTransform>().anchoredPosition -= new Vector2(width, 0);
                         element.loadSign.GetComponent<RectTransform>().anchoredPosition -= new Vector2(width, 0);
+                        pluginUpdateDatas[guid].updateSign = element.loadSign;
 
-                        if (shouldUpdate)
+                        if (data.remoteVersion == null)
                         {
-                            if (updateableMods.ContainsKey(id))
-                            {
-                                Dbgl($"Error: duplicate id {id} found in {mod.Metadata.Name} and {updateableMods[id].Metadata.Name}");
-                                continue;
-                            }
-
-                            updateSigns.Add(id, element.loadSign);
-                            updateableMods.Add(id, mod);
                             element.loadSign.gameObject.SetActive(false);
+                        }
+                        else if(data.remoteVersion > data.pluginInfo.Metadata.Version)
+                        {
+                            element.loadSign.gameObject.SetActive(true);
+                            element.loadSign.GetComponentInChildren<Text>().text = updateText.Value;
+                            element.loadSign.GetComponent<Image>().color = Color.yellow;
+                        }
+                        else
+                        {
+                            element.loadSign.gameObject.SetActive(true);
+                            element.loadSign.GetComponentInChildren<Text>().text = updatedText.Value;
+                            element.loadSign.GetComponent<Image>().color = Color.green;
                         }
                     }
                 }
-                if(updateableMods.Count > 0)
-                {
-                    context.StartCoroutine(CheckUpdates(updateableMods));
-                }
+                if(shouldCheckUpdate)
+                    context.StartCoroutine(CheckUpdates(false));
             }
         }
-        public static IEnumerator CheckUpdates(Dictionary<int, PluginInfo> mods)
+        public static IEnumerator CheckUpdates(bool mainMenu)
         {
-            //Dictionary<string, string> ignores = GetIgnores();
-            foreach (var kvp in mods)
+            if (isCheckingUpdates)
+                yield break;
+
+            Dbgl($"Checking for updates");
+
+            isCheckingUpdates = true;
+            
+            bool anyUpdates = false;
+
+            modCheckImage.gameObject.SetActive(mainMenu);
+
+            modCheckImage.gameObject.GetComponent<Image>().color = Color.yellow;
+
+            List<string> keys = pluginUpdateDatas.Keys.ToList();
+
+            foreach (var guid in keys)
             {
-                if (Mainframe.code?.uiModBrowse.gameObject.activeSelf != true)
-                    yield break;
+                PluginUpdateData data = pluginUpdateDatas[guid];
 
-                Version currentVersion = kvp.Value.Metadata.Version;
-                string pluginName = kvp.Value.Metadata.Name;
-                string guid = kvp.Value.Metadata.GUID;
+                if (!data.checkable || data.remoteVersion != null)
+                    continue;
+
+                Version currentVersion = data.pluginInfo.Metadata.Version;
+                string pluginName = data.pluginInfo.Metadata.Name;
                 
-                int id = kvp.Key;
+                int id = data.id;
 
 
-                Dbgl($"{pluginName} {kvp.Key} current version: {currentVersion}");
+                Dbgl($"{pluginName} {guid} current version: {currentVersion}");
 
                 WWWForm form = new WWWForm();
 
                 UnityWebRequest uwr = UnityWebRequest.Get($"https://www.nexusmods.com/shewillpunishthem/mods/{id}");
                 yield return uwr.SendWebRequest();
 
-                if (Mainframe.code?.uiModBrowse.gameObject.activeSelf != true)
+                
+
+
+                if (!mainMenu && Mainframe.code?.uiModBrowse.gameObject.activeSelf != true)
+                {
+                    isCheckingUpdates = false;
                     yield break;
+                }
 
                 if (uwr.isNetworkError)
                 {
@@ -256,8 +339,10 @@ namespace BepInExModSupport
 
                             found = true;
 
-                            Version version = new Version(match.Groups[1].Value);
-                            Dbgl($"remote version: {version}.");
+                            Version remoteVersion = new Version(match.Groups[1].Value);
+                            Dbgl($"{pluginName} remote version: {remoteVersion}.");
+
+                            pluginUpdateDatas[guid].remoteVersion = remoteVersion;
 
                             /*
                             if (ignores.ContainsKey("" + id))
@@ -278,14 +363,23 @@ namespace BepInExModSupport
                             }
                             */
 
-                            if (version > currentVersion)
+                            if (remoteVersion > currentVersion)
                             {
-                                Dbgl($"new remote version: {version}!");
-                                updateSigns[id].GetComponentInChildren<Text>().text = updateText.Value;
-                                updateSigns[id].GetComponent<Image>().color = Color.yellow;
+                                anyUpdates = true;
+                                Dbgl($"new remote version: {remoteVersion}!");
+                                modCheckImage.gameObject.SetActive(true);
+                                modCheckImage.gameObject.GetComponent<Image>().color = Color.red;
+                                if (data.updateSign)
+                                {
+                                    data.updateSign.GetComponentInChildren<Text>().text = updateText.Value;
+                                    data.updateSign.GetComponent<Image>().color = Color.yellow;
+                                }
                             }
-                            else
-                                updateSigns[id].GetComponentInChildren<Text>().text = updatedText.Value;
+                            else if (data.updateSign)
+                            {
+                                data.updateSign.GetComponentInChildren<Text>().text = updatedText.Value;
+                                data.updateSign.GetComponent<Image>().color = Color.green;
+                            }
 
                             break;
                         }
@@ -298,13 +392,23 @@ namespace BepInExModSupport
                     {
                         Dbgl("Mod version string not found on page!");
                         //File.WriteAllLines(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), id + "_page.txt"), lines);
-                        updateSigns[id].GetComponentInChildren<Text>().text = problemText.Value;
-                        updateSigns[id].GetComponent<Image>().color = Color.red;
+                        data.updateSign.GetComponentInChildren<Text>().text = problemText.Value;
+                        data.updateSign.GetComponent<Image>().color = Color.red;
                     }
-                    updateSigns[id].gameObject.SetActive(true);
+                    if (data.updateSign)
+                        data.updateSign.gameObject.SetActive(true);
                 }
             }
+
+            if (!anyUpdates)
+            {
+                modCheckImage.gameObject.GetComponent<Image>().color = Color.green;
+            }
+            modCheckImage.gameObject.SetActive(!Mainframe.code.uiModBrowse.gameObject.activeSelf);
+
             lastUpdate.Value = DateTimeOffset.Now.ToUnixTimeSeconds();
+            isCheckingUpdates = false;
+
         }
     }
 }

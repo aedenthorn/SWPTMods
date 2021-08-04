@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Resurrection
 {
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.3")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.4")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -70,7 +70,6 @@ namespace Resurrection
                 if (!modEnabled.Value || !__instance.customization || __instance.customization._ID.health <= 0f || !__instance.icondeath.activeSelf)
                     return;
 
-                __instance.healthbar.color = new Color(0f, 1f, 0f, 1.0f);
                 __instance.icondeath.SetActive(false);
 
             }
