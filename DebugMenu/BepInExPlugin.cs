@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace DebugMenu
 {
-    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.1.0")]
+    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -58,8 +58,8 @@ namespace DebugMenu
             levelBypassNotice = Config.Bind<string>("Text", "LevelBypassNotice", "Level bypass: {0}", "Text for level bypass notice. {0} is replaced with true or false.");
             //flyModeNotice = Config.Bind<string>("Text", "FlyModeNotice", "Fly mode: {0}", "Text for fly mode notice. {0} is replaced with true or false.");
             
-            nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
-
+            nexusID = Config.Bind<int>("General", "NexusID", 48, "Nexus mod ID for updates");
+            nexusID.Value = 48;
             //flyMode = Config.Bind<bool>("Options", "FlyMode", false, "Enable fly mode");
             levelBypass = Config.Bind<bool>("Options", "LevelBypass", false, "Enable level bypass for equipment");
             hotKey = Config.Bind<string>("Options", "HotKey", "f4", "Hotkey to toggle debug menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");

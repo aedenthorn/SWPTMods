@@ -1,13 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
 
 namespace SaveBackup
 {
-    [BepInPlugin("aedenthorn.SaveBackup", "Save Backup", "0.1.0")]
+    [BepInPlugin("aedenthorn.SaveBackup", "Save Backup", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -46,15 +47,22 @@ namespace SaveBackup
             {
                 if (!modEnabled.Value)
                     return;
-
-                string dest = Path.Combine(Application.persistentDataPath, __instance.foldername + "_bkp");
-                if (Directory.Exists(dest))
+                try
                 {
-                    foreach (string file in Directory.GetFiles(dest))
-                        File.Delete(file);
-                    Directory.Delete(dest);
+                    string folder = Path.Combine(Application.persistentDataPath, __instance.foldername);
+                    if (Directory.Exists(folder + "_bkp"))
+                    {
+                        foreach (string file in Directory.GetFiles(folder + "_bkp"))
+                            File.Delete(file);
+                        Directory.Delete(folder + "_bkp");
+                    }
+                    if (Directory.Exists(folder))
+                        Directory.Move(folder, folder + "_bkp");
                 }
-                Directory.Move(Path.Combine(Application.persistentDataPath, __instance.foldername), dest);
+                catch(Exception ex)
+                {
+                    Dbgl($"Error creating backup: {ex}");
+                }
             }
         }
 

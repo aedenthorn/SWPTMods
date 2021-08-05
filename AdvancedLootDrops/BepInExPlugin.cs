@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace AdvancedLootDrops
 {
-    [BepInPlugin("aedenthorn.AdvancedLootDrops", "Advanced Loot Drops", "0.1.0")]
+    [BepInPlugin("aedenthorn.AdvancedLootDrops", "Advanced Loot Drops", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -137,7 +137,7 @@ namespace AdvancedLootDrops
 
                 //Dbgl($"multiplying dropped rewards by {mult * lootAmountScaleMult.Value}");
 
-                __instance.maxAmount = Mathf.RoundToInt(__instance.maxAmount * Random.Range(0, lootAmountMult.Value));
+                __instance.maxAmount = Mathf.Max(1, Mathf.RoundToInt(__instance.maxAmount * Random.Range(0, lootAmountMult.Value)));
             }
         }
 
@@ -151,7 +151,7 @@ namespace AdvancedLootDrops
 
                 //Dbgl($"multiplying dropped gold and crystals by {mult * goldCrystalScaleMult .Value}");
 
-                item.GetComponent<Item>().amount = Mathf.RoundToInt(item.GetComponent<Item>().amount * (item.name == "Gold" ? Random.Range(0, goldMult.Value) : Random.Range(0, crystalMult.Value)));
+                item.GetComponent<Item>().amount = Mathf.RoundToInt(Mathf.Max(1, item.GetComponent<Item>().amount * (item.name == "Gold" ? Random.Range(0, goldMult.Value) : Random.Range(1, crystalMult.Value))));
             }
         }
 
@@ -171,9 +171,9 @@ namespace AdvancedLootDrops
                         if (reward.rewardItem)
                         {
                             if(reward.rewardItem.name == "Gold")
-                                reward.amount = Mathf.RoundToInt(reward.amount * Random.Range(0,goldMult.Value));
+                                reward.amount = Mathf.Max(1, Mathf.RoundToInt(reward.amount * Random.Range(0,goldMult.Value)));
                             else if (reward.rewardItem.name == "Crystals")
-                                reward.amount = Mathf.RoundToInt(reward.amount * Random.Range(0, crystalMult.Value));
+                                reward.amount = Mathf.Max(1, Mathf.RoundToInt(reward.amount * Random.Range(1, crystalMult.Value)));
                         }
                     }
                 }

@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace MerchantEdit
 {
-    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.3")]
+    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.4")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -62,7 +62,8 @@ namespace MerchantEdit
                 Dbgl("Altering merchants. Available companion presets:");
                 
                 foreach (Transform t in RM.code.allCompanions.items)
-                    Dbgl($"\t{t.name}");
+                    if(t)
+                        Dbgl($"\t{t.name}");
 
                 Dictionary<string, GameObject> modelObjects = new Dictionary<string, GameObject>()
                 {
@@ -83,7 +84,7 @@ namespace MerchantEdit
 
                 if (removeMaidOutfit.Value)
                 {
-                    modelObjects["Bartender"].transform.Find("Morganas Desire").gameObject.SetActive(false);
+                    modelObjects["Bartender"].transform.Find("Morganas Desire")?.gameObject.SetActive(false);
                 }
                 if (maidModel.Value != "Bartender")
                 {

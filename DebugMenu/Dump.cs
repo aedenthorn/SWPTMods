@@ -1,12 +1,7 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
-using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace DebugMenu
 {
@@ -34,6 +29,7 @@ namespace DebugMenu
             string path = Path.Combine(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace), "dump_poses.txt");
             File.WriteAllText(path, output);
             Dbgl($"Dumped poses to {path}");
+            Global.code.uiCombat.ShowHeader($"Poses dumped to {path}");
         }
 
         private static void DumpItems()
@@ -53,6 +49,11 @@ namespace DebugMenu
             foreach (Transform t in RM.code.allWeapons.items)
                 if (t)
                     weapons.Add(t.name);
+
+            List<string> lingerie = new List<string>();
+            foreach (Transform t in RM.code.allLingeries.items)
+                if (t)
+                    lingerie.Add(t.name);
 
             List<string> necklaces = new List<string>();
             if(RM.code.allNecklaces?.items != null)
@@ -83,19 +84,28 @@ namespace DebugMenu
                     if (t)
                         treasures.Add(t.name);
 
+            List<string> misc = new List<string>();
+            foreach (Transform t in RM.code.allItems.items)
+                if (t && !armors.Contains(t.name) && !weapons.Contains(t.name) && !blackMarket.Contains(t.name) && !necklaces.Contains(t.name) && !lingerie.Contains(t.name) && !potions.Contains(t.name) && !rings.Contains(t.name) && !special.Contains(t.name) && !treasures.Contains(t.name))
+                    misc.Add(t.name);
+
+
             string output =
                 "Armors:\n\n\t" + string.Join("\n\t", armors)
                 + "\n\n\nWeapons:\n\t" + string.Join("\n\t", weapons)
                 + "\n\n\nBlack Market Items:\n\t" + string.Join("\n\t", blackMarket)
+                + "\n\n\nLingerie:\n\t" + string.Join("\n\t", lingerie)
                 + "\n\n\nNecklaces:\n\t" + string.Join("\n\t", necklaces)
                 + "\n\n\nPotions:\n\t" + string.Join("\n\t", potions)
                 + "\n\n\nRings:\n\t" + string.Join("\n\t", rings)
                 + "\n\n\nSpecial Items:\n\t" + string.Join("\n\t", special)
-                + "\n\n\nTreasures:\n\t" + string.Join("\n\t", treasures);
+                + "\n\n\nTreasures:\n\t" + string.Join("\n\t", treasures)
+                + "\n\n\nMisc:\n\t" + string.Join("\n\t", misc);
 
             string path = Path.Combine(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace), "dump_items.txt");
             File.WriteAllText(path, output);
             Dbgl($"Dumped items to {path}");
+            Global.code.uiCombat.ShowHeader($"Items dumped to {path}");
         }
 
     }
