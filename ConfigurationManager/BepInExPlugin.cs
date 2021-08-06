@@ -5,6 +5,7 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +15,7 @@ using UnityEngine;
 
 namespace ConfigurationManager
 {
-    [BepInPlugin("aedenthorn.ConfigurationManager", "BepInEx Configuration Manager", "0.6.0")]
+    [BepInPlugin("aedenthorn.ConfigurationManager", "BepInEx Configuration Manager", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static void Dbgl(string str = "", bool pref = true)
@@ -167,8 +168,19 @@ namespace ConfigurationManager
 
             currentWindowRect = new Rect(_windowPosition.Value, _windowSize.Value);
 
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+
         }
 
+        [HarmonyPatch(typeof(Global), "CheckOnGUI")]
+        static class CheckOnGUI_Patch
+        {
+            static void Postfix(Global __instance)
+            {
+                if (context.DisplayingWindow)
+                    __instance.onGUI = true;
+            }
+        }
         private void OnGUI()
         {
             if (DisplayingWindow)
