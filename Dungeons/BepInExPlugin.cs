@@ -2,16 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Dungeons
 {
-    [BepInPlugin("aedenthorn.Dungeons", "Dungeons", "0.1.0")]
+    [BepInPlugin("aedenthorn.Dungeons", "Dungeons", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -20,10 +17,10 @@ namespace Dungeons
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
-        public static ConfigEntry<bool> dungeonsResetImmediately;
-        public static ConfigEntry<int> dungeonsResetDays;
+        public static ConfigEntry<bool> fullLootForClearedDungeons;
         public static ConfigEntry<int> dungeonLevelIncreaseOnReset;
-        public static ConfigEntry<int> lastDungeonReset;
+        
+        public static List<string> clearedDungeons = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -38,24 +35,14 @@ namespace Dungeons
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 49, "Nexus mod ID for updates");
 
-            dungeonsResetImmediately = Config.Bind<bool>("Options", "DungeonsResetImmediately", true, "Cause ordinary dungeons to reset on completion");
-            dungeonsResetDays = Config.Bind<int>("Options", "DungeonsResetDays", 1, "Cause ordinary dungeons to reset at after this many days");
-            dungeonLevelIncreaseOnReset = Config.Bind<int>("Options", "DungeonLevelIncreaseOnReset", 5, "Ordinary dungeons increase their level by this amount every time they are reset");
-
-            lastDungeonReset = Config.Bind<int>("ZZAuto", "LastDungeonReset", 0, "Days since last dungeon reset.");
+            dungeonLevelIncreaseOnReset = Config.Bind<int>("Options", "DungeonLevelIncreaseOnReset", 5, "Dungeons increase their level by this amount every time they are cleared");
+            fullLootForClearedDungeons = Config.Bind<bool>("Options", "FullLootForClearedDungeons", true, "If false, the default behaviour of the game to reduce loot in cleared dungeons to 1/4 is maintained.");
             
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
         }
 
 
-        private void Update()
-        {
-            if (!modEnabled.Value || !Global.code || !Player.code)
-                return;
-
-
-        }
 
         [HarmonyPatch(typeof(UIResult), nameof(UIResult.Open))]
         static class UIResult_Open_Patch
@@ -65,43 +52,57 @@ namespace Dungeons
                 if (!modEnabled.Value || Global.code.curlocation.locationType != LocationType.camp)
                     return;
 
-                if (dungeonsResetImmediately.Value)
-                {
-                    Dbgl("Resetting dungeon immediately");
-                    ResetDungeon(Global.code.curlocation);
-                }
+                ResetDungeon(Global.code.curlocation);
             }
         }
-        [HarmonyPatch(typeof(Global), nameof(Global.EndDay))]
-        static class Global_EndDay_Patch
+
+        [HarmonyPatch(typeof(LootDrop), nameof(LootDrop.Start))]
+        static class LootDrop_Start_Patch
         {
-            static void Postfix(Global __instance)
+            static void Prefix(LootDrop __instance, ref bool __state)
             {
-                if (!modEnabled.Value || dungeonsResetDays.Value <= 0)
+                __state = false;
+                if (!modEnabled.Value || !fullLootForClearedDungeons.Value || !Global.code.curlocation || Global.code.curlocation.locationType != LocationType.camp || !Global.code.curlocation.isCleared)
                     return;
 
-                lastDungeonReset.Value++;
+                __state = true;
+                Global.code.curlocation.isCleared = false;
+            }
+            static void Postfix(LootDrop __instance, bool __state)
+            {
+                if (!modEnabled.Value || !fullLootForClearedDungeons.Value || !Global.code.curlocation || Global.code.curlocation.locationType != LocationType.camp || !__state)
+                    return;
 
-                Dbgl($"Days since last reset {lastDungeonReset.Value}/{dungeonsResetDays.Value}");
-
-                if (lastDungeonReset.Value >= dungeonsResetDays.Value)
-                {
-                    Dbgl("Resetting dungeons at end of day");
-                    foreach(Transform t in Global.code.locations.items)
-                    {
-                        Dbgl($"Resetting dungeon {t.name}");
-                        Location l = t.GetComponent<Location>();
-                        if (l.locationType == LocationType.camp && l.isCleared)
-                            ResetDungeon(l);
-                    }
-                    lastDungeonReset.Value = 0;
-                }
+                Global.code.curlocation.isCleared = true;
             }
         }
+        
+        [HarmonyPatch(typeof(WorldMapIcon), nameof(WorldMapIcon.Initiate))]
+        static class WorldMapIcon_Initiate_Patch
+        {
+            static void Postfix(WorldMapIcon __instance, Location ___location)
+            {
+                if (!modEnabled.Value || ___location.locationType != LocationType.camp || !___location.isCleared)
+                    return;
+
+                __instance.txtname.text +=" lv: " + ___location.level;
+            }
+        }
+
+        [HarmonyPatch(typeof(UIWorldMap), nameof(UIWorldMap.FocusOnLocation))]
+        static class UIWorldMap_FocusOnLocation_Patch
+        {
+            static void Postfix(UIWorldMap __instance, Location location)
+            {
+                if (!modEnabled.Value || location.locationType != LocationType.camp || !location.isCleared)
+                    return;
+
+                __instance.txtAttackButton.text = Localization.GetContent("UIWorldMap_3", Array.Empty<object>());
+            }
+        }
+
         private static void ResetDungeon(Location location)
         {
-
-            location.isCleared = false;
             location.level += dungeonLevelIncreaseOnReset.Value;
         }
     }

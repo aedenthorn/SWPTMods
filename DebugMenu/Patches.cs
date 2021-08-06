@@ -73,6 +73,7 @@ namespace DebugMenu
             }
         }
 
+        
         [HarmonyPatch(typeof(Global), "CheckOnGUI")]
         public static class CheckOnGUI_Patch
         {

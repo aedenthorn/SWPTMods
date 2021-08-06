@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
 
 namespace LootVacuum
 {
-    [BepInPlugin("aedenthorn.LootVacuum", "Loot Vacuum", "0.1.0")]
+    [BepInPlugin("aedenthorn.LootVacuum", "Loot Vacuum", "0.1.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -44,9 +44,9 @@ namespace LootVacuum
             context = this;
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            //nexusID = Config.Bind<int>("General", "NexusID", 53, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 55, "Nexus mod ID for updates");
 
-            vacuumVelocity = Config.Bind<float>("Options", "VacuumVelocity", 1f, "Vacuum veloctiy.");
+            vacuumVelocity = Config.Bind<float>("Options", "VacuumVelocity", 3f, "Vacuum veloctiy.");
             maxVacuumDistance = Config.Bind<float>("Options", "MaxVacuumDistance", 10f, "Max vacuum distance.");
 
             vacuumWeapons = Config.Bind<bool>("Toggles", "VacuumWeapons", true, "Vacuum weapons.");
@@ -71,10 +71,16 @@ namespace LootVacuum
                     continue;
                 }
                 movingTransformList[i].position = Vector3.MoveTowards(movingTransformList[i].position, Player.code.transform.position, Time.deltaTime * vacuumVelocity.Value);
-                if (Vector3.Distance(movingTransformList[i].position, Player.code.transform.position) < 0.1f && !movingTransformList[i].GetComponent<Item>().autoPickup)
+                if (Vector3.Distance(movingTransformList[i].position, Player.code.transform.position) < 0.05f)
                 {
+                    if (movingTransformList[i].name == "Gold" || movingTransformList[i].name == "Crystals")
+                    {
+                        movingTransformList[i].GetComponent<Item>().InitiateInteract();
+                        return;
+                    }
+                    else
+                        ignoreTransformList.Add(movingTransformList[i]);
                     movingTransformList.RemoveAt(i);
-                    ignoreTransformList.Add(movingTransformList[i]);
                 }
             }
             for (int i = ignoreTransformList.Count - 1; i >= 0; i--)

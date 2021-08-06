@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
 
 namespace Enchantment
 {
-    [BepInPlugin("aedenthorn.Enchantment", "Enchantment", "0.1.0")]
+    [BepInPlugin("aedenthorn.Enchantment", "Enchantment", "0.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -101,8 +101,8 @@ namespace Enchantment
                 return;
             }
 
-            float chance = item.cost * baseSuccessChance.Value;
-            Dbgl($"Chance of success {chance}%");
+            float chance = Global.code.selectedItem.GetComponent<Item>().cost * baseSuccessChance.Value;
+            Dbgl($"Item cost {item.cost}, Chance of success {chance}%");
             if(Random.value < chance / 100f)
             {
                 Item enchantment;

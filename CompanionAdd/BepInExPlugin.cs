@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CompanionAdd
 {
-    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.2.2")]
+    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.2.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -109,7 +109,7 @@ namespace CompanionAdd
         {
             static void Prefix(Mainframe __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || RM.code?.allCompanions == null || RM.code.allCompanions.items.Count == 0)
                     return;
                 List<string> list = ES2.LoadList<string>(__instance.GetFolderName() + "Global.txt?tag=companionlist");
                 if (list.Count > 0)
@@ -118,7 +118,7 @@ namespace CompanionAdd
                     {
                         if (text != "")
                         {
-                            if (!RM.code.allCompanions.CheckItemByName(text))
+                            if (!RM.code.allCompanions.GetItemWithName(text))
                             {
                                 Transform companion = Utility.Instantiate(RM.code.allCompanions.items[0]);
                                 companion.name = text;

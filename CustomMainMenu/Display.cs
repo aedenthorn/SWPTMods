@@ -25,6 +25,8 @@ namespace CustomMainMenu
             if (!modEnabled.Value)
                 return;
             MeshRenderer mr = GameObject.Find("Inventory Scene/hide (2)/Plane").GetComponent<MeshRenderer>();
+            mr.transform.localPosition = new Vector3(-1.79f, -26.365f, -23.58f);
+            mr.transform.localEulerAngles = new Vector3(88.8f, 0, 0);
             string bkgPath = null;
             if (backgroundName.Value.Trim().Length != 0)
             {
@@ -46,7 +48,7 @@ namespace CustomMainMenu
             }
             if (bkgPath != null && File.Exists(bkgPath) && mr.material.GetTexture("_UnlitColorMap").name != Path.GetFileName(bkgPath))
             {
-                Dbgl($"switching background to {Path.GetFileName(bkgPath)}");
+                //Dbgl($"switching background to {Path.GetFileName(bkgPath)}");
                 Texture2D background = new Texture2D(1, 1);
                 background.LoadImage(File.ReadAllBytes(bkgPath));
                 background.name = Path.GetFileName(bkgPath);
@@ -83,7 +85,7 @@ namespace CustomMainMenu
                 if(!ES2.Exists(saveFolder.Value.Trim() + "/" + charOrPresetName.Value + ".txt"))
                 {
                     Dbgl($"character {charOrPresetName.Value} for save {saveFolder.Value} not found.");
-                    kiraCharacter.gameObject.SetActive(true);
+                    kiraCharacter.gameObject.SetActive(false);
                     mmCharacter?.gameObject.SetActive(false);
                     return;
                 }
@@ -91,7 +93,7 @@ namespace CustomMainMenu
             else if (!ES2.Exists("Character Presets/" + charOrPresetName.Value + "/CharacterPreset.txt"))
             {
                 Dbgl($"preset {charOrPresetName.Value} not found.");
-                kiraCharacter.gameObject.SetActive(true);
+                kiraCharacter.gameObject.SetActive(false);
                 mmCharacter?.gameObject.SetActive(false);
                 return;
             }

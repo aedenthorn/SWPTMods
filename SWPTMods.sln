@@ -107,9 +107,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvancedLootDrops", "Advanc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Enchantment", "Enchantment\Enchantment.csproj", "{F30FA432-8A81-435E-84C0-CA7619D4B354}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PresetFix", "PresetFix\PresetFix.csproj", "{7BC3BCCF-C674-474C-8869-54E687A679A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PresetFix", "PresetFix\PresetFix.csproj", "{7BC3BCCF-C674-474C-8869-54E687A679A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LootVacuum", "LootVacuum\LootVacuum.csproj", "{D2C7250A-3B3E-4F6A-B4A9-065CA1B47458}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LootVacuum", "LootVacuum\LootVacuum.csproj", "{D2C7250A-3B3E-4F6A-B4A9-065CA1B47458}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jiggle", "Jiggle\Jiggle.csproj", "{701DD968-94CC-45FB-BC58-564DC9D03CEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -333,6 +335,10 @@ Global
 		{D2C7250A-3B3E-4F6A-B4A9-065CA1B47458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2C7250A-3B3E-4F6A-B4A9-065CA1B47458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2C7250A-3B3E-4F6A-B4A9-065CA1B47458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{701DD968-94CC-45FB-BC58-564DC9D03CEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{701DD968-94CC-45FB-BC58-564DC9D03CEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{701DD968-94CC-45FB-BC58-564DC9D03CEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{701DD968-94CC-45FB-BC58-564DC9D03CEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

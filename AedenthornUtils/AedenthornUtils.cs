@@ -55,5 +55,13 @@ public class AedenthornUtils
     {
         return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), name);
     }
+    public static string GetTransformPath(Transform t)
+    {
+        if (!t.parent)
+        {
+            return t.name;
 
+        }
+        return GetTransformPath(t.parent) + "/" + t.name;
+    }
 }

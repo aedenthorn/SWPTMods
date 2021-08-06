@@ -40,9 +40,6 @@ namespace BepInExModSupport
         public static ConfigEntry<int> minUpdateInterval;
         public static ConfigEntry<long> lastUpdate;
 
-        public static ConfigDefinition enabledDef = new ConfigDefinition("General", "Enabled");
-        public static ConfigDefinition nexusIDDef = new ConfigDefinition("General", "NexusID");
-        
         public static string filePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         private static Transform modCheckImage;
         private static Dictionary<string, PluginUpdateData> pluginUpdateDatas = new Dictionary<string, PluginUpdateData>();
@@ -103,11 +100,13 @@ namespace BepInExModSupport
                 var data = new PluginUpdateData() { pluginInfo = mod };
 
 
-                if (data.pluginInfo.Instance.Config.ContainsKey(nexusIDDef))
+                
+
+                if (data.pluginInfo.Instance.Config.Keys.ToList().Exists(d => d.Key == "NexusID"))
                 {
                     checkCount++;
                     data.checkable = true;
-                    data.id = (int)mod.Instance.Config[nexusIDDef].BoxedValue;
+                    data.id = (int)mod.Instance.Config[data.pluginInfo.Instance.Config.Keys.ToList().Find(d => d.Key == "NexusID")].BoxedValue;
                 }
 
                 pluginUpdateDatas.Add(data.pluginInfo.Metadata.GUID, data);
@@ -171,9 +170,9 @@ namespace BepInExModSupport
                 foreach (string guid in keys)
                 {
                     PluginUpdateData data = pluginUpdateDatas[guid];
-                    var canEnable = data.pluginInfo.Instance.Config.ContainsKey(enabledDef);
+                    var canEnable = data.pluginInfo.Instance.Config.Keys.ToList().Exists(d => d.Key == "Enabled");
 
-                    var enabled = canEnable ? (bool)data.pluginInfo.Instance.Config[enabledDef].BoxedValue : false;
+                    var enabled = canEnable ? (bool)data.pluginInfo.Instance.Config[data.pluginInfo.Instance.Config.Keys.ToList().Find(d => d.Key == "Enabled")].BoxedValue : false;
 
                     Transform transform = Instantiate(__instance.DownloadPrefab, __instance.DownloadRect.content);
                     transform.gameObject.SetActive(true);
