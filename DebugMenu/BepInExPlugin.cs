@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace DebugMenu
 {
-    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.1.2")]
+    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

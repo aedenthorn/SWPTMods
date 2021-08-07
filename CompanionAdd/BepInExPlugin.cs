@@ -184,7 +184,7 @@ namespace CompanionAdd
         private static Texture2D tex;
         private static GameObject scrollObject;
 
-        [HarmonyPatch(typeof(UICombat), "ShowSuccubusIcons")]
+        //[HarmonyPatch(typeof(UICombat), "ShowSuccubusIcons")]
         static class ShowSuccubusIcons_Patch
         {
             static void Postfix(UICombat __instance)
@@ -207,9 +207,8 @@ namespace CompanionAdd
                     tex.Apply();
                     */
 
-                    scrollObject = Instantiate(new GameObject(), __instance.succubusIconGroup.parent);
-                    scrollObject.name = "ScrollView";
-
+                    scrollObject = new GameObject() { name = "ScrollView" };
+                    scrollObject.transform.SetParent(__instance.succubusIconGroup.parent);
 
                     ScrollRect sr = scrollObject.AddComponent<ScrollRect>();
                     sr.movementType = ScrollRect.MovementType.Clamped;
@@ -217,8 +216,8 @@ namespace CompanionAdd
                     //Image image = scrollObject.AddComponent<Image>();
                     //image.sprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), Vector2.zero);
 
-                    GameObject mask = Instantiate(new GameObject(), scrollObject.transform);
-                    mask.name = "Mask";
+                    GameObject mask = new GameObject() { name = "Mask" };
+                    mask.transform.SetParent(scrollObject.transform);
 
 
                     //Image image = mask.AddComponent<Image>();
@@ -232,8 +231,8 @@ namespace CompanionAdd
                     sr.viewport = mask.GetComponent<RectTransform>();
                     sr.content = __instance.succubusIconGroup.GetComponent<RectTransform>();
 
-                    scrollObject.GetComponent<RectTransform>().localScale = __instance.succubusIconGroup.GetComponent<RectTransform>().localScale;
-                    __instance.succubusIconGroup.GetComponent<RectTransform>().localScale = Vector3.one;
+                    //scrollObject.GetComponent<RectTransform>().localScale = __instance.succubusIconGroup.GetComponent<RectTransform>().localScale;
+                    //__instance.succubusIconGroup.GetComponent<RectTransform>().localScale = Vector3.one;
 
                     Dbgl("Added scroll view");
 
@@ -241,7 +240,7 @@ namespace CompanionAdd
 
                 scrollObject.SetActive(true);
 
-                Dbgl("Adjusting layout");
+                //Dbgl("Adjusting layout");
 
                 float listWidth = __instance.succubusIconGroup.GetChild(0).GetComponent<RectTransform>().rect.width * (Global.code.companions.items.Count + 1) + __instance.succubusIconGroup.GetComponent<HorizontalLayoutGroup>().spacing * Global.code.companions.items.Count;
 
@@ -254,7 +253,10 @@ namespace CompanionAdd
                 rtc.sizeDelta = new Vector2(listWidth, rtc.sizeDelta.y);
                 rtp.sizeDelta = new Vector2(Mathf.Min(maxWidth, rtc.rect.width), rtc.rect.height);
 
-                Dbgl($"list width {listWidth}, max width {maxWidth}, parent size {scrollObject.transform.parent.GetComponent<RectTransform>().rect.size} rtp size {rtp.rect.size}, rtc size {rtc.rect.size}");
+                rtp.anchoredPosition = rtc.anchoredPosition;
+                rtc.anchoredPosition = Vector2.zero;
+
+                //Dbgl($"list width {listWidth}, max width {maxWidth}, parent size {scrollObject.transform.parent.GetComponent<RectTransform>().rect.size} rtp size {rtp.rect.size}, rtc size {rtc.rect.size}");
 
                 rtp.anchorMin = new Vector2(1, 0);
                 rtp.anchorMax = new Vector2(1, 0);

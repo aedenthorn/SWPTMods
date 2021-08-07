@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace CustomMainMenu
 {
-    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.3.1")]
+    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.3.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -55,7 +55,7 @@ namespace CustomMainMenu
             context = this;
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            //nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 46, "Nexus mod ID for updates");
 
             saveFolder = Config.Bind<string>("Text", "SaveFolder", "", "Name of save folder to load character from. If blank, will load preset name instead.");
             charOrPresetName = Config.Bind<string>("Text", "CharOrPresetName", "", "Name of character if saveFolder is set or preset if not to use.");

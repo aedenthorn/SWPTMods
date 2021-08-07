@@ -62,10 +62,13 @@ namespace DebugMenu
                 return;
             }
 
-            if (itemNames.Exists(s => s.ToLower() == arg0) || itemNames.Contains(spawnInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text))
+            if (itemNames.Exists(s => s.ToLower() == arg0.ToLower()) || itemNames.Contains(spawnInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text))
+            {
+                spawnHintText.text = itemNames.Find(s => s.ToLower() == arg0.ToLower());
                 return;
+            }
 
-            string item = itemNames.Find(s => s.ToLower().StartsWith(arg0));
+            string item = itemNames.Find(s => s.ToLower().StartsWith(arg0.ToLower()));
             if (item != null)
             {
                 spawnHintText.text = item;

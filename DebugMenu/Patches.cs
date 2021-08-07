@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DebugMenu
 {
@@ -17,6 +18,7 @@ namespace DebugMenu
                     return;
 
                 itemNames = RM.code.allItems.items.Select(t => t.name).ToList();
+                itemNames.Sort();
                 
                 CreateDebugMenu();
             }
@@ -56,6 +58,13 @@ namespace DebugMenu
                         Global.code.uiCheat.gameObject.SetActive(false);
                         uiDebug.gameObject.SetActive(!uiDebug.gameObject.activeSelf);
                     }
+                    return false;
+                }
+                if (Input.GetKeyDown(KeyCode.Tab) && spawnInput && spawnInput.GetComponent<InputField>().isFocused)
+                {
+                    Dbgl("Filling spawn text");
+                    spawnInput.GetComponent<InputField>().text = spawnHintText.text;
+                    spawnInput.GetComponent<InputField>().caretPosition = spawnInput.GetComponent<InputField>().text.Length;
                     return false;
                 }
                 return true;
