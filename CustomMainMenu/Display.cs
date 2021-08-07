@@ -40,6 +40,11 @@ namespace CustomMainMenu
                     lastBackgroundUpdate = 0;
                     lastBackgroundIndex = 0;
                 }
+                if(backgroundImages.Count == 0)
+                {
+                    return;
+                }
+
                 lastBackgroundIndex++;
                 lastBackgroundIndex %= backgroundImages.Count;
 

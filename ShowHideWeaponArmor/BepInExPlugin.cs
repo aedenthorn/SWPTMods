@@ -108,8 +108,17 @@ namespace ShowHideWeaponArmor
                 //Dbgl($"Refresh clothes pose {Global.code.uiPose.gameObject.activeSelf} freepose {Global.code.uiFreePose.gameObject.activeSelf} inv {Global.code.uiInventory.gameObject.activeSelf} home {Global.code.curlocation.locationType == LocationType.home} ");
 
                 __state = __instance.showArmor;
+                if(Global.code.uiInventory.gameObject.activeSelf && Global.code.uiInventory.lingerieGroup.activeSelf)
+                {
+                    __instance.showArmor = false;
 
-                if (forceShowArmor.Value)
+                }
+                else if(Global.code.uiCustomization.gameObject.activeSelf || Global.code.uiMakeup.gameObject.activeSelf)
+                {
+                    __instance.showArmor = false;
+
+                }
+                else if (forceShowArmor.Value)
                 {
                     __instance.showArmor = true;
                 }

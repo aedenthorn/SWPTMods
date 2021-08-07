@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace CustomMainMenu
 {
-    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomMainMenu", "Custom Main Menu", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
