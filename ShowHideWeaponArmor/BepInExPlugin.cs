@@ -2,15 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace ShowHideWeaponArmor
 {
-    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.2.2")]
+    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -179,7 +177,8 @@ namespace ShowHideWeaponArmor
                     }
                     __instance.weapon?.gameObject.SetActive(__instance.showArmor);
                     __instance.weapon2?.gameObject.SetActive(__instance.showArmor);
-                    __instance.showArmor = true;
+                    if((!Global.code.uiInventory.gameObject.activeSelf || !Global.code.uiInventory.lingerieGroup.activeSelf) && !Global.code.uiCustomization.gameObject.activeSelf && !Global.code.uiMakeup.gameObject.activeSelf)
+                        __instance.showArmor = true;
                 }
                 else if (hideWeaponsWithArmor.Value)
                 {

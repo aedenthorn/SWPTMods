@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,28 +22,54 @@ namespace DebugMenu
 
                 Transform bkg = Instantiate(Global.code.uiCombat.descriptionsPanel.transform.Find("panel/BG Inventory (3)"), uiSpawnItem);
                 bkg.name = "Background";
+                bkg.GetComponent<RectTransform>().anchoredPosition *= new Vector2(0, 1);
 
                 Text text = Instantiate(Global.code.uiCombat.lineName.transform, uiSpawnItem).GetComponent<Text>();
                 text.text = spawnItemTitle.Value;
                 text.gameObject.name = "Title";
 
-                spawnInput = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
-                spawnInput.name = "Input Field";
-                spawnInput.GetComponent<RectTransform>().anchoredPosition *= new Vector2(0,1);
-                spawnInput.GetComponent<InputField>().onValueChanged = new InputField.OnChangeEvent();
-                spawnInput.GetComponent<InputField>().onValueChanged.AddListener(UpdateSpawnText); 
-                spawnInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text = "";
+                GameObject ti = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
+                ti.name = "Input Field";
+                ti.GetComponent<RectTransform>().anchoredPosition *= new Vector2(0,1);
+                spawnInput = ti.GetComponent<InputField>();
+                spawnInput.onValueChanged = new InputField.OnChangeEvent();
+                spawnInput.onValueChanged.AddListener(UpdateSpawnText); 
+                spawnInput.placeholder.GetComponent<Text>().text = "Item Name";
 
-                GameObject buttonObj = Instantiate(Mainframe.code.uiConfirmation.groupClose, uiSpawnItem);
-                buttonObj.name = "Button";
+                GameObject tp = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
+                tp.name = "Prefix Field";
+                tp.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height * 2);
+                spawnPrefixInput = tp.GetComponent<InputField>();
+                spawnPrefixInput.onValueChanged = new InputField.OnChangeEvent();
+                spawnPrefixInput.onValueChanged.AddListener(UpdateSpawnText); 
+                spawnPrefixInput.placeholder.GetComponent<Text>().text = "Prefix Name";
+                tp.SetActive(false);
+
+                GameObject ts = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
+                ts.name = "Suffix Field";
+                ts.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height);
+                spawnSuffixInput = ts.GetComponent<InputField>();
+                spawnSuffixInput.onValueChanged = new InputField.OnChangeEvent();
+                spawnSuffixInput.onValueChanged.AddListener(UpdateSpawnText); 
+                spawnSuffixInput.placeholder.GetComponent<Text>().text = "Suffix Name";
+                ts.SetActive(false);
+
+                GameObject buttonObj = Instantiate(Mainframe.code.uiConfirmation.groupYesNo, uiSpawnItem);
+                buttonObj.name = "Buttons";
                 buttonObj.transform.SetParent(uiSpawnItem);
                 buttonObj.SetActive(true);
                 
-                Button cancel = buttonObj.transform.Find("yes").GetComponent<Button>();
-                Destroy(cancel.GetComponentInChildren<LocalizationText>());
-                cancel.GetComponentInChildren<Text>().text = cancelText.Value;
-                cancel.onClick = new Button.ButtonClickedEvent();
-                cancel.onClick.AddListener(delegate() { Global.code.onGUI = false; uiSpawnItem.gameObject.SetActive(false); });
+                Button cancelB = buttonObj.transform.Find("yes").GetComponent<Button>();
+                Destroy(cancelB.GetComponentInChildren<LocalizationText>());
+                cancelB.GetComponentInChildren<Text>().text = cancelText.Value;
+                cancelB.onClick = new Button.ButtonClickedEvent();
+                cancelB.onClick.AddListener(delegate() { Global.code.onGUI = false; uiSpawnItem.gameObject.SetActive(false); });
+
+                Button spawnB = buttonObj.transform.Find("no").GetComponent<Button>();
+                Destroy(spawnB.GetComponentInChildren<LocalizationText>());
+                spawnB.GetComponentInChildren<Text>().text = spawnText.Value;
+                spawnB.onClick = new Button.ButtonClickedEvent();
+                spawnB.onClick.AddListener(SpawnItem);
 
                 spawnHintText = Instantiate(Global.code.uiCombat.lineName.transform, uiSpawnItem).GetComponent<Text>();
                 spawnHintText.text = "";
@@ -56,33 +83,98 @@ namespace DebugMenu
 
         private static void UpdateSpawnText(string arg0)
         {
-            if(arg0 == "")
-            {
-                spawnHintText.text = "";
-                return;
-            }
+            string text = spawnInput.text;
+            string itemName = GetNameFromText(text, itemNames);
 
-            if (itemNames.Exists(s => s.ToLower() == arg0.ToLower()) || itemNames.Contains(spawnInput.GetComponent<InputField>().placeholder.GetComponent<Text>().text))
+            if (itemName != null)
             {
-                spawnHintText.text = itemNames.Find(s => s.ToLower() == arg0.ToLower());
-                return;
-            }
+                Item item = RM.code.allItems.GetItemWithName(itemName)?.GetComponent<Item>();
 
-            string item = itemNames.Find(s => s.ToLower().StartsWith(arg0.ToLower()));
-            if (item != null)
-            {
-                spawnHintText.text = item;
+                if(item == null)
+                {
+                    Dbgl($"No item found for name {itemName}");
+                    return;
+                }
+
+                string affixes = "";
+
+                string prefix = null;
+                string suffix = null;
+
+                if (item.slotType == SlotType.weapon)
+                {
+                    spawnPrefixInput.gameObject.SetActive(true);
+                    spawnSuffixInput.gameObject.SetActive(true);
+                    prefix = GetNameFromText(spawnPrefixInput.text.Trim(), wPrefixes);
+                    suffix = GetNameFromText(spawnSuffixInput.text.Trim(), wSuffixes);
+                }
+                else if (armorSlotTypes.Contains(item.slotType))
+                {
+                    spawnPrefixInput.gameObject.SetActive(true);
+                    spawnSuffixInput.gameObject.SetActive(true);
+                    prefix = GetNameFromText(spawnPrefixInput.text.Trim(), aPrefixes);
+                    suffix = GetNameFromText(spawnSuffixInput.text.Trim(), aSuffixes);
+                }
+                else
+                {
+                    spawnPrefixInput.gameObject.SetActive(false);
+                    spawnSuffixInput.gameObject.SetActive(false);
+                }
+
+                if (prefix != null)
+                {
+                    affixes += prefix + " ";
+                }
+                if (suffix != null)
+                {
+                    affixes += suffix + " ";
+                }
+
+                spawnHintText.text = affixes + itemName;
+
             }
-            else spawnHintText.text = "Item not found";
+            else spawnHintText.text = "";
         }
 
         private static void SpawnItem()
         {
-            string spawnName = spawnHintText.text;
-            Transform item = Utility.Instantiate(RM.code.allItems.GetItemWithName(spawnName));
+            string itemName = GetNameFromText(spawnInput.text.Trim(), itemNames);
+
+            if (itemName == null)
+            {
+                Dbgl($"Couldn't find {spawnInput.text} to spawn");
+                return;
+            }
+
+            Transform item = Utility.Instantiate(RM.code.allItems.GetItemWithName(itemName));
+            
             if (item != null)
             {
+                SlotType st = item.GetComponent<Item>().slotType;
+
+                string prefix = null;
+                string suffix = null;
+                if (st == SlotType.weapon)
+                {
+                    prefix = GetNameFromText(spawnPrefixInput.text.Trim(), wPrefixes);
+                    suffix = GetNameFromText(spawnSuffixInput.text.Trim(), wSuffixes);
+                    if (prefix != null)
+                        item.GetComponent<Item>().prefix = RM.code.weaponPrefixes.GetItemWithName(prefix).GetComponent<Item>();
+                    if (suffix != null)
+                        item.GetComponent<Item>().surfix = RM.code.weaponSurfixes.GetItemWithName(suffix).GetComponent<Item>();
+                }
+                else if (armorSlotTypes.Contains(st))
+                {
+                    prefix = GetNameFromText(spawnPrefixInput.text.Trim(), aPrefixes);
+                    suffix = GetNameFromText(spawnSuffixInput.text.Trim(), aSuffixes);
+                    if (prefix != null)
+                        item.GetComponent<Item>().prefix = RM.code.armorPrefixes.GetItemWithName(prefix).GetComponent<Item>();
+                    if (suffix != null)
+                        item.GetComponent<Item>().surfix = RM.code.armorSurfixes.GetItemWithName(suffix).GetComponent<Item>();
+                }
+
                 RM.code.balancer.GetItemStats(item, -1);
+
                 item.GetComponent<Item>().autoPickup = false;
                 item.GetComponent<Collider>().enabled = false;
                 item.GetComponent<Collider>().enabled = true;
@@ -94,12 +186,33 @@ namespace DebugMenu
                 item.GetComponent<Item>().owner = null;
                 item.GetComponent<Item>().Drop();
                 item.gameObject.SetActive(true);
-                Dbgl($"Spawned {item.name}");
+                Dbgl($"Spawned {spawnHintText.text}");
+                Global.code.uiCombat.ShowHeader($"Spawned {spawnHintText.text}");
             }
             else
-                Dbgl($"Couldn't find {spawnName} to spawn");
+            {
+                Dbgl($"Couldn't find {itemName} to spawn");
+                return;
+            }
             Global.code.onGUI = false;
             uiSpawnItem.gameObject.SetActive(false);
+        }
+        private static string GetNameFromText(string text, List<string> names)
+        {
+            string rs = null;
+            if (text == "")
+            {
+                return null;
+            }
+            else if (names.Exists(s => s.ToLower() == text.ToLower()))
+            {
+                rs = names.Find(s => s.ToLower() == text.ToLower());
+            }
+            else
+            {
+                rs = names.Find(s => s.ToLower().StartsWith(text.ToLower()));
+            }
+            return rs;
         }
     }
 }

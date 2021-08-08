@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace DebugMenu
 {
-    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.2.1")]
+    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -23,6 +23,7 @@ namespace DebugMenu
         public static ConfigEntry<string> language;
         public static ConfigEntry<string> spawnItemTitle;
         public static ConfigEntry<string> cancelText;
+        public static ConfigEntry<string> spawnText;
         public static ConfigEntry<string> levelBypassNotice;
         public static ConfigEntry<string> flyModeNotice;
 
@@ -37,8 +38,17 @@ namespace DebugMenu
         public static Transform lastSelected;
 
         private static Transform uiSpawnItem;
-        private static GameObject spawnInput;
+        private static InputField spawnInput;
+        private static InputField spawnPrefixInput;
+        private static InputField spawnSuffixInput;
         private static Text spawnHintText;
+
+        private static List<string> wPrefixes = new List<string>();
+        private static List<string> wSuffixes = new List<string>();
+        private static List<string> aPrefixes = new List<string>();
+        private static List<string> aSuffixes = new List<string>();
+
+        private static SlotType[] armorSlotTypes = new SlotType[] { SlotType.armor, SlotType.gloves, SlotType.helmet, SlotType.legging, SlotType.shoes };
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -55,6 +65,7 @@ namespace DebugMenu
             language = Config.Bind<string>("Text", "Language", "en", "Name of language file to use for buttons.");
             spawnItemTitle = Config.Bind<string>("Text", "SpawnItemTitle", "Spawn Item", "Title for spawn item ui.");
             cancelText = Config.Bind<string>("Text", "CancelText", "Cancel", "Text for cancel button.");
+            spawnText = Config.Bind<string>("Text", "SpawnText", "Spawn", "Text for spawn button.");
             levelBypassNotice = Config.Bind<string>("Text", "LevelBypassNotice", "Level bypass: {0}", "Text for level bypass notice. {0} is replaced with true or false.");
             //flyModeNotice = Config.Bind<string>("Text", "FlyModeNotice", "Fly mode: {0}", "Text for fly mode notice. {0} is replaced with true or false.");
             
@@ -87,6 +98,12 @@ namespace DebugMenu
             buttonList.GetChild(count).GetComponentInChildren<Text>().text = names[count];
             buttonList.GetChild(count).GetComponentInChildren<Button>().onClick = new Button.ButtonClickedEvent();
             buttonList.GetChild(count).GetComponentInChildren<Button>().onClick.AddListener(DumpItems);
+            count++;
+
+            buttonList.GetChild(count).name = names[count];
+            buttonList.GetChild(count).GetComponentInChildren<Text>().text = names[count];
+            buttonList.GetChild(count).GetComponentInChildren<Button>().onClick = new Button.ButtonClickedEvent();
+            buttonList.GetChild(count).GetComponentInChildren<Button>().onClick.AddListener(DumpAffixes);
             count++;
 
             buttonList.GetChild(count).name = names[count];

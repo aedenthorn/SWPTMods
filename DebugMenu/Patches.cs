@@ -20,6 +20,15 @@ namespace DebugMenu
                 itemNames = RM.code.allItems.items.Select(t => t.name).ToList();
                 itemNames.Sort();
                 
+                wPrefixes = RM.code.weaponPrefixes.items.Select(t => t.name).ToList();
+                wSuffixes = RM.code.weaponSurfixes.items.Select(t => t.name).ToList();
+                aPrefixes = RM.code.armorPrefixes.items.Select(t => t.name).ToList();
+                aSuffixes = RM.code.armorSurfixes.items.Select(t => t.name).ToList();
+                wPrefixes.Sort();
+                wSuffixes.Sort();
+                aPrefixes.Sort();
+                aSuffixes.Sort();
+                
                 CreateDebugMenu();
             }
         }
@@ -60,11 +69,58 @@ namespace DebugMenu
                     }
                     return false;
                 }
-                if (Input.GetKeyDown(KeyCode.Tab) && spawnInput && spawnInput.GetComponent<InputField>().isFocused)
+                if (Input.GetKeyDown(KeyCode.Tab) && spawnInput && spawnHintText.text.Length > 0)
                 {
-                    Dbgl("Filling spawn text");
-                    spawnInput.GetComponent<InputField>().text = spawnHintText.text;
-                    spawnInput.GetComponent<InputField>().caretPosition = spawnInput.GetComponent<InputField>().text.Length;
+                    if (spawnInput.GetComponent<InputField>().isFocused)
+                    {
+                        Dbgl("Filling spawn text");
+                        spawnInput.GetComponent<InputField>().text = spawnHintText.text;
+                        spawnInput.GetComponent<InputField>().caretPosition = spawnInput.GetComponent<InputField>().text.Length;
+                    }
+                    else if (spawnPrefixInput.GetComponent<InputField>().isFocused)
+                    {
+                        Dbgl("Filling spawn prefix text");
+                        string item = GetNameFromText(spawnInput.text, itemNames);
+                        if (item == null)
+                            return false;
+                        SlotType st = RM.code.allItems.GetItemWithName(item).GetComponent<Item>().slotType;
+                        string prefix = null;
+                        if (st == SlotType.weapon)
+                        {
+                            prefix = GetNameFromText(spawnPrefixInput.text.Trim(), wPrefixes);
+                        }
+                        else if (armorSlotTypes.Contains(st))
+                        {
+                            prefix = GetNameFromText(spawnPrefixInput.text.Trim(), aPrefixes);
+                        }
+                        if(prefix != null)
+                        {
+                            spawnPrefixInput.GetComponent<InputField>().text = prefix;
+                            spawnPrefixInput.GetComponent<InputField>().caretPosition = spawnPrefixInput.GetComponent<InputField>().text.Length;
+                        }
+                    }
+                    else if (spawnSuffixInput.GetComponent<InputField>().isFocused)
+                    {
+                        Dbgl("Filling spawn suffix text");
+                        string item = GetNameFromText(spawnInput.text, itemNames);
+                        if (item == null)
+                            return false;
+                        SlotType st = RM.code.allItems.GetItemWithName(item).GetComponent<Item>().slotType;
+                        string suffix = null;
+                        if (st == SlotType.weapon)
+                        {
+                            suffix = GetNameFromText(spawnSuffixInput.text.Trim(), wSuffixes);
+                        }
+                        else if (armorSlotTypes.Contains(st))
+                        {
+                            suffix = GetNameFromText(spawnSuffixInput.text.Trim(), aSuffixes);
+                        }
+                        if(suffix != null)
+                        {
+                            spawnSuffixInput.GetComponent<InputField>().text = suffix;
+                            spawnSuffixInput.GetComponent<InputField>().caretPosition = spawnSuffixInput.GetComponent<InputField>().text.Length;
+                        }
+                    }
                     return false;
                 }
                 return true;
