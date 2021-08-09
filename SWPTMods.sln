@@ -69,7 +69,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BepInExModSupport", "BepInE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurationManager", "ConfigurationManager\ConfigurationManager.csproj", "{192DD6EF-AC02-4D7E-BA48-18CF6CAD1491}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EyebrowColors", "EyebrowColors\EyebrowColors.csproj", "{CE83205B-C2A8-47CE-9C81-E933189BCD70}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EyebrowColors", "EyebrowColors\EyebrowColors.csproj", "{CE83205B-C2A8-47CE-9C81-E933189BCD70}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreePoseFix", "FreePoseFix\FreePoseFix.csproj", "{6FF5230C-A41A-4660-834B-1B480C2ED8AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomizationFix", "CustomizationFix\CustomizationFix.csproj", "{E4E722EE-91F4-48C1-BAC7-5E028521135D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MegaMorph", "MegaMorph\MegaMorph.csproj", "{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -213,6 +219,18 @@ Global
 		{CE83205B-C2A8-47CE-9C81-E933189BCD70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE83205B-C2A8-47CE-9C81-E933189BCD70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE83205B-C2A8-47CE-9C81-E933189BCD70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FF5230C-A41A-4660-834B-1B480C2ED8AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF5230C-A41A-4660-834B-1B480C2ED8AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF5230C-A41A-4660-834B-1B480C2ED8AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF5230C-A41A-4660-834B-1B480C2ED8AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4E722EE-91F4-48C1-BAC7-5E028521135D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4E722EE-91F4-48C1-BAC7-5E028521135D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4E722EE-91F4-48C1-BAC7-5E028521135D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4E722EE-91F4-48C1-BAC7-5E028521135D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
