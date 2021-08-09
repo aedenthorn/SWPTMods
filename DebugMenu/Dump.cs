@@ -35,13 +35,13 @@ namespace DebugMenu
         private static void DumpAffixes()
         {
 
-            string output = "Weapons:\n\n\tPrefixes\n" + string.Join("\n\t\t", wPrefixes) + "\n\n\tSuffixes\n" + string.Join("\n\t\t", wSuffixes)
-                + "\n\n\nArmor:\n\n\tPrefixes\n" + string.Join("\n\t\t", aPrefixes) + "\n\n\tSuffixes\n" + string.Join("\n\t\t", aSuffixes);
+            string output = "Weapons:\n\n\tPrefixes\n\t\t" + string.Join("\n\t\t", wPrefixes) + "\n\n\tSuffixes\n\t\t" + string.Join("\n\t\t", wSuffixes)
+                + "\n\n\nArmor:\n\n\tPrefixes\n\t\t" + string.Join("\n\t\t", aPrefixes) + "\n\n\tSuffixes\n\t\t" + string.Join("\n\t\t", aSuffixes);
 
             string path = Path.Combine(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace), "dump_affixes.txt");
             File.WriteAllText(path, output);
             Dbgl($"Dumped affixes to {path}");
-            Global.code.uiCombat.ShowHeader($"Affixes dumped to {path}");
+            Global.code.uiCombat.ShowHeader($"Affixes dumped to dump_affixes.txt");
         }
 
         private static void DumpItems()

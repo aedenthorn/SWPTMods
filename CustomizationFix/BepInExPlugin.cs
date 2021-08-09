@@ -115,6 +115,7 @@ namespace CustomizationFix
                     __instance.body.SetBlendShapeWeight(__instance.body.sharedMesh.GetBlendShapeIndex("Genesis8Female__PBMNipplesLarge"), nippleLarge[__instance.characterName]);
                     __instance.body.SetBlendShapeWeight(__instance.body.sharedMesh.GetBlendShapeIndex("Genesis8Female__PBMNipplesDepth"), nippleDepth[__instance.characterName]);
                 }
+                //__instance.wombTattoo = RM.code.allWombTattoos.items[0];
             }
         }
         [HarmonyPatch(typeof(CustomizationSlider), nameof(CustomizationSlider.ValueChange))]

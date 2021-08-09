@@ -2,4 +2,5 @@
 Dump Affixes
 Dump Poses
 Toggle Level Check
+Toggle Fly Mode
 Spawn Item

@@ -51,9 +51,14 @@ public class AedenthornUtils
             list[n] = value;
         }
     }
-    public static string GetAssetPath(string name)
+    public static string GetAssetPath(string name, bool create = false)
     {
-        return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), name);
+        string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), name);
+        if (create && !Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+        return path;
     }
     public static string GetTransformPath(Transform t)
     {
