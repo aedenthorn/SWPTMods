@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.5.0")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.5.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -26,7 +26,7 @@ namespace Tattoos
         public static readonly string buttonPrefix = "Tattoos";
 
         public static ConfigEntry<int> nexusID;
-        public static List<Texture2D> tattooList = new List<Texture2D>();
+        public static List<Texture2D> tattooTextureList = new List<Texture2D>();
 
         private static GameObject tattooGO;
         private static Slider glossSlider;
@@ -34,6 +34,7 @@ namespace Tattoos
 
         private static Texture2D defaultWombIcon;
         private static Dictionary<string, Texture2D> textureDict = new Dictionary<string, Texture2D>();
+        private static Dictionary<string, Transform> tattooDict = new Dictionary<string, Transform>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -107,7 +108,6 @@ namespace Tattoos
                 }
                 if (__instance.faceTatoos && sameVariablesAllTattoos.Value)
                 {
-                    Dbgl("Face tattoo");
                     __instance.body.materials[1].SetColor("_Mask2_Rchannel_ColorAmountA", __instance.wombTattooColor);
                     __instance.body.materials[1].SetFloat("_GlossAdjust_Mask2Rchannel", __instance.wombTattooGlossiness);
                 }
@@ -192,6 +192,7 @@ namespace Tattoos
                     {
                         textureDict[texPath].LoadImage(File.ReadAllBytes(texPath));
                         textureDict[iconPath].LoadImage(File.ReadAllBytes(iconPath));
+                        resources.AddItem(tattooDict[texPath]);
                         count++;
                         continue;
                     }
@@ -209,6 +210,7 @@ namespace Tattoos
 
                     textureDict.Add(iconPath, icon);
                     textureDict.Add(texPath, tex);
+                    tattooDict.Add(texPath, t);
                 }
                 Dbgl($"Got {count} {folder} tattoos");
             }
@@ -382,7 +384,6 @@ namespace Tattoos
                     Transform c = __instance.legsTatooGroup.GetChild(j);
                     if (c)
                     {
-                        Dbgl(c.name);
                         c.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                         c.GetComponent<Button>().onClick.AddListener(delegate () { __instance.curCustomization.legsTatoos = RM.code.allLegsTatoos.GetItemWithName(c.name); __instance.curCustomization.RefreshAppearence(); });
                     }
