@@ -50,8 +50,6 @@ namespace Respec
                 if (__instance.points == 0)
                     return false;
 
-                Global.code.uiCharacter.curCustomization._ID.skillPoints++;
-
                 switch (__instance.transform.name)
                 {
                     case "frostbite":
@@ -135,8 +133,8 @@ namespace Respec
                     case "alchemist":
                         Global.code.uiCharacter.curCustomization.alchemist--;
                         break;
-
                 }
+                Global.code.uiCharacter.curCustomization._ID.skillPoints++;
 
                 Global.code.uiCharacter.Refresh();
                 RM.code.PlayOneShot(RM.code.sndUpgradeSkill);

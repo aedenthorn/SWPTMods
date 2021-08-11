@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\solution_private.targets" />
+  <Import Project="$(SolutionDir)\solution.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\SkillFramework\SkillFramework.csproj">
+      <Private>false</Private>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MovementSpeedSkill\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="MovementSpeedSkill\frame.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="MovementSpeedSkill\icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
