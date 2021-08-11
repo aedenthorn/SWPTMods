@@ -261,7 +261,7 @@ namespace DebugMenu
                 __instance.rigidbody.useGravity = !flyMode.Value;
                 __instance.GetComponent<CapsuleCollider>().enabled = !flyMode.Value;
 
-                if (AedenthornUtils.CheckKeyDown(flyToggleKey.Value))
+                if (!Global.code.onGUI && spawnInput?.gameObject.activeSelf != true && AedenthornUtils.CheckKeyDown(flyToggleKey.Value))
                     flyMode.Value = !flyMode.Value;
 
                 if (flyMode.Value)

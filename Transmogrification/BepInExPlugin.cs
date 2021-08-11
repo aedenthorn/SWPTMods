@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace Transmogrification
 {
-    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.1.2")]
+    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -200,17 +200,26 @@ namespace Transmogrification
 
         private static void ReplaceAppearance(Transform source, Transform destination)
         {
-            for (int i = 0; i < destination.childCount; i++)
+            for (int i = destination.childCount - 1; i >= 0; i--)
             {
                 Dbgl($"Removing child {destination.GetChild(i).name}");
 
-                Destroy(destination.GetChild(i).gameObject);
+                DestroyImmediate(destination.GetChild(i).gameObject);
             }
+            if (destination.GetComponent<Appeal>())
+            {
+                destination.GetComponent<Appeal>().allRenderers.Clear();
+            }
+
             for (int i = 0; i < source.childCount; i++)
             {
                 Transform t = Instantiate(source.GetChild(i), destination);
                 t.name = source.GetChild(i).name;
                 Dbgl($"Adding child {t.name}");
+                if (destination.GetComponent<Appeal>() && t.GetComponent<SkinnedMeshRenderer>())
+                {
+                    destination.GetComponent<Appeal>().allRenderers.Add(t.GetComponent<SkinnedMeshRenderer>());
+                }
             }
             destination.GetComponent<Item>().icon = source.GetComponent<Item>().icon;
         }

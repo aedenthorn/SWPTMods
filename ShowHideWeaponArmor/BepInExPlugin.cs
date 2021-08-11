@@ -169,29 +169,22 @@ namespace ShowHideWeaponArmor
                 {
                     if (!__instance.showArmor)
                     {
-                        if (__instance.shieldInHand)
-                            __instance.HolsterShield();
-                        if (__instance.weaponInHand)
-                            __instance.HolsterWeapon();
-                        __instance.shield?.gameObject.SetActive(false);
+                        if (!__instance.weaponInHand)
+                        {
+                            __instance.weapon?.gameObject.SetActive(false);
+                            __instance.weapon2?.gameObject.SetActive(false);
+                        }
                     }
-                    __instance.weapon?.gameObject.SetActive(__instance.showArmor);
-                    __instance.weapon2?.gameObject.SetActive(__instance.showArmor);
                     if((!Global.code.uiInventory.gameObject.activeSelf || !Global.code.uiInventory.lingerieGroup.activeSelf) && !Global.code.uiCustomization.gameObject.activeSelf && !Global.code.uiMakeup.gameObject.activeSelf)
                         __instance.showArmor = true;
                 }
                 else if (hideWeaponsWithArmor.Value)
                 {
-                    if (!__instance.showArmor)
-                    {
-                        if(__instance.shieldInHand)
-                            __instance.HolsterShield();
-                        if (__instance.weaponInHand)
-                            __instance.HolsterWeapon();
-                        __instance.shield?.gameObject.SetActive(false);
-                    }
-                    __instance.weapon?.gameObject.SetActive(__instance.showArmor);
-                    __instance.weapon2?.gameObject.SetActive(__instance.showArmor);
+                        if (!__instance.weaponInHand)
+                        {
+                            __instance.weapon?.gameObject.SetActive(false);
+                            __instance.weapon2?.gameObject.SetActive(false);
+                        }
                 }
                 else
                 {

@@ -61,6 +61,8 @@ namespace EyebrowColors
         {
             static void Prefix(Mainframe __instance, CharacterCustomization customization)
             {
+                if (!modEnabled.Value)
+                    return;
 
                 Color color = eyebrowColors.ContainsKey(customization.characterName) ? eyebrowColors[customization.characterName] : Color.black;
                 color.a = customization.eyeBrowsStrength;
@@ -77,6 +79,8 @@ namespace EyebrowColors
         {
             static void Postfix(Mainframe __instance, CharacterCustomization gen)
             {
+                if (!modEnabled.Value)
+                    return;
 
                 if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=eyebrowsColor"))
                 {
@@ -103,6 +107,9 @@ namespace EyebrowColors
         {
             static void Prefix(Mainframe __instance, CharacterCustomization customization, string presetname)
             {
+                if (!modEnabled.Value)
+                    return;
+
 
                 Color color = eyebrowColors.ContainsKey(customization.characterName) ? eyebrowColors[customization.characterName] : Color.black;
                 color.a = customization.eyeBrowsStrength;
@@ -119,6 +126,9 @@ namespace EyebrowColors
         {
             static void Postfix(Mainframe __instance, CharacterCustomization gen, string presetname)
             {
+                if (!modEnabled.Value)
+                    return;
+
                 if (ES2.Exists("Character Presets/" + presetname + "/CharacterPreset.txt?tag=eyebrowsColor"))
                 {
                     string colorCode = "#"+ ES2.Load<string>("Character Presets/" + presetname + "/CharacterPreset.txt?tag=eyebrowsColor");

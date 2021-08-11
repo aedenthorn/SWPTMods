@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace ArmorParts
 {
-    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.2.0")]
+    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -148,7 +148,7 @@ namespace ArmorParts
 
             static void Postfix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value || !__instance.showArmor || !__instance.armor || !Global.code.uiInventory)
+                if (!modEnabled.Value || !__instance.showArmor || !__instance.armor || !Global.code?.uiInventory)
                     return;
                 Transform t;
                 
