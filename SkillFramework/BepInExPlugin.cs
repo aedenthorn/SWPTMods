@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace SkillFramework
 {
-    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.1.1")]
+    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.1.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -89,6 +89,7 @@ namespace SkillFramework
                                     }
                                 }
                             }
+                            parents[0].parent.parent.GetComponent<RectTransform>().sizeDelta += new Vector2(0, height);
                         }
                         t = Instantiate(__instance.daggerproficiency.transform, parents[info.category]);
                         t.name = info.id;

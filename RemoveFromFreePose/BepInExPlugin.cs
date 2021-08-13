@@ -7,7 +7,7 @@ using UnityEngine.AI;
 
 namespace RemoveFromFreePose
 {
-    [BepInPlugin("aedenthorn.RemoveFromFreePose", "Remove From Free Pose", "0.1.1")]
+    [BepInPlugin("aedenthorn.RemoveFromFreePose", "Remove From Free Pose", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -52,6 +52,8 @@ namespace RemoveFromFreePose
                     return true;
 
                 Dbgl($"Clicked on {__instance.customization.name}");
+
+                Global.code.uiFreePose.LetRuntimeTransformSleep();
 
                 CharacterCustomization component = __instance.customization.GetComponent<CharacterCustomization>();
                 Player.code.enabled = true;

@@ -22,6 +22,8 @@ namespace ToggleRun
 
         public static ConfigEntry<int> nexusID;
 
+        public static bool sprinting;
+
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
@@ -40,42 +42,41 @@ namespace ToggleRun
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
-
         }
 
         [HarmonyPatch(typeof(PMC_Input), "Update")]
         static class PMC_Input_Update_Patch
         {
-            static void Prefix(ref bool __state)
+            static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
 
-                __state = PMC_Input.Run;
-            }
-            static void Postfix(bool __state)
-            {
-                if (!modEnabled.Value)
-                    return;
+                bool clicked = hotKey.Value.Length > 0 ? AedenthornUtils.CheckKeyDown(hotKey.Value) : PMC_Setting.code.GetKeyDown("Run");
+                if (clicked)
+                    sprinting = !sprinting;
 
-                bool down = hotKey.Value.Length > 0 ? AedenthornUtils.CheckKeyDown(hotKey.Value) : PMC_Setting.code.GetKeyDown("Run");
-
-                if (down)
+                if (sprinting)
                 {
-                    if (__state)
-                    {
-                        PMC_Input.Run = false;
-                        PMC_Input.RunUp = true;
-                    }
-                    else
+                    if (PMC_Input.leftHold || PMC_Input.rightHold || PMC_Input.forwardHold || PMC_Input.backHold)
                     {
                         PMC_Input.Run = true;
                         PMC_Input.RunUp = false;
                     }
+                    else
+                    {
+                        PMC_Input.Run = false;
+                        PMC_Input.RunUp = !clicked;
+                    }
+                }
+                else if(clicked)
+                {
+                    PMC_Input.Run = false;
+                    PMC_Input.RunUp = true;
                 }
                 else
                 {
-                    PMC_Input.Run = __state;
+                    PMC_Input.Run = false;
                     PMC_Input.RunUp = false;
                 }
             }

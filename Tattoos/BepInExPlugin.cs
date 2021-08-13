@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.5.1")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -374,6 +374,29 @@ namespace Tattoos
             {
                 if (!modEnabled.Value)
                     return;
+
+                if (!__instance.legsTatooGroup.parent.GetComponent<Mask>())
+                {
+                    //Destroy(__instance.bodyTatooGroup.GetComponent<ContentSizeFitter>());
+                    Transform svl = Instantiate(__instance.blushColorGroup.parent.parent, __instance.legsTatooGroup.parent);
+                    svl.name = "Legs Tattoo Scroll View";
+                    Destroy(svl.GetComponentInChildren<Mask>().transform.GetChild(0).gameObject);
+                    __instance.legsTatooGroup.SetParent(svl.GetComponentInChildren<Mask>().transform);
+
+                    svl.GetComponent<ScrollRect>().viewport = svl.GetComponentInChildren<Mask>().GetComponent<RectTransform>();
+                    svl.GetComponent<ScrollRect>().content = __instance.legsTatooGroup.GetComponent<RectTransform>();
+                    svl.GetComponent<ScrollRect>().verticalNormalizedPosition = 0;
+
+                    svl.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+                    svl.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+                    svl.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, svl.parent.GetChild(0).GetComponent<RectTransform>().sizeDelta.y);
+                    __instance.legsTatooGroup.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+                    svl.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (__instance.customizationItemButton.GetComponent<RectTransform>().rect.height + __instance.legsTatooGroup.GetComponent<GridLayoutGroup>().spacing.y) * 5);
+
+                    __instance.legsTatooGroup.name = "Legs Tattoo Group";
+                }
+
+
                 Global.code.uiPose.ButtonCamera("Hidden Camera 1");
                 Global.code.uiPose.ButtonCamera("Free Camera");
                 Global.code.uiPose.PoseButtonClicked(__instance.curMakeupTable.pubicPose);
@@ -388,7 +411,6 @@ namespace Tattoos
                         c.GetComponent<Button>().onClick.AddListener(delegate () { __instance.curCustomization.legsTatoos = RM.code.allLegsTatoos.GetItemWithName(c.name); __instance.curCustomization.RefreshAppearence(); });
                     }
                 }
-
                 Transform t = Instantiate(__instance.customizationItemButton, __instance.legsTatooGroup);
                 t.name = "0";
                 t.GetComponent<RawImage>().texture = RM.code.allWings.items[0].GetComponent<CustomizationItem>().icon;
@@ -400,7 +422,6 @@ namespace Tattoos
                     __instance.curCustomization.legsTatoos = null;
                     __instance.curCustomization.body.materials[5].SetTexture("_MakeUpMask2_RGB", null);
                 });
-
             }
         }
         
@@ -412,6 +433,36 @@ namespace Tattoos
             {
                 if (!modEnabled.Value)
                     return;
+
+                if(__instance.bodyTatooGroup.parent == __instance.armsTatooGroup.parent)
+                {
+                    //Destroy(__instance.bodyTatooGroup.GetComponent<ContentSizeFitter>());
+                    Transform svb = Instantiate(__instance.blushColorGroup.parent.parent, __instance.bodyTatooGroup.parent);
+                    svb.name = "Body Tattoo Scroll View";
+                    Destroy(svb.GetComponentInChildren<Mask>().transform.GetChild(0).gameObject);
+                    __instance.bodyTatooGroup.SetParent(svb.GetComponentInChildren<Mask>().transform);
+
+                    svb.GetComponent<ScrollRect>().viewport = svb.GetComponentInChildren<Mask>().GetComponent<RectTransform>();
+                    svb.GetComponent<ScrollRect>().content = __instance.bodyTatooGroup.GetComponent<RectTransform>();
+                    svb.GetComponent<ScrollRect>().verticalNormalizedPosition = 0;
+
+                    __instance.bodyTatooGroup.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+                    __instance.bodyTatooGroup.name = "Body Tattoo Group";
+
+                    //Destroy(__instance.armsTatooGroup.GetComponent<ContentSizeFitter>());
+                    Transform sva = Instantiate(__instance.faceTatooGroup.parent.parent, __instance.armsTatooGroup.parent);
+                    sva.name = "Arms Tattoo Scroll View";
+                    Destroy(sva.GetComponentInChildren<Mask>().transform.GetChild(0).gameObject);
+                    __instance.armsTatooGroup.SetParent(sva.GetComponentInChildren<Mask>().transform);
+
+                    sva.GetComponent<ScrollRect>().viewport = sva.GetComponentInChildren<Mask>().GetComponent<RectTransform>();
+                    sva.GetComponent<ScrollRect>().content = __instance.armsTatooGroup.GetComponent<RectTransform>();
+                    sva.GetComponent<ScrollRect>().verticalNormalizedPosition = 0;
+
+                    __instance.armsTatooGroup.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+                    __instance.armsTatooGroup.name = "Arms Tattoo Group";
+
+                }
 
                 Global.code.uiPose.ButtonCamera("Hidden Camera 1");
                 Global.code.uiPose.ButtonCamera("Free Camera");

@@ -1,6 +1,7 @@
 ﻿Dump Items
 Dump Affixes
 Dump Poses
+Dump Enemies
 Toggle Level Check
 Toggle Fly Mode
 Spawn Item

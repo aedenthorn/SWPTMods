@@ -1,12 +1,18 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using RuntimeGizmos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace EnhancedFreePose
 {
-    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.4.2")]
+    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.5.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -51,8 +57,118 @@ namespace EnhancedFreePose
         }
 
 
+        [HarmonyPatch(typeof(UIFreePose), "ButtonSaveCharacterPreset")]
+        public static class ButtonSaveCharacterPreset_Patch
+        {
+            public static bool Prefix(UIFreePose __instance, List<PoseData> ___poseDatas, Texture2D ___iconNow)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                if (__instance.poseName != "" && __instance.creatorName != "")
+                {
+                    ___poseDatas.Clear();
+                    foreach (Transform transform in __instance.selectedCharacter.GetComponent<CharacterCustomization>().bonesNeedSave)
+                    {
+                        string name = transform.name;
+
+                        if (name.EndsWith("eyesRoot"))
+                            name = "eyesRoot";
+                        if (name.EndsWith("head parent"))
+                            name = "head parent";
+                        if (name.EndsWith("head target"))
+                            name = "head target";
+
+                        PoseData item = new PoseData(name, transform.localPosition, transform.localRotation);
+                        ___poseDatas.Add(item);
+                    }
+                    Mainframe.code.SavePose(___poseDatas, __instance.poseName, __instance.creatorName, ___iconNow);
+                    __instance.savePosePanel.SetActive(false);
+                    Global.code.uiCombat.ShowHeader(Localization.GetContent("Pose Saved", new object[0]));
+                }
+                else if (__instance.poseName == "")
+                {
+                    Global.code.uiCombat.AddPrompt(Localization.GetContent("Enter Pose Name", new object[0]));
+                }
+                else if (__instance.creatorName == "")
+                {
+                    Global.code.uiCombat.AddPrompt(Localization.GetContent("Enter Creator Name", new object[0]));
+                }
+                TransformGizmo.transformGizmo_.selectNow = null;
+                __instance.ToggleSelectors();
+                return false;
+            }
+        }
+        [HarmonyPatch(typeof(Mainframe), nameof(Mainframe.LoadPose))]
+        public static class LoadPose_Patch
+        {
+            public static bool Prefix(CharacterCustomization characterCustomization, string poseName)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                foreach (Transform transform in characterCustomization.bonesNeedSave)
+                {
+                    string name = transform.name;
+
+                    if (name.EndsWith("eyesRoot"))
+                        name = "eyesRoot";
+                    if (name.EndsWith("head parent"))
+                        name = "head parent";
+                    if (name.EndsWith("head target"))
+                        name = "head target";
+
+
+                    if (!ES2.Exists("Poses/" + poseName + "/Poses.txt?tag=pos" + name))
+                    {
+                        Dbgl($"problem loading pos for bone {name}");
+                        continue;
+                    }
+                    if (!ES2.Exists("Poses/" + poseName + "/Poses.txt?tag=rotation" + name))
+                    {
+                        Dbgl($"problem loading rot for bone {name}");
+                        continue;
+                    }
+                    transform.localPosition = ES2.Load<Vector3>("Poses/" + poseName + "/Poses.txt?tag=pos" + name);
+                    transform.localRotation = ES2.Load<Quaternion>("Poses/" + poseName + "/Poses.txt?tag=rotation" + name);
+                }
+                return false;
+            }
+        }
+        
+        [HarmonyPatch(typeof(FreeposeCompanionIcon), nameof(FreeposeCompanionIcon.Initiate))]
+        public static class FreeposeCompanionIcon_Initiate_Patch
+        {
+            public static void Prefix(FreeposeCompanionIcon __instance)
+            {
+                __instance.transform.Find("profile").GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
+                __instance.transform.Find("profile").GetComponent<Button>().onClick.AddListener(delegate() { 
+                    __instance.Click();
+                    if(__instance.customization && Global.code.freeCamera.GetComponent<FreelookCamera>().transformGizmo.runTransformGizmo)
+                        Global.code.uiFreePose.LetRuntimeTransformRun();
+                });
+            }
+        }
+
+              
+        [HarmonyPatch(typeof(UIFreePose), "Start")]
+        public static class UIFreePose_Start_Patch
+        {
+            public static void Postfix(UIFreePose __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                __instance.transform.Find("FreePose").GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
+                __instance.transform.Find("FreePose").GetComponent<Button>().onClick.AddListener(delegate () {
+                    if (Global.code.freeCamera.GetComponent<FreelookCamera>().transformGizmo.runTransformGizmo)
+                        Global.code.uiFreePose.LetRuntimeTransformSleep();
+                    else
+                        Global.code.uiFreePose.LetRuntimeTransformRun();
+                });
+            }
+        }
+
+              
         [HarmonyPatch(typeof(UIFreePose), "Refresh")]
-        public static class Update_Patch
+        public static class UIFreePose_Refresh_Patch
         {
             public static void Postfix(UIFreePose __instance)
             {
@@ -74,9 +190,28 @@ namespace EnhancedFreePose
                         transform.GetComponent<FreeposeCompanionIcon>().Initiate(null);
                     }
                 }
+
+                foreach(Transform t in __instance.poseIconGroup)
+                {
+                    Transform c = t;
+                    if (c)
+                    {
+                        c.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
+                        c.GetComponent<Button>().onClick.AddListener(delegate () {
+                            c.GetComponent<PoseIcon>().Click();
+                            if (__instance.selectedCharacter && Global.code.freeCamera.GetComponent<FreelookCamera>().transformGizmo.runTransformGizmo)
+                            {
+                                Global.code.uiFreePose.LetRuntimeTransformSleep();
+                                context.Invoke("LetRuntimeTransformRunDelayed", 0.1f);
+                                
+                            }
+                        });
+                    }
+                }
             }
 
         }
+
 
         [HarmonyPatch(typeof(CustomizationSlider), nameof(CustomizationSlider.ValueChange))]
         public static class CustomizationSlider_ValueChange_Patch
@@ -146,9 +281,27 @@ namespace EnhancedFreePose
             }
 
         }
+
+        public static void DontLogError(string blah)
+        {
+
+        }
+
         [HarmonyPatch(typeof(MoveObject), "Update")]
         public static class MoveObject_Update_Patch
         {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = new List<CodeInstruction>(instructions);
+                for (int i = 0; i < codes.Count; i++)
+                {
+                    if (codes[i].opcode == OpCodes.Call && codes[i].operand is MethodInfo && (MethodInfo) codes[i].operand == AccessTools.Method(typeof(Debug), nameof(Debug.LogError), new Type[] { typeof(object) }))
+                    {
+                        codes[i].operand = AccessTools.Method(typeof(BepInExPlugin), nameof(BepInExPlugin.DontLogError));
+                    }
+                }
+                return codes.AsEnumerable();
+            }
 
             public static void Prefix(MoveObject __instance, ref Vector3 __state)
             {
