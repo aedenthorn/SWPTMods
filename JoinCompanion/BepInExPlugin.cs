@@ -49,10 +49,29 @@ namespace JoinCompanion
         {
             static bool Prefix(Furniture __instance)
             {
-                return !modEnabled.Value || __instance != joinedFurniture;
+                return !modEnabled.Value || __instance != joinedFurniture || !Global.code.uiFreePose.gameObject.activeSelf || !Global.code.uiFreePose.characters.items.Contains(__instance.transform);
             }
         }
-        
+
+        [HarmonyPatch(typeof(Companion), "CS")]
+        static class Companion_CS_Patch
+        {
+            static void Postfix(Companion __instance)
+            {
+                if (!modEnabled.Value || !__instance.movingToTarget)
+                    return;
+
+                if(
+                    (__instance.movingToTarget.GetComponent<Furniture>() && __instance.movingToTarget.GetComponent<Furniture>() == joinedFurniture) || 
+                    (Global.code.uiFreePose.gameObject.activeSelf && Global.code.uiFreePose.characters.items.Contains(__instance.transform))
+                )
+                {
+                    __instance.movingToTarget = null;
+                    __instance.Stop();
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(CharacterCustomization), "Awake")]
         static class CharacterCustomization_Awake_Patch
         {

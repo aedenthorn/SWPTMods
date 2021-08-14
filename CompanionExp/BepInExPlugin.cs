@@ -1,13 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Reflection;
 using UnityEngine;
 
 namespace CompanionExp
 {
-    [BepInPlugin("aedenthorn.CompanionExp", "Companion Exp", "0.1.0")]
+    [BepInPlugin("aedenthorn.CompanionExp", "Companion Exp", "0.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -33,7 +32,7 @@ namespace CompanionExp
             context = this;
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            //nexusID = Config.Bind<int>("General", "NexusID", 38, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 72, "Nexus mod ID for updates");
 
             freePosePassiveExp = Config.Bind<int>("Options", "FreePosePassiveExp", 10, "Experience per second while joining the player in free pose.");
             freePoseEnterExp = Config.Bind<int>("Options", "FreePoseEnterExp", 100, "Experience gained when while joining the player in free pose.");
@@ -88,15 +87,15 @@ namespace CompanionExp
                 {
                     if (Vector3.Distance(__instance.transform.position, __instance.movingToTarget.position) < 5f && __instance.movingToTarget.GetComponent<Furniture>() && __instance.GetComponent<Rigidbody>().velocity.magnitude < 0.5f)
                     {
-                        Dbgl($"Forcing interaction with {__instance.name} and {__instance.movingToTarget}");
                         __instance.movingToTarget.GetComponent<Furniture>().InteractWithOnlyPoses(__instance.customization);
-
                     }
-                    return;
                 }
-                //Dbgl($"Resetting furniture target for {__instance.name}");
-                __instance.movingToTarget = null;
-                __instance.Stop();
+                else
+                {
+                    //Dbgl($"Resetting furniture target for {__instance.name}");
+                    __instance.movingToTarget = null;
+                    __instance.Stop();
+                }
             }
         }
 

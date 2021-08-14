@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using RuntimeGizmos;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +13,7 @@ using UnityEngine.UI;
 
 namespace EnhancedFreePose
 {
-    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.5.1")]
+    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.7.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -202,7 +203,7 @@ namespace EnhancedFreePose
                             if (__instance.selectedCharacter && Global.code.freeCamera.GetComponent<FreelookCamera>().transformGizmo.runTransformGizmo)
                             {
                                 Global.code.uiFreePose.LetRuntimeTransformSleep();
-                                context.Invoke("LetRuntimeTransformRunDelayed", 0.1f);
+                                context.StartCoroutine(LetRuntimeTransformRunDelayed());
                                 
                             }
                         });
@@ -211,7 +212,11 @@ namespace EnhancedFreePose
             }
 
         }
-
+        public static IEnumerator LetRuntimeTransformRunDelayed()
+        {
+            yield return new WaitForEndOfFrame();
+            Global.code.uiFreePose.LetRuntimeTransformRun();
+        }
 
         [HarmonyPatch(typeof(CustomizationSlider), nameof(CustomizationSlider.ValueChange))]
         public static class CustomizationSlider_ValueChange_Patch
@@ -285,6 +290,27 @@ namespace EnhancedFreePose
         public static void DontLogError(string blah)
         {
 
+        }
+
+        [HarmonyPatch(typeof(Companion), "CS")]
+        static class Companion_CS_Patch
+        {
+            static void Postfix(Companion __instance)
+            {
+                if (!modEnabled.Value || !__instance.movingToTarget || !Global.code.uiFreePose.gameObject.activeSelf || !Global.code.uiFreePose.characters.items.Contains(__instance.transform))
+                    return;
+                __instance.movingToTarget = null;
+                __instance.Stop();
+            }
+        }
+
+        [HarmonyPatch(typeof(Furniture), nameof(Furniture.InteractWithOnlyPoses))]
+        static class InteractWithOnlyPoses_Patch
+        {
+            static bool Prefix(Furniture __instance)
+            {
+                return !modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf || !Global.code.uiFreePose.characters.items.Contains(__instance.transform);
+            }
         }
 
         [HarmonyPatch(typeof(MoveObject), "Update")]

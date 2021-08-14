@@ -129,9 +129,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomMusic", "CustomMusic\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToggleRun", "ToggleRun\ToggleRun.csproj", "{B2326BE1-04C2-47F3-956D-B464B75FADE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovementSpeedSkill", "MovementSpeedSkill\MovementSpeedSkill.csproj", "{8CC38E7E-B13C-47D5-BAE3-D231FA1B9B42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovementSpeedSkill", "MovementSpeedSkill\MovementSpeedSkill.csproj", "{8CC38E7E-B13C-47D5-BAE3-D231FA1B9B42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SkillFramework", "SkillFramework\SkillFramework.csproj", "{D64A255D-C570-460B-8B49-646CBCE04E61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterAITweaks", "MonsterAITweaks\MonsterAITweaks.csproj", "{2CAFA3BC-D8A7-4C22-9064-CE4229A07242}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -399,6 +401,10 @@ Global
 		{D64A255D-C570-460B-8B49-646CBCE04E61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D64A255D-C570-460B-8B49-646CBCE04E61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D64A255D-C570-460B-8B49-646CBCE04E61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CAFA3BC-D8A7-4C22-9064-CE4229A07242}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CAFA3BC-D8A7-4C22-9064-CE4229A07242}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CAFA3BC-D8A7-4C22-9064-CE4229A07242}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CAFA3BC-D8A7-4C22-9064-CE4229A07242}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
