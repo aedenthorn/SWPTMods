@@ -3,14 +3,13 @@ using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using BepInEx;
-using BepInEx.Logging;
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 
 namespace MegaMorph
 {
-    [BepInPlugin("bugerry.MegaMorph", "MegaMorph", "1.0.3")]
+    [BepInPlugin("bugerry.MegaMorph", "MegaMorph", "1.0.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public struct Offset
@@ -39,8 +38,6 @@ namespace MegaMorph
 			}
 		}
 
-        private const string SCALE_PATTERN = "{0}/{1}_scale";
-        private const string POS_PATTERN = "{0}/{1}_pos";
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
@@ -108,7 +105,6 @@ namespace MegaMorph
                     return;
 				}
 			}
-            Logger.LogInfo("Bones in List: " + offsets.Count);
         }
 
         public void OnSettingChanged(object source, SettingChangedEventArgs args)
@@ -144,44 +140,6 @@ namespace MegaMorph
             }
         }
 
-        /*
-        [HarmonyPatch(typeof(CharacterCustomization), "LateUpdate")]
-        public static class CharacterCustomization_LateUpdate_Patch
-        {
-            public static MethodBase TargetMethod()
-            {
-                return typeof(CharacterCustomization).GetMethod("LateUpdate");
-            }
-
-            public static void Postfix(CharacterCustomization __instance)
-            {
-                if (!modEnabled.Value) return;
-                foreach (var bone in __instance.body.bones)
-                {
-                    if (context.offsets.TryGetValue(string.Format(SCALE_PATTERN, __instance.name, bone.name), out var vector))
-                    {
-                        bone.localScale = vector / 100f;
-                    }
-
-                    if (context.offsets.TryGetValue(string.Format(POS_PATTERN, __instance.name, bone.name), out vector))
-                    {
-                        if (bone.name == "hip")
-                        {
-                            if (!Global.code.uiPose.isActiveAndEnabled && !Global.code.uiFreePose.isActiveAndEnabled)
-                            {
-                                bone.localPosition += vector / 100f;
-                            }
-                        }
-                        else
-                        {
-                            bone.localPosition = vector / 100f;
-                        }
-                    }
-                }
-            }
-        }
-        */
-
         [HarmonyPatch(typeof(Mainframe), "SaveGame")]
         public static class Mainframe_SaveGame_Patch
         {
@@ -193,7 +151,7 @@ namespace MegaMorph
                     foreach (var offset in context.offsets)
 				    {
                         var key = offset.Key.Split('/');
-                        ES2.Save(offset.Value, string.Format("{0}MegaMorph/{1}.txt?tag={2}", __instance.GetFolderName(), key[0], key[1]));
+                        ES2.Save(offset.Value.offset, string.Format("{0}MegaMorph/{1}.txt?tag={2}", __instance.GetFolderName(), key[0], key[1]));
                     }
                 }
                 catch (Exception e)
@@ -206,6 +164,8 @@ namespace MegaMorph
         [HarmonyPatch(typeof(Mainframe), "LoadCharacterCustomization")]
         public static class Mainframe_LoadCharacterCustomization_Patch
         {
+            static Texture texture = null;
+
             public static MethodBase TargetMethod()
             {
                 return typeof(Mainframe).GetMethod("LoadCharacterCustomization");
@@ -219,22 +179,24 @@ namespace MegaMorph
                     foreach (var d in data.loadedData)
                     {
                         var key = string.Format("{0}/{1}", gen.name, d.Key);
-                        if (args.ChangedSetting.Definition.Key.StartsWith(bone.name))
+                        foreach (var bone in gen.body.bones)
                         {
-                            context.offsets[key] = new Offset
+                            if (d.Key.StartsWith(bone.name))
                             {
-                                bone = bone,
-                                offset = (Vector3)args.ChangedSetting.BoxedValue,
-                                isScale = args.ChangedSetting.Definition.Key.EndsWith("scale")
-                            };
-                            return;
+                                context.offsets[key] = new Offset
+                                {
+                                    bone = bone,
+                                    offset = (Vector3)d.Value,
+                                    isScale = d.Key.EndsWith("scale")
+                                };
+                                break;
+                            }
                         }
-                        context.offsets[string.Format("{0}/{1}", gen.name, d.Key)] = (Vector3)d.Value;
                     }
                 }
                 catch (Exception e)
                 {
-                    context.Logger.LogError("OnLoad: " + e.Message);
+                    context.Logger.LogWarning("OnLoad: " + e.Message);
                 }
             }
         }

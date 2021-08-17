@@ -14,32 +14,22 @@ namespace EnhancedFreePose
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
-
+        public static ConfigEntry<bool> keepit;
         public static ConfigEntry<int> maxModels;
-
         public static ConfigEntry<int> nexusID;
-
+        
         public static Dictionary<MoveObject, Vector3> lastPositions = new Dictionary<MoveObject, Vector3>();
-
-        public static void Dbgl(string str = "", bool pref = true)
-        {
-            if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
-        }
 
         private void Awake()
         {
             context = this;
-            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-
-            maxModels = Config.Bind<int>("Options", "MaxModels", 8, "Maximum number of models to allow.");
-
-            nexusID = Config.Bind<int>("General", "NexusID", 18, "Nexus mod ID for updates");
+            modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind("General", "IsDebug", true, "Enable debug logs");
+            keepit = Config.Bind("General", "Keep It", true, "Keep posture after leaving free pose mode.");
+            maxModels = Config.Bind("Options", "MaxModels", 8, "Maximum number of models to allow.");
+            nexusID = Config.Bind("General", "NexusID", 18, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
-            Dbgl("Plugin awake");
-
         }
 
         [HarmonyPatch(typeof(UIFreePose), "Refresh")]
@@ -47,6 +37,8 @@ namespace EnhancedFreePose
         {
             public static void Postfix(UIFreePose __instance)
             {
+                if (!modEnabled.Value) return;
+
                 __instance.transform.Find("Left").Find("group pose").Find("tools bg").GetComponent<RectTransform>().anchoredPosition = new Vector2(171, -51);
                 for (int j = 4; j < maxModels.Value; j++)
                 {
@@ -66,20 +58,12 @@ namespace EnhancedFreePose
             }
         }
 
-        [HarmonyPatch(typeof(FreeposeCompanionIcon), "Initiate")]
-        public static class Initiate_Patch
-        {
-            public static void Prefix(CharacterCustomization _customization)
-            {
-                Dbgl($"initiating {_customization?.characterName}");
-            }
-        }
-
         [HarmonyPatch(typeof(UIFreePose), "AddCharacter")]
         public static class UIFreePose_AddCharacter_Patch
 		{
             public static void Postfix(Transform character, UIFreePose __instance)
 			{
+                if (!modEnabled.Value) return;
                 __instance.selectedCharacter = character;
                 ThirdPersonCharacter component = character.GetComponent<ThirdPersonCharacter>();
                 if (component)
@@ -89,11 +73,29 @@ namespace EnhancedFreePose
             }
 		}
 
+        [HarmonyPatch(typeof(UIFreePose), "Open")]
+        public static class UIFreePose_Open_Patch
+        {
+            public static void Postfix()
+            {
+                if (!modEnabled.Value) return;
+                Global.code.freeCameraCollider.SetActive(false);
+            }
+        }
+
         [HarmonyPatch(typeof(UIFreePose), "Close")]
         public static class UIFreePose_Close_Patch
         {
             public static void Prefix(UIFreePose __instance)
             {
+                if (!modEnabled.Value) return;
+
+                if (keepit.Value && Global.code.curlocation.locationType == LocationType.home)
+				{
+                    __instance.characters.ClearItems();
+                    __instance.characters.AddItem(Player.code.transform);
+                }
+
                 foreach (Transform character in __instance.characters.items)
                 {
                     if (!character) continue;
@@ -117,6 +119,7 @@ namespace EnhancedFreePose
 
             public static bool Prefix(MoveObject __instance)
 			{
+                if (!modEnabled.Value) return true;
                 Vector3 lastPos;
                 Vector3 mousePosition = Input.mousePosition;
                 if (__instance.canGo && Global.code.uiFreePose.selectedCharacter && lastPositions.TryGetValue(__instance, out lastPos))
@@ -184,6 +187,8 @@ namespace EnhancedFreePose
 
             public static bool Prefix(ThirdPersonCharacter __instance)
             {
+                if (!modEnabled.Value) return false;
+
                 if (Global.code.uiFreePose.isActiveAndEnabled)
                 {
                     __instance.m_IsGrounded = true;
@@ -203,6 +208,8 @@ namespace EnhancedFreePose
 
             public static bool Prefix(ThirdPersonCharacter __instance)
             {
+                if (!modEnabled.Value) return true;
+
                 if (Global.code.uiFreePose.isActiveAndEnabled)
                 {
                     __instance.m_IsGrounded = true;
