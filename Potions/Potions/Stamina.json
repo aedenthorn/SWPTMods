@@ -1,0 +1,15 @@
+{
+  "id": "Stamina Potion",
+  "nameEN": "Stamina Potion",
+  "nameCN": "",
+  "nameRU": "",
+  "health": 0,
+  "mana": 0,
+  "stamina": 50,
+  "rage": 0,
+  "cost": 75,
+  "rarity": 1,
+  "skillPoints": 0,
+  "attributePoints": 0,
+  "hotKey": "5"
+}

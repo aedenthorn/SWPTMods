@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace EyebrowColors
 {
-    [BepInPlugin("aedenthorn.EyebrowColors", "Eyebrow Colors", "0.1.0")]
+    [BepInPlugin("aedenthorn.EyebrowColors", "Eyebrow Colors", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -23,11 +23,10 @@ namespace EyebrowColors
         private static string assetPath;
         private static Transform strengthSlider;
 
-        private static Color customColor;
-
         private static Transform redSlider;
         private static Transform greenSlider;
         private static Transform blueSlider;
+        private static Dictionary<string, Color> eyebrowColors = new Dictionary<string, Color>();
 
         ConfigEntry<int> nexusID;
 
@@ -63,9 +62,10 @@ namespace EyebrowColors
             static void Prefix(Mainframe __instance, CharacterCustomization customization)
             {
 
-                Color color = customization.eyebrows.GetComponent<CustomizationItem>().color;
+                Color color = eyebrowColors.ContainsKey(customization.characterName) ? eyebrowColors[customization.characterName] : Color.black;
+                color.a = customization.eyeBrowsStrength;
 
-                Dbgl($"saving eyebrow color: {color} as {ColorUtility.ToHtmlStringRGBA(color)}");
+                Dbgl($"saving eyebrow color {color} for {customization.characterName} as {ColorUtility.ToHtmlStringRGBA(color)}");
 
                 ES2.Save<string>(ColorUtility.ToHtmlStringRGBA(color), __instance.GetFolderName() + customization.name + ".txt?tag=eyebrowsColor");
 
@@ -86,9 +86,10 @@ namespace EyebrowColors
 
                     if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
                     {
+                        color.a = gen.eyeBrowsStrength;
                         Dbgl($"loaded eyebrow color: {color} for {gen.characterName}");
 
-                        gen.eyebrows.GetComponent<CustomizationItem>().color = color;
+                        eyebrowColors[gen.characterName] = color;
 
                         gen.body.materials[1].SetColor("_Mask3_Rchannel_ColorAmountA", color);
                         gen.body.materials[2].SetColor("_Mask3_Rchannel_ColorAmountA", color);
@@ -98,35 +99,31 @@ namespace EyebrowColors
             }
         }
 
+        //[HarmonyPatch(typeof(CharacterCustomization), "Awake")]
+        static class CharacterCustomization_Awake_Patch
+        {
+            static void Prefix(CharacterCustomization __instance)
+            {
+                if(__instance.characterName != null && !eyebrowColors.ContainsKey(__instance.characterName))
+                    eyebrowColors[__instance.characterName] = Color.black;
+            }
+        }
+        
         [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.RefreshAppearence))]
         static class RefreshAppearence_Patch
         {
             static void Postfix(CharacterCustomization __instance)
             {
-
-                Color color = __instance.eyebrows.GetComponent<CustomizationItem>().color;
+                if (__instance.characterName == null || !eyebrowColors.ContainsKey(__instance.characterName))
+                    return;
+                Color color = eyebrowColors[__instance.characterName];
                 color.a = __instance.eyeBrowsStrength;
-                //Dbgl($"eyebrow color: {color}");
-
+                
+                //Dbgl($"refresh {__instance.characterName} eyebrow color: {color}, strength {__instance.eyeBrowsStrength}");
+                
                 __instance.body.materials[1].SetColor("_Mask3_Rchannel_ColorAmountA", color);
                 __instance.body.materials[2].SetColor("_Mask3_Rchannel_ColorAmountA", color);
                 __instance.body.materials[4].SetColor("_Mask3_Rchannel_ColorAmountA", color);
-            }
-        }
-
-        [HarmonyPatch(typeof(UIMakeup), "ButtonCustomizationButtonClicked")]
-        static class ButtonCustomizationButtonClicked_Patch
-        {
-            static void Postfix(UIMakeup __instance, Transform button)
-            {
-                if (!modEnabled.Value || !button || button.parent.name != __instance.eyeBrowsGroup.name)
-                    return;
-                
-                __instance.curCustomization.eyebrows.GetComponent<CustomizationItem>().color = customColor;
-
-                __instance.curCustomization.body.materials[1].SetColor("_Mask3_Rchannel_ColorAmountA", customColor);
-                __instance.curCustomization.body.materials[2].SetColor("_Mask3_Rchannel_ColorAmountA", customColor);
-                __instance.curCustomization.body.materials[4].SetColor("_Mask3_Rchannel_ColorAmountA", customColor);
             }
         }
 
@@ -138,12 +135,13 @@ namespace EyebrowColors
             {
                 if (!modEnabled.Value)
                     return;
-
-                customColor = Global.code.uiMakeup.curCustomization.eyebrows.GetComponent<CustomizationItem>().color;
+                forceSliders = true;
 
                 if (!strengthSlider)
                 {
                     strengthSlider = __instance.panelEyebrows.transform.GetComponentInChildren<Slider>().transform;
+                    strengthSlider.GetComponent<Slider>().onValueChanged = new Slider.SliderEvent();
+                    strengthSlider.GetComponent<Slider>().onValueChanged.AddListener(ChangeCurrentColor);
 
                     float height = strengthSlider.GetComponent<RectTransform>().rect.height;
 
@@ -203,14 +201,17 @@ namespace EyebrowColors
                     blueSlider.gameObject.SetActive(true);
                 }
 
-                forceSliders = true;
+                if (!eyebrowColors.ContainsKey(__instance.curCustomization.characterName))
+                    eyebrowColors[__instance.curCustomization.characterName] = new Color(0, 0, 0, __instance.curCustomization.eyeBrowsStrength);
 
-                redSlider.GetComponent<Slider>().value = customColor.r;
-                greenSlider.GetComponent<Slider>().value = customColor.g;
-                blueSlider.GetComponent<Slider>().value = customColor.b;
-                strengthSlider.GetComponent<Slider>().value = customColor.a;
+                redSlider.GetComponent<Slider>().value = eyebrowColors[__instance.curCustomization.characterName].r;
+                greenSlider.GetComponent<Slider>().value = eyebrowColors[__instance.curCustomization.characterName].g;
+                blueSlider.GetComponent<Slider>().value = eyebrowColors[__instance.curCustomization.characterName].b;
+                strengthSlider.GetComponent<Slider>().value = __instance.curCustomization.eyeBrowsStrength;
+
 
                 forceSliders = false;
+                Dbgl($"open eyebrows {__instance.curCustomization.characterName} eyebrow color: {eyebrowColors[__instance.curCustomization.characterName]}, strength {__instance.curCustomization.eyeBrowsStrength} {strengthSlider.GetComponent<Slider>().value}");
             }
         }
 
@@ -218,9 +219,13 @@ namespace EyebrowColors
         {
             if (forceSliders)
                 return;
-            customColor = new Color(redSlider.GetComponent<Slider>().value, greenSlider.GetComponent<Slider>().value, blueSlider.GetComponent<Slider>().value, Global.code.uiMakeup.curCustomization.eyeBrowsStrength);
-            //Dbgl($"eyebrow color: {customColor}");
-            Global.code.uiMakeup.curCustomization.eyebrows.GetComponent<CustomizationItem>().color = customColor;
+
+            Global.code.uiMakeup.curCustomization.eyeBrowsStrength = strengthSlider.GetComponent<Slider>().value;
+
+            eyebrowColors[Global.code.uiMakeup.curCustomization.characterName] = new Color(redSlider.GetComponent<Slider>().value, greenSlider.GetComponent<Slider>().value, blueSlider.GetComponent<Slider>().value, strengthSlider.GetComponent<Slider>().value);
+
+            //Dbgl($"color changed to {eyebrowColors[Global.code.uiMakeup.curCustomization.characterName]}");
+            
             Global.code.uiMakeup.curCustomization.RefreshAppearence();
 
         }

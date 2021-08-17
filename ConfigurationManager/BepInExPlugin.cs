@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace ConfigurationManager
 {
-    [BepInPlugin("aedenthorn.ConfigurationManager", "BepInEx Configuration Manager", "0.5.1")]
+    [BepInPlugin("aedenthorn.ConfigurationManager", "BepInEx Configuration Manager", "0.5.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static void Dbgl(string str = "", bool pref = true)

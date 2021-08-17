@@ -1,0 +1,15 @@
+{
+  "id": "Rage Potion",
+  "nameEN": "Rage Potion",
+  "nameCN": "",
+  "nameRU": "",
+  "health": 0,
+  "mana": 0,
+  "stamina": 0,
+  "rage": 101,
+  "cost": 500,
+  "rarity": 2,
+  "skillPoints": 0,
+  "attributePoints": 0,
+  "hotKey": "7"
+}
