@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BetterFireball
 {
-    [BepInPlugin("aedenthorn.BetterFireball", "Better Fireball", "0.2.3")]
+    [BepInPlugin("aedenthorn.BetterFireball", "Better Fireball", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -62,12 +62,12 @@ namespace BetterFireball
                 bool enemyDamage = true;
                 if (__instance.owner)
                 {
-                    if (__instance.owner.GetComponent<CharacterCustomization>())
+                    if (__instance.owner.GetComponent<ID>().isFriendly || __instance.owner.GetComponent<ID>().player)
                     {
                         //Dbgl("Will not damage friends");
                         friendlyDamage = false;
                     }
-                    else if (__instance.owner.GetComponent<Monster>())
+                    else
                     {
                         //Dbgl("Will not damage enemies");
                         enemyDamage = false;

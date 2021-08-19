@@ -15,7 +15,7 @@ using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.1.0")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -29,6 +29,9 @@ namespace EnemySuccubi
         public static ConfigEntry<float> gearEnchantmentChance;
         public static ConfigEntry<int> bossGangMax;
         public static ConfigEntry<string> succubusName;
+        public static ConfigEntry<bool> dropEquipment;
+        
+        public static ConfigEntry<Rarity> lootLevel;
 
         public static List<GameObject> toDestroy = new List<GameObject>();
 
@@ -44,13 +47,16 @@ namespace EnemySuccubi
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 18, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 87, "Nexus mod ID for updates");
+            nexusID.Value = 87;
 
             bossGangMax = Config.Bind<int>("Options", "BossGangMax", 4, "Maximum number of succubi surrounding a boss.");
             bossGangChance = Config.Bind<float>("Options", "BossGangChance", 0.3f, "Chance of boss having succubi gang (0.0 to 1.0).");
             replaceOrdinaryChance = Config.Bind<float>("Options", "ReplaceOrdinaryChance", 0.1f, "Chance of a succubus replacing an ordinary enemy (0.0 to 1.0).");
             gearEnchantmentChance = Config.Bind<float>("Options", "GearEnchantmentChance", 0.5f, "Chance of each piece of a succubus' gear being enchanted (0.0 to 1.0).");
             succubusName = Config.Bind<string>("Options", "SuccubusName", "Enemy Succubus", "Name of enemy succubi.");
+            lootLevel = Config.Bind<Rarity>("Options", "LootLevel", Rarity.three, "Loot level of random succubus loot.");
+            dropEquipment = Config.Bind<bool>("Options", "DropEquipment", true, "Cause succubi to drop their equipment on death.");
 
             InvokeRepeating("DestroySuccubi", 5f, 5f);
 
@@ -59,36 +65,6 @@ namespace EnemySuccubi
             Dbgl("Plugin awake");
         }
 
-        //[HarmonyPatch(typeof(CharacterCustomization), "Holster")]
-        public static class Holster_Patch
-        {
-            public static void Prefix(CharacterCustomization __instance, Transform weapon)
-            {
-                if (!modEnabled.Value)
-                    return;
-                Dbgl($"{__instance.name} holstering {weapon?.name}");
-            }
-        }
-        //[HarmonyPatch(typeof(Companion), "Stop")]
-        public static class Stop_Patch
-        {
-            public static void Postfix(Companion __instance)
-            {
-                if (!modEnabled.Value || !__instance.charge)
-                    return;
-                Dbgl($"Stopping {Environment.StackTrace}");
-            }
-        }
-        //[HarmonyPatch(typeof(Companion), "SetDestination")]
-        public static class SetDestination_Patch
-        {
-            public static void Postfix(Companion __instance, Vector3 dest)
-            {
-                if (!modEnabled.Value || !__instance.charge)
-                    return;
-                Dbgl($"Setting destination {dest}");
-            }
-        }
         [HarmonyPatch(typeof(EnemySpawner), "InstantiateEnemy")]
         public static class EnemySpawner_InstantiateEnemy_Patch
         {
@@ -206,8 +182,8 @@ namespace EnemySuccubi
                         transform.GetComponent<Collider>().enabled = true;
                     }
                 }
-                Instantiate<GameObject>(RM.code.bigBloodFXs[Random.Range(0, RM.code.bigBloodFXs.Length)], __instance.transform.position, __instance.transform.rotation).GetComponent<BFX_BloodSettings>().GroundHeight = __instance.transform.position.y;
-                Instantiate<GameObject>(RM.code.bigBloodFXs[Random.Range(0, RM.code.bigBloodFXs.Length)], __instance.transform.position, __instance.transform.rotation).GetComponent<BFX_BloodSettings>().GroundHeight = __instance.transform.position.y;
+                Instantiate(RM.code.bigBloodFXs[Random.Range(0, RM.code.bigBloodFXs.Length)], __instance.transform.position, __instance.transform.rotation).GetComponent<BFX_BloodSettings>().GroundHeight = __instance.transform.position.y;
+                Instantiate(RM.code.bigBloodFXs[Random.Range(0, RM.code.bigBloodFXs.Length)], __instance.transform.position, __instance.transform.rotation).GetComponent<BFX_BloodSettings>().GroundHeight = __instance.transform.position.y;
 
                 if (__instance._ID.damageSource && __instance._ID.damageSource.GetComponent<ID>())
                 {
@@ -255,6 +231,9 @@ namespace EnemySuccubi
                 {
                     Destroy(__instance.curCastingMagic.generatedHandfx.gameObject);
                 }
+
+                __instance.GetComponent<LootDrop>().Drop();
+
 
                 toDestroy.Add(__instance.gameObject);
                 
@@ -324,26 +303,8 @@ namespace EnemySuccubi
                 Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
                 if (succubus)
                 {
-                    succubus.SetParent(result.parent);
-                    succubus.GetComponent<NavMeshAgent>().enabled = false;
-                    succubus.position = result.position;
-                    succubus.rotation = result.rotation;
-                    succubus.GetComponent<NavMeshAgent>().enabled = true;
-                    succubus.name = succubusName.Value + " " + idx;
-                    succubus.GetComponent<ID>().isFriendly = false;
-                    succubus.GetComponent<Companion>().charge = true;
 
-                    if (Global.code.friendlies.items.Contains(succubus))
-                        Global.code.friendlies.items.Remove(succubus);
-                    
-                    if (ES2.Exists("Character Presets/" + succubus.name + "/CharacterPreset.txt"))
-                    {
-                        Dbgl($"Loading Preset for {succubus.name}");
-                        Mainframe.code.LoadCharacterPreset(succubus.GetComponent<CharacterCustomization>(), succubus.name);
-                    }
-
-                    context.StartCoroutine(EquipSuccubus(succubus, Global.code.curlocation.level));
-
+                    CreateSuccubus(succubus, result, idx);
                     Global.code.enemies.RemoveItemWithName(result.name);
                     Destroy(result.gameObject);
                     return true;
@@ -363,31 +324,34 @@ namespace EnemySuccubi
 
                 int idx = Random.Range(0, RM.code.allCompanions.items.Count - 1);
                 Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
+
                 if (succubus)
                 {
-                    succubus.SetParent(boss.parent);
-                    succubus.GetComponent<NavMeshAgent>().enabled = false;
-                    succubus.position = boss.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)).normalized * 3;
-                    Global.code.Snap(succubus);
-                    succubus.eulerAngles = new Vector3(0f, Random.Range(0, 360), 0f);
-                    succubus.GetComponent<NavMeshAgent>().enabled = true;
-                    succubus.name = succubusName.Value + " " + idx;
-                    succubus.GetComponent<ID>().isFriendly = false;
-                    succubus.GetComponent<Companion>().charge = true;
-
-                    if (Global.code.friendlies.items.Contains(succubus))
-                        Global.code.friendlies.items.Remove(succubus);
-                    
-                    if (ES2.Exists("Character Presets/" + succubus.name + "/CharacterPreset.txt"))
-                    {
-                        Dbgl($"Loading Preset for {succubus.name}");
-                        Mainframe.code.LoadCharacterPreset(succubus.GetComponent<CharacterCustomization>(), succubus.name);
-                    }
-
-                    context.StartCoroutine(EquipSuccubus(succubus, Global.code.curlocation.level));
-
+                    CreateSuccubus(succubus, boss, idx);
                 }
             }
+        }
+
+        private static void CreateSuccubus(Transform succubus, Transform template, int idx)
+        {
+            succubus.SetParent(template.parent);
+            succubus.GetComponent<NavMeshAgent>().enabled = false;
+            succubus.position = template.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)).normalized * 3;
+            Global.code.Snap(succubus);
+            succubus.eulerAngles = new Vector3(0f, Random.Range(0, 360), 0f);
+            succubus.GetComponent<NavMeshAgent>().enabled = true;
+            succubus.name = succubusName.Value + " " + (idx + 1);
+            succubus.GetComponent<ID>().isFriendly = false;
+            succubus.GetComponent<Companion>().charge = true;
+
+            LootDrop ld = succubus.gameObject.AddComponent<LootDrop>();
+            ld.rarity = lootLevel.Value;
+
+            if (Global.code.friendlies.items.Contains(succubus))
+                Global.code.friendlies.items.Remove(succubus);
+
+            context.StartCoroutine(EquipSuccubus(succubus, Global.code.curlocation.level));
+
         }
 
         private static IEnumerator EquipSuccubus(Transform succubus, int level)
@@ -402,13 +366,23 @@ namespace EnemySuccubi
 
             yield return new WaitForEndOfFrame();
 
+
+            if (ES2.Exists("Character Presets/" + succubus.name + "/CharacterPreset.txt"))
+            {
+                Dbgl($"Loading Preset for {succubus.name}");
+                Mainframe.code.LoadCharacterPreset(succubus.GetComponent<CharacterCustomization>(), succubus.name);
+                succubus.GetComponent<CharacterCustomization>().RefreshAppearence();
+            }
+
             succubus.GetComponent<CharacterCustomization>().weapon2 = null;
 
-            Transform weapon = Utility.Instantiate(GetMatchLevelItem(level, RM.code.allWeapons.items.FindAll(i => i.GetComponent<Item>().slotType == SlotType.weapon)));
+            Transform weapon = Utility.Instantiate(GetMatchLevelItem(level, RM.code.allWeapons.items.FindAll(i => i.GetComponent<Item>().slotType == SlotType.weapon && i.GetComponent<Weapon>() && i.GetComponent<Weapon>().weaponType != WeaponType.bow)));
             if (weapon)
             {
                 RM.code.balancer.GetItemStats(weapon, eChance);
                 succubus.GetComponent<CharacterCustomization>().AddItem(weapon, "weapon");
+                if (dropEquipment.Value)
+                    succubus.GetComponent<LootDrop>().sureItems.AddItem(weapon);
             }
 
             if(weapon && new List<WeaponType>() { WeaponType.dagger, WeaponType.onehand, WeaponType.onehandaxe, WeaponType.onehandhammer, WeaponType.onehandspear }.Contains(weapon.GetComponent<Weapon>().weaponType))
@@ -417,6 +391,8 @@ namespace EnemySuccubi
                 if (shield)
                 {
                     succubus.GetComponent<CharacterCustomization>().AddItem(shield, "shield");
+                    if (dropEquipment.Value)
+                        succubus.GetComponent<LootDrop>().sureItems.AddItem(shield);
                 }
 
             }
@@ -427,6 +403,8 @@ namespace EnemySuccubi
             {
                 RM.code.balancer.GetItemStats(armor, eChance);
                 succubus.GetComponent<CharacterCustomization>().AddItem(armor, "armor");
+                if (dropEquipment.Value)
+                    succubus.GetComponent<LootDrop>().sureItems.AddItem(armor);
             }
 
             List<Transform> leggings = RM.code.allArmors.items.FindAll(t => t.GetComponent<Item>().slotType == SlotType.legging);
@@ -435,6 +413,8 @@ namespace EnemySuccubi
             {
                 RM.code.balancer.GetItemStats(legging, eChance);
                 succubus.GetComponent<CharacterCustomization>().AddItem(legging, "leggings");
+                if (dropEquipment.Value)
+                    succubus.GetComponent<LootDrop>().sureItems.AddItem(legging);
             }
             List<Transform> gloves = RM.code.allArmors.items.FindAll(t => t.GetComponent<Item>().slotType == SlotType.gloves);
             Transform glove = Utility.Instantiate(GetMatchLevelItem(level, gloves));
@@ -442,6 +422,8 @@ namespace EnemySuccubi
             {
                 RM.code.balancer.GetItemStats(glove, eChance);
                 succubus.GetComponent<CharacterCustomization>().AddItem(glove, "gloves");
+                if (dropEquipment.Value)
+                    succubus.GetComponent<LootDrop>().sureItems.AddItem(glove);
             }
             List<Transform> helmets = RM.code.allArmors.items.FindAll(t => t.GetComponent<Item>().slotType == SlotType.helmet);
             Transform helmet = Utility.Instantiate(GetMatchLevelItem(level, helmets));
@@ -449,6 +431,8 @@ namespace EnemySuccubi
             {
                 RM.code.balancer.GetItemStats(helmet, eChance);
                 succubus.GetComponent<CharacterCustomization>().AddItem(helmet, "helmet");
+                if (dropEquipment.Value)
+                    succubus.GetComponent<LootDrop>().sureItems.AddItem(helmet);
             }
             List<Transform> shoes = RM.code.allArmors.items.FindAll(t => t.GetComponent<Item>().slotType == SlotType.shoes);
             Transform shoe = Utility.Instantiate(GetMatchLevelItem(level, shoes));
@@ -456,6 +440,8 @@ namespace EnemySuccubi
             {
                 RM.code.balancer.GetItemStats(shoe, eChance);
                 succubus.GetComponent<CharacterCustomization>().AddItem(shoe, "shoes");
+                if (dropEquipment.Value)
+                    succubus.GetComponent<LootDrop>().sureItems.AddItem(shoe);
             }
 
             AddRandomStatsAndSkills(succubus, level);
