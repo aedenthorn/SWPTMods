@@ -58,6 +58,24 @@ namespace Jump
                 return false;
             }
         }
+        
+        [HarmonyPatch(typeof(ThirdPersonCharacter), "HandleAirborneMovement")]
+        static class HandleAirborneMovement_Patch
+        {
+            static bool Prefix(ThirdPersonCharacter __instance, Rigidbody ___m_Rigidbody)
+            {
+                return !modEnabled.Value || ___m_Rigidbody;
+            }
+        }
+                
+        [HarmonyPatch(typeof(ThirdPersonCharacter), "OnAnimatorMove")]
+        static class OnAnimatorMove_Patch
+        {
+            static bool Prefix(ThirdPersonCharacter __instance, Rigidbody ___m_Rigidbody)
+            {
+                return !modEnabled.Value || ___m_Rigidbody;
+            }
+        }
 
         [HarmonyPatch(typeof(ThirdPersonCharacter), "CheckGroundStatus")]
         static class ThirdPersonCharacter_CheckGroundStatus_Patch
@@ -66,6 +84,10 @@ namespace Jump
             {
                 if (!modEnabled.Value)
                     return true;
+
+                if (!___m_Rigidbody || !___customization)
+                    return false;
+
                 __instance.m_IsGrounded = true;
                 RaycastHit raycastHit;
                 if (___m_Rigidbody.velocity.y < 5f && Physics.Raycast(__instance.transform.position + Vector3.up * 0.1f, Vector3.down, out raycastHit, 0.5f, ___layerMask))
@@ -88,9 +110,14 @@ namespace Jump
         [HarmonyPatch(typeof(ThirdPersonCharacter), "Move")]
         static class ThirdPersonCharacter_Move_Patch
         {
-            static void Postfix(ThirdPersonCharacter __instance, bool crouch, bool jump, Vector3 move)
+            static bool Prefix(ThirdPersonCharacter __instance, Rigidbody ___m_Rigidbody)
             {
-                if (!modEnabled.Value || !jump)
+                return !modEnabled.Value || ___m_Rigidbody;
+            }
+
+            static void Postfix(ThirdPersonCharacter __instance, bool crouch, bool jump, Vector3 move, Rigidbody ___m_Rigidbody)
+            {
+                if (!modEnabled.Value || !jump || !___m_Rigidbody)
                     return;
 
                 Dbgl($"character move, grounded {__instance.m_IsGrounded}");

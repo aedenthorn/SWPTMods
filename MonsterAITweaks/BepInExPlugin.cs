@@ -36,7 +36,7 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(ID), nameof(ID.AddElementalDamage))]
-        static class ID_AddHealth_Patch
+        static class ID_AddElementalDamage_Patch
         {
             static void Postfix(ID __instance, float pt)
             {
