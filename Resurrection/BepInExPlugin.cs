@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Resurrection
 {
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.4")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -80,7 +80,7 @@ namespace Resurrection
         {
             static void Prefix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value || __instance._Player)
+                if (!modEnabled.Value || __instance._Player || !__instance.GetComponent<ID>().isFriendly)
                     return;
 
                 if(!__instance.gameObject.GetComponent<Interaction>())
@@ -93,7 +93,7 @@ namespace Resurrection
         {
             static bool Prefix(Interaction __instance, CharacterCustomization customization)
             {
-                if (!modEnabled.Value || !__instance.GetComponent<CharacterCustomization>() || __instance.gameObject.tag != "D")
+                if (!modEnabled.Value || !__instance.GetComponent<CharacterCustomization>() || __instance.gameObject.tag != "D" || !__instance.GetComponent<ID>() || !__instance.GetComponent<ID>().isFriendly)
                     return true;
 
                 CharacterCustomization patient = __instance.GetComponent<CharacterCustomization>();

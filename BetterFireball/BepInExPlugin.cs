@@ -77,7 +77,7 @@ namespace BetterFireball
                 int enemyCount = 0;
                 int friendCount = 0;
 
-                if (enemyDamage)
+                if (enemyDamage || (friendlyDamage && spellsHurtFriends.Value))
                 {
                     List<Transform> enemies = new List<Transform>(Global.code.enemies.items);
                     for (int i = enemies.Count - 1; i >= 0; i--)
@@ -91,7 +91,7 @@ namespace BetterFireball
                         }
                     }
                 }
-                if (friendlyDamage || spellsHurtFriends.Value)
+                if (friendlyDamage || (enemyDamage && spellsHurtFriends.Value))
                 {
                     List<Transform> friends = new List<Transform>(Global.code.friendlies.items);
                     for (int i = friends.Count - 1; i >= 0; i--)

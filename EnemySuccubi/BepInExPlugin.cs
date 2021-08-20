@@ -1,21 +1,16 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using RuntimeGizmos;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.3")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.4")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -68,24 +63,30 @@ namespace EnemySuccubi
         [HarmonyPatch(typeof(EnemySpawner), "InstantiateEnemy")]
         public static class EnemySpawner_InstantiateEnemy_Patch
         {
-            public static void Postfix(EnemySpawner __instance, Transform enemy, ref Transform __result)
+            public static void Postfix(EnemySpawner __instance, ref Transform __result)
             {
                 if (!modEnabled.Value)
                     return;
 
                 if (TrySpawnOrdinary(__result))
+                {
+                    Global.code.enemies.RemoveItem(__result);
                     __result = null;
+                }
             }
         }
         [HarmonyPatch(typeof(SkirmishSpawner), "InstantiateEnemy")]
         public static class SkirmishSpawner_InstantiateEnemy_Patch
         {
-            public static void Postfix(EnemySpawner __instance, Transform enemy, ref Transform __result)
+            public static void Postfix(EnemySpawner __instance, ref Transform __result)
             {
                 if (!modEnabled.Value)
                     return;
-                if(TrySpawnOrdinary(__result))
+                if (TrySpawnOrdinary(__result))
+                {
+                    Global.code.enemies.RemoveItem(__result);
                     __result = null;
+                }
             }
         }
         [HarmonyPatch(typeof(Weapon), "DealDamage")]
@@ -261,7 +262,7 @@ namespace EnemySuccubi
         {
             public static void Postfix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !__instance.GetComponent<ID>())
                     return;
 
                 if (!__instance.GetComponent<ID>().isFriendly && Global.code.friendlies.items.Contains(__instance.transform))
@@ -300,15 +301,10 @@ namespace EnemySuccubi
             if (Random.value < replaceOrdinaryChance.Value)
             {
                 int idx = Random.Range(0, RM.code.allCompanions.items.Count - 1);
-                Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
-                if (succubus)
-                {
-
-                    CreateSuccubus(succubus, result, idx);
-                    Global.code.enemies.RemoveItemWithName(result.name);
-                    Destroy(result.gameObject);
-                    return true;
-                }
+                CreateSuccubus(result.position, idx);
+                Global.code.enemies.RemoveItemWithName(result.name);
+                Destroy(result.gameObject);
+                return true;
             }
             return false;
         }
@@ -323,22 +319,20 @@ namespace EnemySuccubi
                 Dbgl($"Adding gang succubus for boss {boss.name}");
 
                 int idx = Random.Range(0, RM.code.allCompanions.items.Count - 1);
-                Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
 
-                if (succubus)
-                {
-                    CreateSuccubus(succubus, boss, idx);
-                }
+                CreateSuccubus(boss.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)).normalized * 3, idx);
             }
         }
 
-        private static void CreateSuccubus(Transform succubus, Transform template, int idx)
+        private static void CreateSuccubus(Vector3 position, int idx)
         {
-            succubus.SetParent(template.parent);
+            Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
+            if (!succubus)
+                return;
             succubus.GetComponent<NavMeshAgent>().enabled = false;
-            succubus.position = template.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)).normalized * 3;
-            Global.code.Snap(succubus);
+            succubus.position = position;
             succubus.eulerAngles = new Vector3(0f, Random.Range(0, 360), 0f);
+            Global.code.Snap(succubus);
             succubus.GetComponent<NavMeshAgent>().enabled = true;
             succubus.name = succubusName.Value + " " + (idx + 1);
             succubus.GetComponent<ID>().isFriendly = false;

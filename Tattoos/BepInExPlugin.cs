@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.6.0")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -90,7 +90,64 @@ namespace Tattoos
                 }
             }
         }
+        private static void LoadAllTattoos()
+        {
+            RM.code.allPubicHairs.items = Resources.LoadAll("Customization/PubicHairs", typeof(Transform)).Cast<Transform>().ToList<Transform>();
+            RM.code.allWombTattoos.items = Resources.LoadAll("Customization/WombTattoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
+            RM.code.allBodyTatoos.items = Resources.LoadAll("Customization/BodyTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
+            RM.code.allLegsTatoos.items = Resources.LoadAll("Customization/LegsTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
+            RM.code.allArmsTatoos.items = Resources.LoadAll("Customization/ArmsTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
+            RM.code.allFaceTatoos.items = Resources.LoadAll("Customization/FaceTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
+            LoadTattoos("Pubic", ref RM.code.allPubicHairs);
+            LoadTattoos("Womb", ref RM.code.allWombTattoos);
+            LoadTattoos("Arms", ref RM.code.allArmsTatoos);
+            LoadTattoos("Legs", ref RM.code.allLegsTatoos);
+            LoadTattoos("Face", ref RM.code.allFaceTatoos);
+            LoadTattoos("Body", ref RM.code.allBodyTatoos);
+        }
+        private static void LoadTattoos(string folder, ref CommonArray resources)
+        {
+            Transform templateT = RM.code.allWombTattoos.items[0];
+            int count = 0;
+            try
+            {
+                foreach (string iconPath in Directory.GetFiles(Path.Combine(assetPath, folder), "*_icon.png"))
+                {
+                    string texPath = iconPath.Replace("_icon.png", ".png");
+                    if (!File.Exists(texPath))
+                        continue;
 
+                    if (textureDict.ContainsKey(iconPath))
+                    {
+                        textureDict[texPath].LoadImage(File.ReadAllBytes(texPath));
+                        textureDict[iconPath].LoadImage(File.ReadAllBytes(iconPath));
+                        resources.AddItem(tattooDict[texPath]);
+                        count++;
+                        continue;
+                    }
+
+                    Texture2D tex = new Texture2D(1, 1);
+                    Texture2D icon = new Texture2D(1, 1);
+                    tex.LoadImage(File.ReadAllBytes(texPath));
+                    icon.LoadImage(File.ReadAllBytes(iconPath));
+                    Transform t = Instantiate(templateT, tattooGO.transform);
+                    t.name = (resources.items.Count + 1) + "";
+                    t.GetComponent<CustomizationItem>().eyes = tex;
+                    t.GetComponent<CustomizationItem>().icon = icon;
+                    resources.AddItem(t);
+                    count++;
+
+                    textureDict.Add(iconPath, icon);
+                    textureDict.Add(texPath, tex);
+                    tattooDict.Add(texPath, t);
+                }
+                Dbgl($"Got {count} {folder} tattoos");
+            }
+            catch (Exception ex)
+            {
+                Dbgl($"Error getting {folder} tattoos: \n\n {ex.StackTrace}");
+            }
+        }
         [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.RefreshAppearence))]
         static class RefreshAppearence_Patch
         {
@@ -161,64 +218,7 @@ namespace Tattoos
                 Global.code.uiMakeup.curCustomization.RefreshAppearence();
             }
         }
-        private static void LoadAllTattoos()
-        {
-            RM.code.allPubicHairs.items = Resources.LoadAll("Customization/PubicHairs", typeof(Transform)).Cast<Transform>().ToList<Transform>();
-            RM.code.allWombTattoos.items = Resources.LoadAll("Customization/WombTattoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
-            RM.code.allBodyTatoos.items = Resources.LoadAll("Customization/BodyTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
-            RM.code.allLegsTatoos.items = Resources.LoadAll("Customization/LegsTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
-            RM.code.allArmsTatoos.items = Resources.LoadAll("Customization/ArmsTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
-            RM.code.allFaceTatoos.items = Resources.LoadAll("Customization/FaceTatoos", typeof(Transform)).Cast<Transform>().ToList<Transform>();
-            LoadTattoos("Pubic", ref RM.code.allPubicHairs);
-            LoadTattoos("Womb", ref RM.code.allWombTattoos);
-            LoadTattoos("Arms", ref RM.code.allArmsTatoos);
-            LoadTattoos("Legs", ref RM.code.allLegsTatoos);
-            LoadTattoos("Face", ref RM.code.allFaceTatoos);
-            LoadTattoos("Body", ref RM.code.allBodyTatoos);
-        }
-        private static void LoadTattoos(string folder, ref CommonArray resources)
-        {
-            Transform templateT = RM.code.allWombTattoos.items[0];
-            int count = 0;
-            try
-            {
-                foreach (string iconPath in Directory.GetFiles(Path.Combine(assetPath, folder), "*_icon.png"))
-                {
-                    string texPath = iconPath.Replace("_icon.png", ".png");
-                    if (!File.Exists(texPath))
-                        continue;
-
-                    if (textureDict.ContainsKey(iconPath))
-                    {
-                        textureDict[texPath].LoadImage(File.ReadAllBytes(texPath));
-                        textureDict[iconPath].LoadImage(File.ReadAllBytes(iconPath));
-                        resources.AddItem(tattooDict[texPath]);
-                        count++;
-                        continue;
-                    }
-
-                    Texture2D tex = new Texture2D(1, 1);
-                    Texture2D icon = new Texture2D(1, 1);
-                    tex.LoadImage(File.ReadAllBytes(texPath));
-                    icon.LoadImage(File.ReadAllBytes(iconPath));
-                    Transform t = Instantiate(templateT, tattooGO.transform);
-                    t.name = (resources.items.Count + 1) + "";
-                    t.GetComponent<CustomizationItem>().eyes = tex;
-                    t.GetComponent<CustomizationItem>().icon = icon;
-                    resources.AddItem(t);
-                    count++;
-
-                    textureDict.Add(iconPath, icon);
-                    textureDict.Add(texPath, tex);
-                    tattooDict.Add(texPath, t);
-                }
-                Dbgl($"Got {count} {folder} tattoos");
-            }
-            catch (Exception ex)
-            {
-                Dbgl($"Error getting {folder} tattoos: \n\n {ex.StackTrace}");
-            }
-        }
+       
 
         [HarmonyPatch(typeof(UIMakeup), nameof(UIMakeup.Open))]
         static class UIMakeup_Open_Patch
@@ -569,6 +569,7 @@ namespace Tattoos
                 ES2.Save<float>(customization.wombTattooStrength, __instance.GetFolderName() + customization.name + ".txt?tag=wombTattooStrength");
                 ES2.Save<float>(customization.wombTattooGlossiness, __instance.GetFolderName() + customization.name + ".txt?tag=wombTattooGlossiness");
                 ES2.Save<string>(ColorUtility.ToHtmlStringRGBA(customization.wombTattooColor), __instance.GetFolderName() + customization.name + ".txt?tag=wombTattooColor");
+                ES2.Save<string>(ColorUtility.ToHtmlStringRGBA(customization.pubicHairColor), __instance.GetFolderName() + customization.name + ".txt?tag=pubicHairColor");
             }
         }
 
@@ -627,6 +628,16 @@ namespace Tattoos
                         color.a = gen.wombTattooStrength;
                         gen.wombTattooColor = color;
                         //Dbgl($"loaded womb tattoo color: {color} for {gen.characterName}");
+                    }
+                }
+                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=pubicHairColor"))
+                {
+                    string colorCode = "#" + ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=pubicHairColor");
+
+                    if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
+                    {
+                        color.a = gen.pubicStrength;
+                        gen.pubicHairColor = color;
                     }
                 }
                 gen.RefreshAppearence();
