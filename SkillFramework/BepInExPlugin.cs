@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace SkillFramework
 {
-    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.1.2")]
+    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -21,7 +21,7 @@ namespace SkillFramework
         public static BepInExPlugin context;
 
         public static Dictionary<string, Dictionary<string, int>> characterSkillLevels = new Dictionary<string, Dictionary<string, int>>();
-        public static List<SkillInfo> customSkills = new List<SkillInfo>();
+        public static Dictionary<string, SkillInfo> customSkills = new Dictionary<string, SkillInfo>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -55,7 +55,7 @@ namespace SkillFramework
         }
 
         [HarmonyPatch(typeof(UICharacter), nameof(UICharacter.Refresh))]
-        static class UICharacter_Open_Patch
+        static class UICharacter_Refresh_Patch
         {
             static void Postfix(UICharacter __instance)
             {
@@ -68,7 +68,7 @@ namespace SkillFramework
                     __instance.healaura.transform.parent,
                     __instance.goldenhand.transform.parent
                 };
-                foreach (SkillInfo info in customSkills)
+                foreach (SkillInfo info in customSkills.Values)
                 {
                     Transform t = parents[info.category].Find(info.id);
                     if (!t)
@@ -94,25 +94,29 @@ namespace SkillFramework
                         t = Instantiate(__instance.daggerproficiency.transform, parents[info.category]);
                         t.name = info.id;
                         t.GetComponentInChildren<Button>().GetComponent<RawImage>().texture = info.icon;
-                        Localization.LocalizationDic[info.id] = info.name;
-                        Localization.LocalizationDic[info.id + "DESC"] = info.description;
                     }
 
+                    Localization.LocalizationDic[info.id] = info.name;
+                    Localization.LocalizationDic[info.id + "DESC"] = info.description;
                     int points = GetCharacterSkillLevel(__instance.curCustomization.name, info.id);
                     SkillBox sb = t.GetComponent<SkillBox>();
                     sb.maxPoints = info.maxPoints;
                     sb.isActiveSkill = info.isActiveSkill;
                     sb.Initiate(points);
+                    __instance.curCustomization.UpdateStats();
                 }
             }
         }
-        [HarmonyPatch(typeof(UICharacter), nameof(UICharacter.ShowTips))]
+        //[HarmonyPatch(typeof(UICharacter), nameof(UICharacter.ShowTips))]
         static class UICharacter_ShowTips_Patch
         {
             static void Postfix(UICharacter __instance)
             {
-                if (!modEnabled.Value || !customSkills.Any() || GameObject.Find(customSkills[0].id))
+                if (!modEnabled.Value || !customSkills.Any() || GameObject.Find(customSkills.Values.ToList()[0].id))
                     return;
+
+                Dbgl("Showing tips");
+
                 Transform[] parents = new Transform[]
                 {
                     __instance.daggerproficiency.transform.parent,
@@ -120,11 +124,10 @@ namespace SkillFramework
                     __instance.healaura.transform.parent,
                     __instance.goldenhand.transform.parent
                 };
-                foreach (SkillInfo info in customSkills)
+
+                foreach (SkillInfo info in customSkills.Values)
                 {
                     int points = GetCharacterSkillLevel(__instance.curCustomization.name, info.id);
-                    
-                    
                     Transform t = Instantiate(__instance.daggerproficiency.transform, parents[info.category]);
                     t.name = info.id;
                     t.GetComponentInChildren<Button>().GetComponent<RawImage>().texture = info.icon;
@@ -147,7 +150,7 @@ namespace SkillFramework
 
                 bool reduce = Chainloader.PluginInfos.ContainsKey("aedenthorn.Respec") && AedenthornUtils.CheckKeyHeld(Chainloader.PluginInfos["aedenthorn.Respec"].Instance.Config[new ConfigDefinition("Options", "ModKey")].BoxedValue as string);
 
-                foreach(SkillInfo info in customSkills)
+                foreach(SkillInfo info in customSkills.Values)
                 {
                     if(info.id == __instance.name)
                     {
@@ -183,7 +186,7 @@ namespace SkillFramework
                 if (!modEnabled.Value)
                     return;
 
-                foreach(SkillInfo info in customSkills)
+                foreach(SkillInfo info in customSkills.Values)
                 {
                     ES2.Save<int>(GetCharacterSkillLevel(customization.name, info.id), $"{__instance.GetFolderName()}{customization.name}.txt?tag=CustomSkill{info.id}");
                 }
@@ -198,7 +201,7 @@ namespace SkillFramework
                 if (!modEnabled.Value)
                     return;
 
-                foreach (SkillInfo info in customSkills)
+                foreach (SkillInfo info in customSkills.Values)
                 {
                     if (ES2.Exists($"{__instance.GetFolderName()}{gen.name}.txt?tag=CustomSkill{info.id}"))
                     {

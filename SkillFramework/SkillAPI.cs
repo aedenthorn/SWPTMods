@@ -7,27 +7,31 @@ namespace SkillFramework
     {
         public static void AddSkill(string id, List<string> name, List<string> description, int category, Texture2D icon, int maxPoints, int reqLevel, bool isActiveSkill)
         {
-            if (!BepInExPlugin.customSkills.Exists(s => s.id == id))
+            if (BepInExPlugin.customSkills.ContainsKey(id))
             {
-                BepInExPlugin.customSkills.Add(new SkillInfo()
-                {
-                    id = id,
-                    name = name,
-                    description = description,
-                    category = category,
-                    icon = icon,
-                    maxPoints = maxPoints,
-                    reqLevel = reqLevel,
-                    isActiveSkill = isActiveSkill
-                });
-                BepInExPlugin.Dbgl($"Added skill {id}");
+                BepInExPlugin.Dbgl($"Updating skill {id}");
             }
             else
-                BepInExPlugin.Dbgl($"Skill {id} already exists");
+            {
+                BepInExPlugin.Dbgl($"Adding skill {id}");
+            }
+            BepInExPlugin.customSkills[id] = new SkillInfo()
+            {
+                id = id,
+                name = name,
+                description = description,
+                category = category,
+                icon = icon,
+                maxPoints = maxPoints,
+                reqLevel = reqLevel,
+                isActiveSkill = isActiveSkill
+            };
+            if (Global.code?.uiCharacter?.gameObject.activeSelf == true)
+                Global.code.uiCharacter.Refresh();
         }
         public static SkillInfo GetSkill(string id)
         {
-            return BepInExPlugin.customSkills.Find(i => i.id == id);
+            return BepInExPlugin.customSkills.ContainsKey(id) ? BepInExPlugin.customSkills[id] : null;
         }
         public static int GetCharacterSkillLevel(string id, string name)
         {
