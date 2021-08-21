@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CompanionExp
 {
-    [BepInPlugin("aedenthorn.CompanionExp", "Companion Exp", "0.1.1")]
+    [BepInPlugin("aedenthorn.CompanionExp", "Companion Exp", "0.1.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -50,7 +50,7 @@ namespace CompanionExp
         {
             static void Postfix(ID __instance)
             {
-                if (!modEnabled.Value || !__instance.customization || __instance.player)
+                if (!modEnabled.Value || !__instance.customization || !__instance.isFriendly || __instance.player)
                     return;
 
                 if (__instance.customization.interactingObject)
@@ -81,7 +81,7 @@ namespace CompanionExp
         {
             static void Postfix(Companion __instance)
             {
-                if (!modEnabled.Value || !__instance.movingToTarget)
+                if (!modEnabled.Value || !__instance.movingToTarget?.GetComponent<Furniture>())
                     return;
                 if(!__instance.movingToTarget.GetComponent<Furniture>().user || __instance.movingToTarget.GetComponent<Furniture>().user == __instance.GetComponent<CharacterCustomization>())
                 {

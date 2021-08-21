@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.4")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -82,10 +82,12 @@ namespace EnemySuccubi
             {
                 if (!modEnabled.Value)
                     return;
-                if (TrySpawnOrdinary(__result))
+                Transform s = TrySpawnOrdinary(__result);
+                if (s)
                 {
                     Global.code.enemies.RemoveItem(__result);
                     __result = null;
+                    s.GetComponent<Companion>().charge = true;
                 }
             }
         }
@@ -242,21 +244,6 @@ namespace EnemySuccubi
             }
         }
 
-        public void DestroySuccubi()
-        {
-            if(toDestroy.Count > 0)
-            {
-                for(int i = toDestroy.Count - 1; i >= 0; i--)
-                {
-                    if (Vector3.Distance(toDestroy[i].transform.position, Player.code.transform.position) > 10f)
-                    {
-                        Destroy(toDestroy[i]);
-                        toDestroy.RemoveAt(i);
-                    }
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(CharacterCustomization), "Start")]
         public static class CharacterCustomization_Start_Patch
         {
@@ -296,17 +283,17 @@ namespace EnemySuccubi
             }
         }
 
-        private static bool TrySpawnOrdinary(Transform result)
+        private static Transform TrySpawnOrdinary(Transform result)
         {
             if (Random.value < replaceOrdinaryChance.Value)
             {
                 int idx = Random.Range(0, RM.code.allCompanions.items.Count - 1);
-                CreateSuccubus(result.position, idx);
+                Transform succubus = CreateSuccubus(result.position, idx);
                 Global.code.enemies.RemoveItemWithName(result.name);
                 Destroy(result.gameObject);
-                return true;
+                return succubus;
             }
-            return false;
+            return null;
         }
         
         private static void TrySpawnGang(Transform boss)
@@ -324,11 +311,11 @@ namespace EnemySuccubi
             }
         }
 
-        private static void CreateSuccubus(Vector3 position, int idx)
+        private static Transform CreateSuccubus(Vector3 position, int idx)
         {
             Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
             if (!succubus)
-                return;
+                return null;
             succubus.GetComponent<NavMeshAgent>().enabled = false;
             succubus.position = position;
             succubus.eulerAngles = new Vector3(0f, Random.Range(0, 360), 0f);
@@ -336,7 +323,7 @@ namespace EnemySuccubi
             succubus.GetComponent<NavMeshAgent>().enabled = true;
             succubus.name = succubusName.Value + " " + (idx + 1);
             succubus.GetComponent<ID>().isFriendly = false;
-            succubus.GetComponent<Companion>().charge = true;
+            //succubus.GetComponent<Companion>().charge = true;
 
             LootDrop ld = succubus.gameObject.AddComponent<LootDrop>();
             ld.rarity = lootLevel.Value;
@@ -345,7 +332,7 @@ namespace EnemySuccubi
                 Global.code.friendlies.items.Remove(succubus);
 
             context.StartCoroutine(EquipSuccubus(succubus, Global.code.curlocation.level));
-
+            return succubus;
         }
 
         private static IEnumerator EquipSuccubus(Transform succubus, int level)
@@ -570,5 +557,21 @@ namespace EnemySuccubi
             }
             return list2[Random.Range(0, list2.Count - 1)];
         }
+
+        public void DestroySuccubi()
+        {
+            if (toDestroy.Count > 0)
+            {
+                for (int i = toDestroy.Count - 1; i >= 0; i--)
+                {
+                    if (Vector3.Distance(toDestroy[i].transform.position, Player.code.transform.position) > 10f)
+                    {
+                        Destroy(toDestroy[i]);
+                        toDestroy.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
     }
 }

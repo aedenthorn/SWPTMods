@@ -137,7 +137,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonsterAITweaks", "MonsterA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnemySuccubi", "EnemySuccubi\EnemySuccubi.csproj", "{DD0CEA09-0F38-45E3-9D6A-9624D5FA5794}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharmSpell", "CharmSpell\CharmSpell.csproj", "{917AE547-363C-4C06-9DB0-85EA391EB50A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CharmSpell", "CharmSpell\CharmSpell.csproj", "{917AE547-363C-4C06-9DB0-85EA391EB50A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExInstaller", "BepInExInstaller\BepInExInstaller.csproj", "{900DBD9E-8B93-49B7-9636-1B8FFCEF0363}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -417,6 +419,10 @@ Global
 		{917AE547-363C-4C06-9DB0-85EA391EB50A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{917AE547-363C-4C06-9DB0-85EA391EB50A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{917AE547-363C-4C06-9DB0-85EA391EB50A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{900DBD9E-8B93-49B7-9636-1B8FFCEF0363}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{900DBD9E-8B93-49B7-9636-1B8FFCEF0363}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{900DBD9E-8B93-49B7-9636-1B8FFCEF0363}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{900DBD9E-8B93-49B7-9636-1B8FFCEF0363}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
