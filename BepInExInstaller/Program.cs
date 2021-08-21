@@ -54,7 +54,7 @@ namespace BepInExInstaller
                 //Console.WriteLine($"Checking for {gamePath}");
                 if (Directory.Exists(gamePath))
                 {
-                    Console.WriteLine("Found game, copying files...");
+                    Console.WriteLine("Found game, looking for BepInEx archive...");
                     
                     string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                     string zipPath = null;
@@ -82,6 +82,7 @@ namespace BepInExInstaller
                         string fileName = latest.Split('/')[latest.Split('/').Length - 1];
                         client.DownloadFile("https://github.com" + latest, fileName);
                         zipPath = Path.Combine(path, fileName);
+                        Console.WriteLine($"Downloaded https://github.com{latest}");
                     }
 
                     if (!File.Exists(zipPath))
@@ -89,6 +90,8 @@ namespace BepInExInstaller
                         Console.WriteLine($"Zip file {zipPath} does not exist!");
                         return;
                     }
+
+                    Console.WriteLine("Installing BepInEx...");
 
                     var archive = ZipFile.OpenRead(zipPath);
                     foreach(var entry in archive.Entries)
@@ -106,7 +109,6 @@ namespace BepInExInstaller
                 }
             }
             Console.WriteLine("Game folder not found!");
-
         }
     }
 }
