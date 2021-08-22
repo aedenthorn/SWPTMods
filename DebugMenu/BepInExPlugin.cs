@@ -136,6 +136,12 @@ namespace DebugMenu
             buttonList.GetChild(count).GetComponentInChildren<Button>().onClick.AddListener(DumpEnemies);
             count++;
 
+            buttonList.GetChild(count).name = names[count];
+            buttonList.GetChild(count).GetComponentInChildren<Text>().text = names[count];
+            buttonList.GetChild(count).GetComponentInChildren<Button>().onClick = new Button.ButtonClickedEvent();
+            buttonList.GetChild(count).GetComponentInChildren<Button>().onClick.AddListener(DumpBody);
+            count++;
+
             // Toggle
 
             buttonList.GetChild(count).name = names[count];

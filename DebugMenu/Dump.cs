@@ -70,6 +70,24 @@ namespace DebugMenu
             Dbgl($"Dumped enemies to {path}");
             Global.code.uiCombat.ShowHeader($"Enemies dumped to dump_enemies.txt");
         }
+        
+        private static void DumpBody()
+        {
+            List<string> output = new List<string>();
+            for(int i = 0; i < Player.code.GetComponent<CharacterCustomization>().body.materials.Length; i++)
+            {
+                output.Add("Material " + i);
+                foreach(string prop in Player.code.GetComponent<CharacterCustomization>().body.materials[i].GetTexturePropertyNames())
+                {
+                    output.Add("\t" + prop);
+
+                }
+            }
+            string path = Path.Combine(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace), "dump_body.txt");
+            File.WriteAllText(path, string.Join("\n", output));
+            Dbgl($"Dumped body to {path}");
+            Global.code.uiCombat.ShowHeader($"Body dumped to dump_body.txt");
+        }
 
         private static void DumpItems()
         {

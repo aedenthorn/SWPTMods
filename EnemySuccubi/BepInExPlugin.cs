@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.5")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.6")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -65,7 +65,7 @@ namespace EnemySuccubi
         {
             public static void Postfix(EnemySpawner __instance, ref Transform __result)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || __result.GetComponent<Monster>()?.isElite == true)
                     return;
 
                 if (TrySpawnOrdinary(__result))
