@@ -76,7 +76,7 @@ namespace AdvancedMerchantTables
                 if (!modEnabled.Value || levelBasedLootWeighting.Value == 1)
                     return;
 
-                Dbgl($"count: {__result.Count}");
+                //Dbgl($"count: {__result.Count}");
 
                 List<Transform> armor = new List<Transform>();
                 List<Transform> extra = new List<Transform>();

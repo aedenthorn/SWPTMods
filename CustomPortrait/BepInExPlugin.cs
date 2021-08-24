@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomPortrait
 {
-    [BepInPlugin("aedenthorn.CustomPortrait", "Custom Portrait", "0.1.2")]
+    [BepInPlugin("aedenthorn.CustomPortrait", "Custom Portrait", "0.1.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -160,7 +160,7 @@ namespace CustomPortrait
                 {
                     byte[] bytes = File.ReadAllBytes(Path.Combine(assetPath, "Portraits", _customization.characterName + ".png"));
                     _customization.icon.LoadImage(bytes);
-
+                    cachedPortraits[_customization.characterName] = _customization.icon;
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace CustomPortrait
                 {
                     byte[] bytes = File.ReadAllBytes(Path.Combine(assetPath, "Portraits", _customization.characterName + ".png"));
                     _customization.icon.LoadImage(bytes);
-
+                    cachedPortraits[_customization.characterName] = _customization.icon;
                 }
             }
         }

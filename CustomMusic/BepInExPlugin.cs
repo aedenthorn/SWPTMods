@@ -1,17 +1,15 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
 namespace CustomMusic
 {
-    [BepInPlugin("aedenthorn.CustomMusic", "Custom Music", "0.1.1")]
+    [BepInPlugin("aedenthorn.CustomMusic", "Custom Music", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -126,15 +124,14 @@ namespace CustomMusic
             }
             foreach (string path in files)
             {
-                if (!path.ToLower().EndsWith(".wav") && !path.ToLower().EndsWith(".ogg"))
-                    continue;
+
                 if (!musicDict[scene].Exists(a => a.name == Path.GetFileNameWithoutExtension(path)))
                 {
                     string uri;
 
                     uri = "file:///" + path.Replace("\\", "/");
 
-                    var www = UnityWebRequestMultimedia.GetAudioClip(uri, path.ToLower().EndsWith(".wav") ? AudioType.WAV : AudioType.OGGVORBIS);
+                    var www = UnityWebRequestMultimedia.GetAudioClip(uri, AudioType.UNKNOWN);
                     www.SendWebRequest();
 
                     while (!www.isDone) { }
