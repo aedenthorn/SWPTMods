@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.AI;
@@ -10,7 +11,7 @@ using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.2.6")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -25,6 +26,7 @@ namespace EnemySuccubi
         public static ConfigEntry<int> bossGangMax;
         public static ConfigEntry<string> succubusName;
         public static ConfigEntry<bool> dropEquipment;
+        public static ConfigEntry<bool> levelLimit;
         
         public static ConfigEntry<Rarity> lootLevel;
 
@@ -52,6 +54,7 @@ namespace EnemySuccubi
             succubusName = Config.Bind<string>("Options", "SuccubusName", "Enemy Succubus", "Name of enemy succubi.");
             lootLevel = Config.Bind<Rarity>("Options", "LootLevel", Rarity.three, "Loot level of random succubus loot.");
             dropEquipment = Config.Bind<bool>("Options", "DropEquipment", true, "Cause succubi to drop their equipment on death.");
+            levelLimit = Config.Bind<bool>("Options", "LevelLimit", true, "Limit potential succubi to those at or below the current scene's level (level will be increased to the scene's level if below).");
 
             InvokeRepeating("DestroySuccubi", 5f, 5f);
 
@@ -194,7 +197,7 @@ namespace EnemySuccubi
                     num += 20 * __instance._ID.level;
                     num *= __instance._ID.level + 1;
                     __instance._ID.damageSource.GetComponent<ID>().AddExp(num);
-                    Global.code.uiAchievements.AddPoint(AchievementType.totalkills, 1);
+                    Global.code.uiAchievements.AddPoint(AchievementType.totalkill, 1);
                     if (__instance._ID.damageSource.GetComponent<CharacterCustomization>()._Player && Player.code.customization.weaponInHand)
                     {
                         switch (Player.code.customization.weaponInHand.GetComponent<Weapon>().weaponType)
@@ -204,9 +207,6 @@ namespace EnemySuccubi
                                 break;
                             case WeaponType.twohand:
                                 Global.code.uiAchievements.AddPoint(AchievementType.killwithswords, 1);
-                                break;
-                            case WeaponType.spear:
-                                Global.code.uiAchievements.AddPoint(AchievementType.killwithspears, 1);
                                 break;
                             case WeaponType.onehandaxe:
                                 Global.code.uiAchievements.AddPoint(AchievementType.killwithaxe, 1);
@@ -287,8 +287,9 @@ namespace EnemySuccubi
         {
             if (Random.value < replaceOrdinaryChance.Value)
             {
-                int idx = Random.Range(0, RM.code.allCompanions.items.Count - 1);
-                Transform succubus = CreateSuccubus(result.position, idx);
+                Transform succubus = CreateSuccubus(result.position);
+                if (!succubus)
+                    return null;
                 Global.code.enemies.RemoveItemWithName(result.name);
                 Destroy(result.gameObject);
                 return succubus;
@@ -307,15 +308,23 @@ namespace EnemySuccubi
 
                 int idx = Random.Range(0, RM.code.allCompanions.items.Count - 1);
 
-                CreateSuccubus(boss.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)).normalized * 3, idx);
+                CreateSuccubus(boss.position + new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f)).normalized * 3);
             }
         }
 
-        private static Transform CreateSuccubus(Vector3 position, int idx)
+        private static Transform CreateSuccubus(Vector3 position)
         {
-            Transform succubus = Utility.Instantiate(RM.code.allCompanions.items[idx]);
+            List<Transform> succubi = RM.code.allCompanions.items.FindAll(t => t && t.GetComponent<ID>() && (!levelLimit.Value || t.GetComponent<ID>().level <= Global.code.curlocation.level));
+
+            if (!succubi.Any())
+                return null;
+
+            int idx = Random.Range(0, succubi.Count - 1);
+
+            Transform succubus = Utility.Instantiate(succubi[idx]);
             if (!succubus)
                 return null;
+
             succubus.GetComponent<NavMeshAgent>().enabled = false;
             succubus.position = position;
             succubus.eulerAngles = new Vector3(0f, Random.Range(0, 360), 0f);
@@ -323,7 +332,6 @@ namespace EnemySuccubi
             succubus.GetComponent<NavMeshAgent>().enabled = true;
             succubus.name = succubusName.Value + " " + (idx + 1);
             succubus.GetComponent<ID>().isFriendly = false;
-            //succubus.GetComponent<Companion>().charge = true;
 
             LootDrop ld = succubus.gameObject.AddComponent<LootDrop>();
             ld.rarity = lootLevel.Value;

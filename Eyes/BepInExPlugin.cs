@@ -71,7 +71,7 @@ namespace Eyes
                         tex.LoadImage(data);
                         eye.GetComponent<CustomizationItem>().eyes = tex;
                     }
-                    if (File.Exists(Path.Combine(folder, "glow.txt")))
+                    if (false && File.Exists(Path.Combine(folder, "glow.txt")))
                     {
                         eye = Instantiate(RM.code.allEyes.GetItemWithName("Eye b5 green glow"), parent.transform);
                         if (ColorUtility.TryParseHtmlString(File.ReadAllText(Path.Combine(folder, "glow.txt")), out Color c))
@@ -82,7 +82,6 @@ namespace Eyes
                             Dbgl(eye.GetComponent<CustomizationItem>().eyesMat.GetColor("_MATERIAL_FEATURE_CLEAR_COAT")+"");
                             eye.GetComponent<CustomizationItem>().eyesMat.SetColor("_EmissionColor", c);
                         }
-
                     }
 
                     eye.name = ("CustomEyes_" + Path.GetFileNameWithoutExtension(folder));

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Resurrection
 {
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.5")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.1.6")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -67,7 +67,7 @@ namespace Resurrection
         {
             static void Postfix(CompanionCombatIcon __instance)
             {
-                if (!modEnabled.Value || !__instance.customization || __instance.customization._ID.health <= 0f || !__instance.icondeath.activeSelf)
+                if (!modEnabled.Value || !__instance.GetComponent<CharacterCustomization>() || !__instance.GetComponent<ID>() || __instance.GetComponent<ID>().health <= 0f || !__instance.icondeath.activeSelf)
                     return;
 
                 __instance.icondeath.SetActive(false);
