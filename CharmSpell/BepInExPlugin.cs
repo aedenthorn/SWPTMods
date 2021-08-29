@@ -13,7 +13,7 @@ using Random = UnityEngine.Random;
 namespace CharmSpell
 {
     [BepInDependency("aedenthorn.SkillFramework", "0.1.0")]
-    [BepInPlugin("aedenthorn.CharmSpell", "Charm Spell", "0.1.0")]
+    [BepInPlugin("aedenthorn.CharmSpell", "Charm Spell", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -37,8 +37,8 @@ namespace CharmSpell
         {
             "Charm Spell",
             "魅力咒语",
-            "Быстрый ход",
-            "Заклинание обаяния"
+            "Очарование Заклинание",
+            "魅力咒语"
         };
 
         public static Texture2D skillIcon = new Texture2D(1, 1);

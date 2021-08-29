@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.3.0")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -62,7 +62,17 @@ namespace EnemySuccubi
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
         }
-
+        [HarmonyPatch(typeof(Companion), "CS")]
+        static class Companion_CS_Patch
+        {
+            static void Postfix(Companion __instance)
+            {
+                if (!modEnabled.Value || !__instance.movingToTarget || __instance.movingToTarget.gameObject.tag != "D")
+                    return;
+                __instance.movingToTarget = null;
+                __instance.Stop();
+            }
+        }
         [HarmonyPatch(typeof(EnemySpawner), "InstantiateEnemy")]
         public static class EnemySpawner_InstantiateEnemy_Patch
         {

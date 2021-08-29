@@ -14,6 +14,11 @@ namespace BepInExInstaller
     {
         static void Main(string[] args)
         {
+            StartInstall();
+            Console.WriteLine("\nPress any key to exit...");
+            Console.ReadKey();
+        }
+        static void StartInstall() {
             if(File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityPlayer.dll")))
             {
                 Console.WriteLine("Installer is in game folder already.");
@@ -129,7 +134,6 @@ namespace BepInExInstaller
             archive.Dispose();
             Console.WriteLine($"BepInEx installed to {gamePath}!");
             File.Delete(zipPath);
-            return;
         }
     }
 }
