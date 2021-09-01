@@ -73,15 +73,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EyebrowColors", "EyebrowCol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Potions", "Potions\Potions.csproj", "{90B1CB9C-CE84-4E0A-BAB6-3B691B6FECF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealCompanions", "HealCompanions\HealCompanions.csproj", "{F99898E9-04B3-4EFF-8B6D-8AC691F8F433}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HealCompanions", "HealCompanions\HealCompanions.csproj", "{F99898E9-04B3-4EFF-8B6D-8AC691F8F433}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompareEquipment", "CompareEquipment\CompareEquipment.csproj", "{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompareEquipment", "CompareEquipment\CompareEquipment.csproj", "{A4C5A064-6F9B-4168-A9A6-0CDE61D515AF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreePoseFix", "FreePoseFix\FreePoseFix.csproj", "{6FF5230C-A41A-4660-834B-1B480C2ED8AF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomizationFix", "CustomizationFix\CustomizationFix.csproj", "{E4E722EE-91F4-48C1-BAC7-5E028521135D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MegaMorph", "MegaMorph\MegaMorph.csproj", "{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StayThatWay", "StayThatWay\StayThatWay.csproj", "{073709BD-6257-47EE-819D-62598E283055}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -249,6 +251,10 @@ Global
 		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DC0D0EF-0ECE-4B30-9EC6-FA18DF007A6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{073709BD-6257-47EE-819D-62598E283055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{073709BD-6257-47EE-819D-62598E283055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{073709BD-6257-47EE-819D-62598E283055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{073709BD-6257-47EE-819D-62598E283055}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

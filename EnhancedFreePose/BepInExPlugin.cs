@@ -14,7 +14,6 @@ namespace EnhancedFreePose
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
-        public static ConfigEntry<bool> keepit;
         public static ConfigEntry<int> maxModels;
         public static ConfigEntry<int> nexusID;
         
@@ -25,7 +24,6 @@ namespace EnhancedFreePose
             context = this;
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind("General", "IsDebug", true, "Enable debug logs");
-            keepit = Config.Bind("General", "Keep It", true, "Keep posture after leaving free pose mode.");
             maxModels = Config.Bind("Options", "MaxModels", 8, "Maximum number of models to allow.");
             nexusID = Config.Bind("General", "NexusID", 18, "Nexus mod ID for updates");
 
@@ -89,12 +87,6 @@ namespace EnhancedFreePose
             public static void Prefix(UIFreePose __instance)
             {
                 if (!modEnabled.Value) return;
-
-                if (keepit.Value && Global.code.curlocation.locationType == LocationType.home)
-				{
-                    __instance.characters.ClearItems();
-                    __instance.characters.AddItem(Player.code.transform);
-                }
 
                 foreach (Transform character in __instance.characters.items)
                 {
@@ -177,6 +169,18 @@ namespace EnhancedFreePose
 			}
         }
 
+        [HarmonyPatch(typeof(CustomizationSlider), nameof(CustomizationSlider.ValueChange))]
+        public static class CustomizationSlider_ValueChange_Patch
+        {
+            public static bool Prefix(CustomizationSlider __instance, float val)
+            {
+                if (!modEnabled.Value || !Global.code.uiFreePose.gameObject.activeSelf || !__instance.isEmotionController) return true;
+                Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().body.SetBlendShapeWeight(__instance.index, val);
+                Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().eyelash.SetBlendShapeWeight(__instance.index, val);
+                return false;
+            }
+        }
+
         [HarmonyPatch(typeof(ThirdPersonCharacter), "Snap")]
         public static class ThirdPersonCharacter_Snap_Patch
         {
@@ -187,13 +191,8 @@ namespace EnhancedFreePose
 
             public static bool Prefix(ThirdPersonCharacter __instance)
             {
-                if (!modEnabled.Value) return false;
-
-                if (Global.code.uiFreePose.isActiveAndEnabled)
-                {
-                    __instance.m_IsGrounded = true;
-                    return false;
-                }
+                if (!modEnabled.Value || __instance.enabled) return true;
+                __instance.m_IsGrounded = true;
                 return true;
             }
         }
@@ -208,13 +207,8 @@ namespace EnhancedFreePose
 
             public static bool Prefix(ThirdPersonCharacter __instance)
             {
-                if (!modEnabled.Value) return true;
-
-                if (Global.code.uiFreePose.isActiveAndEnabled)
-                {
-                    __instance.m_IsGrounded = true;
-                    return false;
-                }
+                if (!modEnabled.Value || __instance.enabled) return true;
+                __instance.m_IsGrounded = true;
                 return true;
             }
         }

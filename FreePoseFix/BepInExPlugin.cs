@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FreePoseFix
 {
-    [BepInPlugin("bugerry.FreePoseFix", "Free Pose Fix", "1.000")]
+    [BepInPlugin("bugerry.FreePoseFix", "Free Pose Fix", "1.0.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
