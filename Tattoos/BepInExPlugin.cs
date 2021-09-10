@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.0")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -351,6 +351,7 @@ namespace Tattoos
                     __instance.curCustomization.body.materials[0].SetTexture("_MakeUpMask2_RGB", null);
                 });
 
+                /*
                 Transform t2 = Instantiate(__instance.customizationItemButton, __instance.pubicHairGroup);
                 t2.name = "0";
                 t2.GetComponent<RawImage>().texture = RM.code.allWings.items[0].GetComponent<CustomizationItem>().icon;
@@ -364,6 +365,7 @@ namespace Tattoos
                     __instance.curCustomization.body.materials[16].SetTexture("_MakeUpMask1_RGB", null);
                     __instance.curCustomization.body.materials[17].SetTexture("_MakeUpMask1_RGB", null);
                 });
+                */
             }
         }
         

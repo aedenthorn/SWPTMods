@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace DebugMenu
 {
@@ -22,13 +21,13 @@ namespace DebugMenu
                 if (!modEnabled.Value)
                     return;
 
-                itemNames = RM.code.allItems.items.Select(t => t.name).ToList();
+                itemNames = RM.code.allItems.items.Select(t => t?.name).ToList();
                 itemNames.Sort();
                 
-                wPrefixes = RM.code.weaponPrefixes.items.Select(t => t.name).ToList();
-                wSuffixes = RM.code.weaponSurfixes.items.Select(t => t.name).ToList();
-                aPrefixes = RM.code.armorPrefixes.items.Select(t => t.name).ToList();
-                aSuffixes = RM.code.armorSurfixes.items.Select(t => t.name).ToList();
+                wPrefixes = RM.code.weaponPrefixes.items.Select(t => t?.name).ToList();
+                wSuffixes = RM.code.weaponSurfixes.items.Select(t => t?.name).ToList();
+                aPrefixes = RM.code.armorPrefixes.items.Select(t => t?.name).ToList();
+                aSuffixes = RM.code.armorSurfixes.items.Select(t => t?.name).ToList();
                 wPrefixes.Sort();
                 wSuffixes.Sort();
                 aPrefixes.Sort();
@@ -132,6 +131,21 @@ namespace DebugMenu
             }
         }
                 
+        [HarmonyPatch(typeof(ES2Reader), "ProcessHeader", new Type[] { typeof(ES2Keys.Key), typeof(ES2Type), typeof(ES2Type), typeof(string) })]
+        public static class ES2Reader_ProcessHeader_Patch
+        {
+            public static void Prefix(ES2Reader __instance, ref ES2Type expectedValue, string tag)
+            {
+                if (!modEnabled.Value)
+                    return;
+                if (tag.StartsWith("rarity-"))
+                {
+                    expectedValue = ES2TypeManager.GetES2Type(typeof(Rarity));
+                }
+            }
+        }
+
+                        
         [HarmonyPatch(typeof(Global), "HandleKeys")]
         public static class HandleKeys_Patch
         {

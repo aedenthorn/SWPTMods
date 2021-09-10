@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace AdvancedLootDrops
 {
-    [BepInPlugin("aedenthorn.AdvancedLootDrops", "Advanced Loot Drops", "0.1.1")]
+    [BepInPlugin("aedenthorn.AdvancedLootDrops", "Advanced Loot Drops", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -98,6 +98,9 @@ namespace AdvancedLootDrops
                 List<Transform> list2 = new List<Transform>();
                 foreach (Transform transform in list)
                 {
+                    if (!transform)
+                        continue;
+
                     Item component = transform.GetComponent<Item>();
                     if (component)
                     {

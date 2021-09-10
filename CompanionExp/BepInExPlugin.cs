@@ -83,7 +83,7 @@ namespace CompanionExp
         {
             static void Postfix(Companion __instance)
             {
-                if (!modEnabled.Value || !__instance.movingToTarget?.GetComponent<Furniture>())
+                if (!modEnabled.Value || !__instance || !__instance.movingToTarget || !__instance.movingToTarget.GetComponent<Furniture>() || !__instance.GetComponent<Rigidbody>())
                     return;
                 if(!__instance.movingToTarget.GetComponent<Furniture>().user || __instance.movingToTarget.GetComponent<Furniture>().user == __instance.GetComponent<CharacterCustomization>())
                 {

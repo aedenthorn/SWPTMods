@@ -4,13 +4,14 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
 namespace Resurrection
 {
     [BepInDependency("aedenthorn.SkillFramework", "0.1.0")]
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.2.2")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.2.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -87,10 +88,15 @@ namespace Resurrection
                             resurrectSkill.gameObject.name = "Resurrection Spell";
                             resurrectSkill.manaConsumption = manaCost.Value;
                         }
-                        deadCompanion = Utility.GetNearestObject(Global.code.interactions.items.FindAll(t => t.GetComponent<Companion>() && t.GetComponent<ID>()?.isFriendly == true && t.gameObject.tag == "D"), __instance.transform);
-                        if (deadCompanion && range.Value > 0 && Vector3.Distance(Player.code.transform.position, deadCompanion.position) > range.Value)
+                        IEnumerable<Transform> deadCompanions = FindObjectsOfType<Companion>().ToList().FindAll(t => t.GetComponent<Companion>() && t.GetComponent<ID>()?.isFriendly == true && t.gameObject.tag == "D").Select(c => c.transform);
+                        deadCompanion = null;
+                        if (deadCompanions.Any())
                         {
-                            deadCompanion = null;
+                            deadCompanion = Utility.GetNearestObject(deadCompanions.ToList(), __instance.transform);
+                            if (deadCompanion && range.Value > 0 && Vector3.Distance(Player.code.transform.position, deadCompanion.position) > range.Value)
+                            {
+                                deadCompanion = null;
+                            }
                         }
                         if (deadCompanion)
                         {

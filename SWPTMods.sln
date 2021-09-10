@@ -145,6 +145,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScreenResolution", "ScreenR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurniturePoses", "FurniturePoses\FurniturePoses.csproj", "{C5172F89-0937-476D-B7FC-D00E9F33D32A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrcMaiden", "OrcMaiden\OrcMaiden.csproj", "{D41D44D7-7316-4A6A-A19E-6A354418013F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInExUnityInstaller", "BepInExUnityInstaller\BepInExUnityInstaller.csproj", "{6F69DE1A-4ECB-413E-A68C-2DE1ED0F12C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -435,6 +439,14 @@ Global
 		{C5172F89-0937-476D-B7FC-D00E9F33D32A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5172F89-0937-476D-B7FC-D00E9F33D32A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5172F89-0937-476D-B7FC-D00E9F33D32A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D41D44D7-7316-4A6A-A19E-6A354418013F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D41D44D7-7316-4A6A-A19E-6A354418013F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D41D44D7-7316-4A6A-A19E-6A354418013F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D41D44D7-7316-4A6A-A19E-6A354418013F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F69DE1A-4ECB-413E-A68C-2DE1ED0F12C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F69DE1A-4ECB-413E-A68C-2DE1ED0F12C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F69DE1A-4ECB-413E-A68C-2DE1ED0F12C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F69DE1A-4ECB-413E-A68C-2DE1ED0F12C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace MerchantEdit
 {
-    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.1.4")]
+    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -23,6 +23,7 @@ namespace MerchantEdit
         public static ConfigEntry<string> fatOrcModel;
         public static ConfigEntry<string> orcFighterModel;
         public static ConfigEntry<string> littleDemonModel;
+        public static ConfigEntry<string> slaverModel;
 
         public static ConfigEntry<int> nexusID;
 
@@ -42,6 +43,7 @@ namespace MerchantEdit
             fatOrcModel = Config.Bind<string>("Options", "FatOrcModel", "Fat_Orc", "Model to use for armour merchant");
             orcFighterModel = Config.Bind<string>("Options", "OrcFighterModel", "Ork_fighter", "Model to use for weapon merchant");
             littleDemonModel = Config.Bind<string>("Options", "LittleDemonModel", "Little_Demon", "Model to use for black market merchant");
+            slaverModel = Config.Bind<string>("Options", "SlaverModel", "Slaver", "Model to use for black market merchant");
             removeMaidOutfit = Config.Bind<bool>("Options", "RemoveMaidOutfit", false, "Remove the maid's clothing.");
 
             nexusID = Config.Bind<int>("General", "NexusID", 6, "Nexus mod ID for updates");
@@ -71,6 +73,7 @@ namespace MerchantEdit
                     { "Fat_Orc", GameObject.Find("/Scene/Statics/Bar/Fat_Orc") },
                     { "Ork_fighter", GameObject.Find("/Scene/Statics/Smith Model")},
                     { "Little_Demon", GameObject.Find("/Scene/Statics/Bar/Little Demon Skin3 Base mesh") },
+                    { "Slaver", GameObject.Find("Necromant remaster custom rigg Skin2") }
                 };
 
                 if (!modelObjects["Bartender"])
@@ -102,6 +105,11 @@ namespace MerchantEdit
                 if (littleDemonModel.Value != "Little_Demon")
                 {
                     SwitchModel(modelObjects, littleDemonModel.Value, "Little_Demon");
+
+                }
+                if (slaverModel.Value != "Slaver")
+                {
+                    SwitchModel(modelObjects, slaverModel.Value, "Slaver");
 
                 }
             }
