@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Reflection;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -165,6 +164,7 @@ namespace Jump
 
             }
         }
+
         [HarmonyPatch(typeof(ThirdPersonCharacter), "HandleGroundedMovement")]
         static class HandleGroundedMovement_Patch
         {

@@ -95,7 +95,23 @@ namespace DebugMenu
 
             Harmony harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Info.Metadata.GUID);
             Dbgl("Plugin awake");
-
+            /*
+            foreach (string file in Directory.GetFiles(AedenthornUtils.GetAssetPath(this), "*.png"))
+            {
+                Texture2D texture = new Texture2D(1, 1);
+                texture.LoadImage(File.ReadAllBytes(file));
+                Color[] data = texture.GetPixels();
+                for (int i = 0; i < data.Length; i++)
+                {
+                    if (data[i].a < 0.1f)
+                        data[i] = Color.clear;
+                    data[i] = new Color(1f, 0, 0, data[i].a);
+                }
+                texture.SetPixels(data);
+                texture.Apply();
+                File.WriteAllBytes(Path.Combine(AedenthornUtils.GetAssetPath(this), "output", Path.GetFileName(file)), texture.EncodeToPNG());
+            }
+            */
         }
 
         private static void CreateDebugMenu()

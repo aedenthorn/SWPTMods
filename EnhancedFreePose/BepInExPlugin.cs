@@ -149,7 +149,6 @@ namespace EnhancedFreePose
             }
         }
 
-              
         [HarmonyPatch(typeof(UIFreePose), "Start")]
         public static class UIFreePose_Start_Patch
         {
@@ -166,7 +165,6 @@ namespace EnhancedFreePose
                 });
             }
         }
-
               
         [HarmonyPatch(typeof(UIFreePose), "Refresh")]
         public static class UIFreePose_Refresh_Patch
@@ -210,8 +208,8 @@ namespace EnhancedFreePose
                     }
                 }
             }
-
         }
+
         public static IEnumerator LetRuntimeTransformRunDelayed()
         {
             yield return new WaitForEndOfFrame();
