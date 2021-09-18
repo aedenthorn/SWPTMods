@@ -5,17 +5,33 @@ using UnityEngine;
 
 namespace PoseAnimations
 {
+    public class PoseAnimationInstance
+    {
+        public string name;
+        public bool reversing = false;
+        public int currentFrame = 0;
+        public float deltaTime = 0;
+        public Dictionary<string, Transform> bones;
+        public PoseAnimationData data;
+    }
     public class PoseAnimationData
     {
         public string name;
         public float rate = 0;
         public bool loop = true;
         public bool reverse = false;
-        public bool reversing = false;
-        public int currentIndex = 0;
-        public float deltaTime = 0;
-        public Dictionary<string, Transform> bones;
-        public List<List<MyPoseData>> frames;
+        public List<PoseAnimationFrame> frames;
+    }
+    public class PoseAnimationFrame
+    {
+        public int index;
+        public List<MyPoseData> poseDatas;
+
+        public PoseAnimationFrame(List<MyPoseData> poseDatas, int index)
+        {
+            this.poseDatas = poseDatas;
+            this.index = index;
+        }
     }
 
     public class MyPoseData

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace MoreHomeStorage
 {
-    [BepInPlugin("aedenthorn.MoreHomeStorage", "More Home Storage", "0.1.2")]
+    [BepInPlugin("aedenthorn.MoreHomeStorage", "More Home Storage", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -102,7 +102,7 @@ namespace MoreHomeStorage
                     __instance.groupIndexButtons.localPosition = Vector3.zero;
                     //rtc.localScale = Vector3.one;
 
-                    rtp.sizeDelta = new Vector2(775, rtc.rect.height * rtc.localScale.y);
+                    rtp.sizeDelta = new Vector2(__instance.GetComponent<RectTransform>().rect.width * 0.74f, rtc.rect.height * rtc.localScale.y);
                     rtm.sizeDelta = rtp.sizeDelta;
 
                     Texture2D tex = new Texture2D((int)Mathf.Ceil(scrollObject.GetComponent<RectTransform>().rect.width), (int)Mathf.Ceil(scrollObject.GetComponent<RectTransform>().rect.height));

@@ -23,21 +23,23 @@ namespace PoseAnimations
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
-        public static ConfigEntry<bool> reverseByDefault;
-        public static ConfigEntry<bool> loopByDefault;
         public static ConfigEntry<string> addModKey;
-        public static ConfigEntry<string> deleteModKey;
         public static ConfigEntry<string> deleteFrameModKey;
         public static ConfigEntry<string> setReverseKey;
         public static ConfigEntry<string> setLoopKey;
+        public static ConfigEntry<string> saveKey;
+        public static ConfigEntry<string> fromFileKey;
+
+        public static ConfigEntry<bool> reverseByDefault;
+        public static ConfigEntry<bool> loopByDefault;
         public static ConfigEntry<string> catName;
         public static ConfigEntry<float> maxDistancePerFrame;
         public static ConfigEntry<float> maxRotationPerFrame;
 
-        public static Dictionary<string, string> animationDict = new Dictionary<string, string>();
+        public static Dictionary<string, PoseAnimationData> animationDict = new Dictionary<string, PoseAnimationData>();
         public static GameObject posesGameObject;
         public static Transform addNewAnimationButton;
-        public static Dictionary<CharacterCustomization,PoseAnimationData> currentlyPosing = new Dictionary<CharacterCustomization, PoseAnimationData>();
+        public static Dictionary<CharacterCustomization,PoseAnimationInstance> currentlyPosing = new Dictionary<CharacterCustomization, PoseAnimationInstance>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -58,10 +60,11 @@ namespace PoseAnimations
             maxRotationPerFrame = Config.Bind<float>("Options", "MaxRotationPerFrame", 1, "Maximum rotation in degrees per bone per frame");
 
             addModKey = Config.Bind<string>("HotKeys", "AddModKey", "left shift", "Modifier key to add current pose to selected animation");
-            deleteModKey = Config.Bind<string>("HotKeys", "DeleteModKey", "left alt", "Modifier key to delete selected animation");
             deleteFrameModKey = Config.Bind<string>("HotKeys", "DeleteFrameModKey", "left ctrl", "Modifier key to delete last frame from selected animation");
             setReverseKey = Config.Bind<string>("HotKeys", "SetReverseKey", "r", "Key to toggle reversing for hovered animation");
             setLoopKey = Config.Bind<string>("HotKeys", "SetLoopKey", "l", "Key to toggle looping for hovered animation");
+            saveKey = Config.Bind<string>("HotKeys", "SaveKey", "s", "Key to save hovered animation to disk");
+            fromFileKey = Config.Bind<string>("HotKeys", "FromFileKey", "f", "Key to reload hovered animation from disk");
             
             //nexusID = Config.Bind<int>("General", "NexusID", 94, "Nexus mod ID for updates");
 
@@ -77,7 +80,7 @@ namespace PoseAnimations
             if (!modEnabled.Value || !Player.code || !Global.code.uiFreePose.enabled)
                 return;
             
-            if(Global.code.uiFreePose.curCategory == catName.Value && (AedenthornUtils.CheckKeyDown(setReverseKey.Value) || AedenthornUtils.CheckKeyDown(setLoopKey.Value)))
+            if(Global.code.uiFreePose.curCategory == catName.Value && (AedenthornUtils.CheckKeyDown(setReverseKey.Value) || AedenthornUtils.CheckKeyDown(setLoopKey.Value) || AedenthornUtils.CheckKeyDown(saveKey.Value) || AedenthornUtils.CheckKeyDown(fromFileKey.Value)))
             {
                 PointerEventData eventData = new PointerEventData(EventSystem.current)
                 {
@@ -90,9 +93,10 @@ namespace PoseAnimations
                 {
                     if (rcr.gameObject.layer == LayerMask.NameToLayer("UI") && rcr.gameObject.GetComponent<PoseIcon>())
                     {
-                        if (!animationDict.ContainsKey(rcr.gameObject.name))
+                        if (rcr.gameObject.name == "AddNewAnimation" || !animationDict.ContainsKey(rcr.gameObject.name))
                             break;
-                        PoseAnimationData pad = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(animationDict[rcr.gameObject.name]));
+
+                        PoseAnimationData pad = animationDict[rcr.gameObject.name];
 
                         if (AedenthornUtils.CheckKeyDown(setReverseKey.Value))
                         {
@@ -100,22 +104,38 @@ namespace PoseAnimations
                             foreach(var kvp in currentlyPosing)
                             {
                                 if (kvp.Value.name == pad.name)
-                                    kvp.Value.reverse = pad.reverse;
+                                    kvp.Value.data.reverse = pad.reverse;
                             }
                             Global.code.uiCombat.ShowHeader(Localization.GetContent("Reverse: "+pad.reverse, new object[0]));
                         }
-                        else
+                        else if (AedenthornUtils.CheckKeyDown(setLoopKey.Value))
                         {
                             pad.loop = !pad.loop;
                             foreach (var kvp in currentlyPosing)
                             {
                                 if (kvp.Value.name == pad.name)
-                                    kvp.Value.loop = pad.loop;
+                                    kvp.Value.data.loop = pad.loop;
                             }
                             Global.code.uiCombat.ShowHeader(Localization.GetContent("Loop: " + pad.loop, new object[0]));
                         }
-
-                        File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), rcr.gameObject.name + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
+                        else if (AedenthornUtils.CheckKeyDown(saveKey.Value))
+                        {
+                            File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
+                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} saved", new object[0]), pad.name));
+                        }
+                        else if (AedenthornUtils.CheckKeyDown(fromFileKey.Value))
+                        {
+                            animationDict[pad.name] = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(Path.Combine(AedenthornUtils.GetAssetPath(this), pad.name+".json")));
+                            try
+                            {
+                                Texture2D icon = new Texture2D(1, 1);
+                                icon.LoadImage(File.ReadAllBytes(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".png")));
+                                RM.code.allFreePoses.GetItemWithName(pad.name).GetComponent<Pose>().icon = icon;
+                                rcr.gameObject.GetComponent<RawImage>().texture = icon;
+                            }
+                            catch { }
+                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} reloaded", new object[0]), pad.name));
+                        }
                         break;
                     }
                 }
@@ -125,22 +145,22 @@ namespace PoseAnimations
             {
                 for (int i = currentlyPosing.Keys.Count - 1; i >= 0; i--)
                 {
-                    PoseAnimationData pad = currentlyPosing[currentlyPosing.Keys.ElementAt(i)];
-                    pad.deltaTime += Time.deltaTime;
+                    PoseAnimationInstance pi = currentlyPosing[currentlyPosing.Keys.ElementAt(i)];
+                    pi.deltaTime += Time.deltaTime;
 
-                    if (pad.deltaTime >= pad.rate)
+                    if (pi.deltaTime >= pi.data.rate)
                     {
                         int nextIndex;
-                        pad.deltaTime = 0;
+                        pi.deltaTime = 0;
 
-                        if (pad.reversing)
+                        if (pi.reversing)
                         {
-                            if (pad.currentIndex <= 0)
+                            if (pi.currentFrame <= 0)
                             {
-                                if (pad.loop)
+                                if (pi.data.loop)
                                 {
                                     //Dbgl("finished reversing");
-                                    pad.reversing = false;
+                                    pi.reversing = false;
                                     nextIndex = 1;
                                 }
                                 else
@@ -151,18 +171,18 @@ namespace PoseAnimations
                             }
                             else
                             {
-                                nextIndex = pad.currentIndex - 1;
+                                nextIndex = pi.currentFrame - 1;
                             }
                         }
-                        else if (pad.currentIndex >= pad.frames.Count - 1)
+                        else if (pi.currentFrame >= pi.data.frames.Count - 1)
                         {
-                            if (pad.reverse)
+                            if (pi.data.reverse)
                             {
                                 //Dbgl("reversing");
-                                pad.reversing = true;
-                                nextIndex = pad.frames.Count - 2;
+                                pi.reversing = true;
+                                nextIndex = pi.data.frames.Count - 2;
                             }
-                            else if (pad.loop)
+                            else if (pi.data.loop)
                             {
                                 //Dbgl("looping");
                                 nextIndex = 0;
@@ -174,21 +194,21 @@ namespace PoseAnimations
                             }
                         }
                         else
-                            nextIndex = pad.currentIndex + 1;
+                            nextIndex = pi.currentFrame + 1;
 
-                        List<MyPoseData> pdl = pad.frames[pad.currentIndex];
+                        List<MyPoseData> pdl = pi.data.frames[pi.currentFrame].poseDatas;
                         foreach (MyPoseData pd in pdl)
                         {
                             try
                             {
-                                pad.bones[pd.boneName].localPosition = pd.BonePos;
-                                pad.bones[pd.boneName].localRotation = pd.BoneRotation;
+                                pi.bones[pd.boneName].localPosition = pd.BonePos;
+                                pi.bones[pd.boneName].localRotation = pd.BoneRotation;
                             }
                             catch
                             {
                             }
                         }
-                        pad.currentIndex = nextIndex;
+                        pi.currentFrame = nextIndex;
                     }
                 }
             }
@@ -236,7 +256,7 @@ namespace PoseAnimations
         }
         private static void AddNewAnimation(PoseAnimationData data, string path)
         {
-            animationDict[data.name] = path;
+            animationDict[data.name] = data;
             Transform t = Instantiate(RM.code.allFreePoses.items[0], posesGameObject.transform);
             t.GetComponent<Pose>().categoryName = catName.Value;
             try
@@ -307,7 +327,7 @@ namespace PoseAnimations
                 PoseAnimationData pad = new PoseAnimationData()
                 {
                     name = animationName,
-                    frames = new List<List<MyPoseData>>(),
+                    frames = new List<PoseAnimationFrame>(),
                     reverse = reverseByDefault.Value,
                     loop = loopByDefault.Value
                 };
@@ -318,27 +338,20 @@ namespace PoseAnimations
                     poseDatas.Add(item);
                 }
                 Dbgl($"Adding {poseDatas.Count} bones to first frame");
-                pad.frames.Add(poseDatas);
+                pad.frames.Add(new PoseAnimationFrame(poseDatas, pad.frames.Count));
 
                 AddNewAnimation(pad, Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name+".json"));
                 File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), animationName + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
                 Global.code.uiFreePose.Refresh();
-            }
-            else if (AedenthornUtils.CheckKeyHeld(deleteModKey.Value))
-            {
-                File.Delete(animationDict[buttonName]);
-                animationDict.Remove(buttonName);
-                RM.code.allFreePoses.items.Remove(button.GetComponent<PoseIcon>().pose.transform);
-                Global.code.uiFreePose.Refresh();
+                Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} created", new object[0]), pad.name));
             }
             else if (AedenthornUtils.CheckKeyHeld(deleteFrameModKey.Value))
             {
-                PoseAnimationData pad = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(animationDict[buttonName]));
-                if(pad.frames.Count > 1)
+                if(animationDict[buttonName].frames.Count > 1)
                 {
                     Dbgl($"Removing last frame from animation {buttonName}");
-                    pad.frames.RemoveAt(pad.frames.Count - 1);
-                    File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
+                    animationDict[buttonName].frames.RemoveAt(animationDict[buttonName].frames.Count - 1);
+                    Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Removed frame from animation {0}", new object[0]), buttonName));
                 }
             }
             else if (AedenthornUtils.CheckKeyHeld(addModKey.Value))
@@ -355,7 +368,7 @@ namespace PoseAnimations
                 int totalFrames = 1;
                 Dictionary<Transform, MyPoseData> modifiedBones = new Dictionary<Transform, MyPoseData>();
 
-                PoseAnimationData pad = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(animationDict[buttonName]));
+                PoseAnimationData pad = animationDict[buttonName];
                 foreach(Transform bone in Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().bonesNeedSave)
                 {
                     MyPoseData boneData = new MyPoseData(FixName(bone.name), bone.localPosition, bone.localRotation);
@@ -364,7 +377,7 @@ namespace PoseAnimations
 
                     while (idx >= 0)
                     {
-                        var oldFrameBoneData = pad.frames[idx--].Find(f => f.boneName == bone.name);
+                        var oldFrameBoneData = pad.frames[idx--].poseDatas.Find(f => f.boneName == bone.name);
                         if (oldFrameBoneData == null)
                             continue;
                         if (oldFrameBoneData.BonePos == boneData.BonePos && oldFrameBoneData.BoneRotation == boneData.BoneRotation)
@@ -405,11 +418,14 @@ namespace PoseAnimations
                         boneData.BoneRotation = Quaternion.Lerp(oldFrameBoneData.BoneRotation, boneData.BoneRotation, i / (float)totalFrames);
                         poseDatas.Add(boneData);
                     }
-                    pad.frames.Add(poseDatas);
+                    pad.frames.Add(new PoseAnimationFrame(poseDatas, pad.frames.Count));
                 }
                 Dbgl($"Moved {modifiedBones.Count} bones in {totalFrames} frames. Total frames {pad.frames}");
 
-                File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
+                animationDict[buttonName] = pad;
+
+                Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("{0} frames added to animation {0}", new object[0]), totalFrames, pad.name));
+
             }
             else
             {
@@ -421,20 +437,24 @@ namespace PoseAnimations
                 }
                 TransformGizmo.transformGizmo_.selectNow = null;
 
-                PoseAnimationData pad = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(animationDict[buttonName]));
+                PoseAnimationData pad = animationDict[buttonName];
                 if (currentlyPosing.ContainsKey(Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>()))
                 {
-                    string oldName = currentlyPosing[Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>()].name;
-                    Dbgl($"Stopping animation {oldName} for {Global.code.uiFreePose.selectedCharacter.name}");
+                    string oldName = currentlyPosing[Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>()].data.name;
+                    Dbgl($"Stopping animation {oldName} for {Global.code.uiFreePose.selectedCharacter.name} on frame {currentlyPosing[Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>()].currentFrame}");
                     currentlyPosing.Remove(Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>());
-                    if (oldName == buttonName)
+                    if (oldName == buttonName) { }
                         return;
                 }
                 Dbgl($"Setting {Global.code.uiFreePose.selectedCharacter.name} to animation {buttonName}");
-                pad.bones = new Dictionary<string, Transform>();
+                PoseAnimationInstance instance = new PoseAnimationInstance()
+                {
+                    data = pad,
+                    bones = new Dictionary<string, Transform>()
+                };
                 foreach (Transform t in Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().bonesNeedSave)
-                    pad.bones[FixName(t.name)] = t;
-                currentlyPosing.Add(Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>(), pad);
+                    instance.bones[FixName(t.name)] = t;
+                currentlyPosing.Add(Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>(), instance);
             }
         }
 
