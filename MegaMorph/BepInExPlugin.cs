@@ -76,17 +76,18 @@ namespace MegaMorph
 			return CreateAttribute(xml, name, vec.x, vec.y, vec.z);
 		}
 
-		public static Slider CloneSlider(UICustomization __instance, Transform viewport, string name)
+		public static Slider CloneSlider(UICustomization __instance, Transform viewport, string key)
 		{
 			var slider = __instance.panelSkin.GetComponentInChildren<Slider>();
+			var name = key.Replace('_', ' ');
 			slider = Instantiate(slider, viewport);
 			slider.onValueChanged = new Slider.SliderEvent();
-			slider.onValueChanged.AddListener(context.ApplyPreset);
-			slider.transform.GetComponentInChildren<Text>().text = name;
 			slider.name = name;
 			slider.minValue = 0f;
 			slider.maxValue = 1f;
 			slider.value = 0f;
+			slider.onValueChanged.AddListener((float val) => context.ApplyPreset(key, val));
+			slider.transform.GetComponentInChildren<Text>().text = name;
 			Destroy(slider.GetComponentInChildren<LocalizationText>());
 			return slider;
 		}
@@ -141,10 +142,17 @@ namespace MegaMorph
 
 		private void LateUpdate()
 		{
-			if (!modEnabled.Value) return;
-			foreach (var offset in offsets)
+			if (!modEnabled.Value || offsets.Count == 0) return;
+			if (!Mainframe.code)
 			{
-				offset.Value.Apply();
+				offsets.Clear();
+			}
+			else
+			{
+				foreach (var offset in offsets)
+				{
+					offset.Value.Apply();
+				}
 			}
 		}
 
@@ -215,10 +223,10 @@ namespace MegaMorph
 			if (ui && viewport && !sliders.ContainsKey(preset))
 			{
 				var slider = CloneSlider(ui, viewport, presetName.Value);
-				slider.value = 1.0f;
+				slider.value = 0f;
 				context.sliders[preset] = slider;
 			}
-			values[key] = 1.0f;
+			values[key] = 0f;
 		}
 
 		public void ApplyConfig(CharacterCustomization cc, SettingChangedEventArgs args)
@@ -263,11 +271,12 @@ namespace MegaMorph
 			context.Logger.LogWarning("Bone not found: " + key);
 		}
 
-		public void ApplyPreset(float val)
+		public void ApplyPreset(string key, float val)
 		{
 			var cc = Global.code.uiCustomization.curCharacterCustomization;
 			if (!cc) return;
 
+			context.values[string.Format("{0}/{1}", cc.name, key)] = val;
 			foreach (var bone in cc.body.bones)
 			{
 				var bone_scale = bone.name + "_scale";
@@ -282,7 +291,6 @@ namespace MegaMorph
 
 				foreach (var slider in sliders)
 				{
-					context.values[string.Format("{0}/{1}", cc.name, slider.Key)] = slider.Value.value;
 					if (presets.TryGetValue(slider.Key + bone_scale, out Vector3 value))
 					{
 						scale = Vector3.Lerp(scale, Vector3.Scale(scale, value / 100f), slider.Value.value);
@@ -388,6 +396,7 @@ namespace MegaMorph
 			public static void Postfix(Mainframe __instance, CharacterCustomization gen)
 			{
 				if (!modEnabled.Value) return;
+				context.sliders.Clear();
 				try
 				{
 					var data = ES2.LoadAll(string.Format("{0}MegaMorph/{1}.txt", __instance.GetFolderName(), gen.name));
@@ -424,7 +433,7 @@ namespace MegaMorph
 		{
 			public static MethodBase TargetMethod()
 			{
-				return typeof(Player).GetMethod("Start");
+				return typeof(UICustomization).GetMethod("Start");
 			}
 
 			public static void Postfix(UICustomization __instance)
@@ -459,9 +468,10 @@ namespace MegaMorph
 
 						if (!context.sliders.ContainsKey(preset))
 						{
-							context.sliders[preset] = CloneSlider(__instance, context.viewport, preset.Replace('_', ' '));
+							context.sliders[preset] = CloneSlider(__instance, context.viewport, preset);
 						}
 					}
+					UICustomization_Open_Patch.Postfix(__instance.curCharacterCustomization);
 				}
 				catch (Exception e)
 				{
@@ -473,14 +483,13 @@ namespace MegaMorph
 		[HarmonyPatch(typeof(UICustomization), "Open")]
 		public static class UICustomization_Open_Patch
 		{
-			public static void Postfix(UICustomization __instance)
+			public static void Postfix(CharacterCustomization customization, bool isOpenChangeName = true)
 			{
-				var cc = __instance.curCharacterCustomization;
-				if (!modEnabled.Value || cc == null) return;
+				if (!modEnabled.Value || customization == null) return;
 
 				foreach (var slider in context.sliders)
 				{
-					var key = string.Format("{0}/{1}", cc.name, slider.Key);
+					var key = string.Format("{0}/{1}", customization.name, slider.Key);
 					if (context.values.TryGetValue(key, out float val))
 					{
 						slider.Value.value = val;
@@ -491,18 +500,20 @@ namespace MegaMorph
 						{
 							var item = string.Format("{0}MegaMorph/{1}.txt?tag={2}",
 								Mainframe.code.GetFolderName(),
-								cc.name,
-								slider.Value.name.Replace(' ', '_')
+								customization.name,
+								slider.Key
 							);
 							
 							if (ES2.Exists(item))
 							{
-								context.values[key] = ES2.Load<float>(item);
-								slider.Value.value = context.values[key];
+								val = ES2.Load<float>(item);
+								context.values[key] = val;
+								slider.Value.value = val;
 							}
 							else
 							{
 								slider.Value.value = 0f;
+								context.Logger.LogWarning(string.Format("{0} does not exist!", item));
 							}
 						}
 						catch (Exception e)

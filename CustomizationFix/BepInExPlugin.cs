@@ -6,11 +6,10 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 namespace CustomizationFix
 {
-	[BepInPlugin("bugerry.CustomizationFix", "CustomizationFix", "1.2.0")]
+	[BepInPlugin("bugerry.CustomizationFix", "CustomizationFix", "1.2.2")]
 	public partial class BepInExPlugin : BaseUnityPlugin
 	{
 		private static BepInExPlugin context;
@@ -93,6 +92,15 @@ namespace CustomizationFix
 			{
 				if (modEnabled.Value)
 				{
+					if (Player.code == null)
+					{
+						return false;
+					}
+					__instance.index = Player.code.customization.body.sharedMesh.GetBlendShapeIndex(__instance.blendshapename);
+					if (__instance.isFacePreset)
+					{
+						Global.code.uiCustomization.facePresetIndexes.Add(__instance.index);
+					}
 					__instance.Refresh();
 					return false;
 				}
@@ -107,18 +115,20 @@ namespace CustomizationFix
 			{
 				if (!modEnabled.Value) return true;
 				var cc = Global.code.uiCustomization.curCharacterCustomization;
-				if (cc && __instance.blendshapename.Length > 0)
+				if (cc && __instance.blendshapename.Length > 0 && !__instance.isEmotionController)
 				{
 					var name = string.Format("{0}/{1}", cc.name, __instance.blendshapename);
-					if (context.stats.TryGetValue(name, out float val))
+					if (__instance.index >=0 && __instance.index < cc.body.sharedMesh.blendShapeCount)
 					{
+						if (!context.stats.TryGetValue(name, out float val))
+						{
+							val = cc.body.GetBlendShapeWeight(__instance.index);
+						}
 						__instance.GetComponent<Slider>().value = val;
 					}
 					else
 					{
-						val = cc.body.GetBlendShapeWeight(__instance.index);
-						context.stats[name] = val;
-						__instance.GetComponent<Slider>().value = val;
+						__instance.GetComponent<Slider>().value = 0f;
 					}
 				}
 				return false;
@@ -130,10 +140,10 @@ namespace CustomizationFix
 		{
 			public static void Postfix(float val, CustomizationSlider __instance)
 			{
-				if (!modEnabled.Value) return;
+				if (!modEnabled.Value || __instance.isEmotionController) return;
 
 				var cc = Global.code.uiCustomization.curCharacterCustomization;
-				if (cc)
+				if (cc && __instance.index >= 0 && __instance.index < cc.body.sharedMesh.blendShapeCount)
 				{
 					var name = cc.body.sharedMesh.GetBlendShapeName(__instance.index);
 					name = string.Format("{0}/{1}", cc.name, name);
@@ -186,25 +196,12 @@ namespace CustomizationFix
 
 				try
 				{
-					var key = "";
-					var shapes = ES2.LoadList<float>(__instance.GetFolderName() + gen.name + ".txt?tag=blendshapes");
-					for (var i = 0; i < shapes.Count; ++i)
-					{
-						key = gen.body.sharedMesh.GetBlendShapeName(i);
-						key = string.Format("{0}/{1}", gen.name, key);
-						if (i == Player.code.nipplesLargeIndex)
-						{
-							context.stats[key] = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=nippleLarge");
-						}
-						else if (i == Player.code.nipplesDepthIndex)
-						{
-							context.stats[key] = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=nippleDepth");
-						}
-						else
-						{
-							context.stats[key] = shapes[i];
-						}
-					}
+					var key = gen.body.sharedMesh.GetBlendShapeName(Player.code.nipplesLargeIndex);
+					key = string.Format("{0}/{1}", gen.name, key);
+					context.stats[key] = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=nippleLarge");
+					key = gen.body.sharedMesh.GetBlendShapeName(Player.code.nipplesDepthIndex);
+					key = string.Format("{0}/{1}", gen.name, key);
+					context.stats[key] = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=nippleDepth");
 				}
 				catch (Exception e)
 				{
