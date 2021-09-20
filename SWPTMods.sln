@@ -153,7 +153,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomEyebrows", "CustomEye
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTools", "ConsoleTools\ConsoleTools.csproj", "{DAA29D57-D2ED-4567-AB95-D243684DB089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoseAnimations", "PoseAnimations\PoseAnimations.csproj", "{6873D16A-68F7-4B8E-9007-C5311680AF76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoseAnimations", "PoseAnimations\PoseAnimations.csproj", "{6873D16A-68F7-4B8E-9007-C5311680AF76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurnitureCost", "FurnitureCost\FurnitureCost.csproj", "{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -465,6 +467,10 @@ Global
 		{6873D16A-68F7-4B8E-9007-C5311680AF76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6873D16A-68F7-4B8E-9007-C5311680AF76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6873D16A-68F7-4B8E-9007-C5311680AF76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
