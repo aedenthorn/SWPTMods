@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace MegaMorph
 {
-	[BepInPlugin("bugerry.MegaMorph", "MegaMorph", "1.2.1")]
+	[BepInPlugin("bugerry.MegaMorph", "MegaMorph", "1.3.0")]
 	public partial class BepInExPlugin : BaseUnityPlugin
 	{
 		public struct Offset
@@ -173,6 +173,14 @@ namespace MegaMorph
 					Config.Bind(key, bone.name == "hip" ? Vector3.zero : bone.localPosition * 100f);
 				}
 			}
+			foreach (var obj in FindObjectsOfType<PhysicBonesCore>())
+			{
+				Logger.LogInfo(obj.name);
+			}
+			foreach (var obj in FindObjectsOfType<PhysicBonesCollider>())
+			{
+				Logger.LogInfo(obj.name);
+			}
 			isScanning = false;
 		}
 
@@ -332,6 +340,51 @@ namespace MegaMorph
 			}
 		}
 
+		public void LoadPreset(CharacterCustomization gen, ES2Data data)
+		{
+			try
+			{
+				foreach (var d in data.loadedData)
+				{
+					var found = false;
+					var key = string.Format("{0}/{1}", gen.name, d.Key);
+					foreach (var bone in gen.body.bones)
+					{
+						var isScale = d.Key.EndsWith("scale");
+						if (d.Key.StartsWith(bone.name))
+						{
+							offsets[key] = new Offset
+							{
+								anim = gen.anim,
+								bone = bone,
+								offset = (Vector3)d.Value,
+								_default = isScale ? bone.localScale * 100f : bone.localPosition * 100f,
+								isScale = isScale
+							};
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						if (sliders.TryGetValue(d.Key, out Slider slider))
+						{
+							slider.value = (float)d.Value;
+						}
+						else
+						{
+							values[key] = (float)d.Value;
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				context.Logger.LogWarning("OnLoad: " + e.Message);
+			}
+		}
+
 		[HarmonyPatch(typeof(Player), "Awake")]
 		public static class Player_Awake_Patch
 		{
@@ -400,26 +453,7 @@ namespace MegaMorph
 				try
 				{
 					var data = ES2.LoadAll(string.Format("{0}MegaMorph/{1}.txt", __instance.GetFolderName(), gen.name));
-					foreach (var d in data.loadedData)
-					{
-						var key = string.Format("{0}/{1}", gen.name, d.Key);
-						foreach (var bone in gen.body.bones)
-						{
-							var isScale = d.Key.EndsWith("scale");
-							if (d.Key.StartsWith(bone.name))
-							{
-								context.offsets[key] = new Offset
-								{
-									anim = gen.anim,
-									bone = bone,
-									offset = (Vector3)d.Value,
-									_default = isScale ? bone.localScale * 100f : bone.localPosition * 100f,
-									isScale = isScale
-								};
-								break;
-							}
-						}
-					}
+					context.LoadPreset(gen, data);
 				}
 				catch (Exception e)
 				{
@@ -522,6 +556,51 @@ namespace MegaMorph
 							context.Logger.LogWarning(e);
 						}
 					}
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(Mainframe), "SaveCharacterPreset")]
+		public static class Mainframe_SaveCharacterPreset_Patch
+		{
+			public static void Postfix(CharacterCustomization customization, string presetname, string creator, Texture2D profile)
+			{
+				try
+				{
+					foreach (var offset in context.offsets)
+					{
+						var key = offset.Key.Split('/')[1];
+						var item = string.Format("Character Presets/{0}/MegaMorph.txt?tag={1}", presetname, key);
+						ES2.Save(offset.Value.offset, item);
+					}
+
+					foreach (var val in context.values)
+					{
+						if (val.Key.StartsWith(customization.name))
+						{
+							var key = val.Key.Split('/')[1];
+							var item = string.Format("Character Presets/{0}/MegaMorph.txt?tag={1}", presetname, key);
+							ES2.Save(val.Value, item);
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					context.Logger.LogError(e);
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(Mainframe), "LoadCharacterPreset")]
+		public static class Mainframe_LoadCharacterPreset_Patch
+		{
+			public static void Postfix(CharacterCustomization gen, string presetname)
+			{
+				var item = string.Format("Character Presets/{0}/MegaMorph.txt", presetname);
+				if (ES2.Exists(item))
+				{
+					var data = ES2.LoadAll(item);
+					context.LoadPreset(gen, data);
 				}
 			}
 		}

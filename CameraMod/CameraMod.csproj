@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>0.2.1</Version>
-    <Authors>aedenthorn, bugerry</Authors>
+    <Version>1.0.1</Version>
+    <Authors>bugerry</Authors>
     <Copyright>Copyright ©  2021</Copyright>
     <Product>She Will Punish Them</Product>
-    <Description>Bugfixes for SWPT Free Pose Mode.</Description>
+    <Description>For more Camera control.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
