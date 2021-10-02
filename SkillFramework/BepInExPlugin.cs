@@ -150,12 +150,20 @@ namespace SkillFramework
 
                 bool reduce = Chainloader.PluginInfos.ContainsKey("aedenthorn.Respec") && AedenthornUtils.CheckKeyHeld(Chainloader.PluginInfos["aedenthorn.Respec"].Instance.Config[new ConfigDefinition("Options", "ModKey")].BoxedValue as string);
 
-                foreach(SkillInfo info in customSkills.Values)
+                // avoid increasing point when no skill points are available
+                if (Global.code.uiCharacter.curCustomization.GetComponent<ID>().skillPoints == 0 && !reduce)
+                    return false;
+
+                foreach (SkillInfo info in customSkills.Values)
                 {
                     if(info.id == __instance.name)
                     {
                         Dbgl($"{(reduce ?"Reducing": "Increasing")} skill {__instance.name} {characterSkillLevels[Global.code.uiCharacter.curCustomization.name][__instance.name]}");
                         GetCharacterSkillLevel(Global.code.uiCharacter.curCustomization.name, __instance.name);
+
+                        // avoid increasing skills maximum points are reached for the current skill
+                        if (__instance.points == __instance.maxPoints && !reduce)
+                            return false;
 
                         if (reduce)
                         {
