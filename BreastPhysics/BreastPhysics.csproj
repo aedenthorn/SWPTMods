@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>1.2.0</Version>
+    <Version>1.0.1</Version>
     <Authors>bugerry</Authors>
-    <Copyright>Copyright ©  2021</Copyright>
+    <Copyright>Copyright © 2021</Copyright>
     <Product>She Will Punish Them</Product>
-    <Description>For more Camera control.</Description>
+    <Description>Provides access to the breast physics.</Description>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

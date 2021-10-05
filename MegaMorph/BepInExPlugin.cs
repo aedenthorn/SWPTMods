@@ -187,7 +187,7 @@ namespace MegaMorph
 		public void SavePreset()
 		{
 			var xml = new XmlDocument();
-			xml.Load(context.xml_file);
+			xml.Load(xml_file);
 			var name = presetName.Value.Replace(' ', '_');
 			var old_node = xml.DocumentElement.SelectSingleNode(name);
 			var node = xml.CreateElement(name);
@@ -232,7 +232,7 @@ namespace MegaMorph
 			{
 				var slider = CloneSlider(ui, viewport, presetName.Value);
 				slider.value = 0f;
-				context.sliders[preset] = slider;
+				sliders[preset] = slider;
 			}
 			values[key] = 0f;
 		}
@@ -276,7 +276,7 @@ namespace MegaMorph
 				}
 				return;
 			}
-			context.Logger.LogWarning("Bone not found: " + key);
+			Logger.LogWarning("Bone not found: " + key);
 		}
 
 		public void ApplyPreset(string key, float val)
@@ -284,7 +284,7 @@ namespace MegaMorph
 			var cc = Global.code.uiCustomization.curCharacterCustomization;
 			if (!cc) return;
 
-			context.values[string.Format("{0}/{1}", cc.name, key)] = val;
+			values[string.Format("{0}/{1}", cc.name, key)] = val;
 			foreach (var bone in cc.body.bones)
 			{
 				var bone_scale = bone.name + "_scale";
@@ -292,7 +292,7 @@ namespace MegaMorph
 				var scale = Vector3.one * 100f;
 				var pos = Vector3.zero;
 
-				if (context.Config.TryGetEntry("Bones", bone_pos, out ConfigEntry<Vector3> config_pos))
+				if (Config.TryGetEntry("Bones", bone_pos, out ConfigEntry<Vector3> config_pos))
 				{
 					pos = (Vector3)config_pos.DefaultValue;
 				}
@@ -310,7 +310,7 @@ namespace MegaMorph
 					}
 				}
 
-				if (context.Config.TryGetEntry("Bones", bone_scale, out ConfigEntry<Vector3> config_scale))
+				if (Config.TryGetEntry("Bones", bone_scale, out ConfigEntry<Vector3> config_scale))
 				{
 					config_scale.Value = scale;
 				}

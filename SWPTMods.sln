@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StayThatWay", "StayThatWay\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CameraMod", "CameraMod\CameraMod.csproj", "{4A8BDDA4-AF32-423D-AEEE-3172540F6174}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BreastPhysics", "BreastPhysics\BreastPhysics.csproj", "{ED1B56C8-E0E8-48EE-A9A6-37BAFD43E144}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{4A8BDDA4-AF32-423D-AEEE-3172540F6174}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A8BDDA4-AF32-423D-AEEE-3172540F6174}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A8BDDA4-AF32-423D-AEEE-3172540F6174}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED1B56C8-E0E8-48EE-A9A6-37BAFD43E144}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED1B56C8-E0E8-48EE-A9A6-37BAFD43E144}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED1B56C8-E0E8-48EE-A9A6-37BAFD43E144}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED1B56C8-E0E8-48EE-A9A6-37BAFD43E144}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
