@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace SkillFramework
 {
-    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.2.0")]
+    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -162,7 +162,7 @@ namespace SkillFramework
                         GetCharacterSkillLevel(Global.code.uiCharacter.curCustomization.name, __instance.name);
 
                         // avoid increasing skills maximum points are reached for the current skill
-                        if (__instance.points == __instance.maxPoints && !reduce)
+                        if ((__instance.points == __instance.maxPoints && !reduce) || (__instance.points == 0 && reduce))
                             return false;
 
                         if (reduce)

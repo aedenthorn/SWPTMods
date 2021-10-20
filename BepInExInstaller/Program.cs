@@ -88,8 +88,12 @@ namespace BepInExInstaller
             bool x64 = true;
             foreach (string file in Directory.GetFiles(gamePath, "*.exe"))
             {
-                if (!file.StartsWith("BepInEx") && GetAppCompiledMachineType(file) == MachineType.x86)
-                    x64 = false;
+
+                if (!file.StartsWith("BepInEx") && Directory.Exists(Path.Combine(gamePath, Path.GetFileNameWithoutExtension(file) + "_Data")))
+                {
+                    Console.WriteLine($"Basing architecture on {file}: {(GetAppCompiledMachineType(file) == MachineType.x86 ? "32-bit" : "64-bit")}");
+                    x64 = GetAppCompiledMachineType(file) != MachineType.x86;
+                }
             }
 
             Console.WriteLine($"Game appears to be {(x64 ? "64-bit" : "32-bit")}...");
