@@ -165,7 +165,7 @@ namespace Tattoos
 
         private static Texture2D LoadIcon(Transform t)
         {
-            if (t.TryGetComponent(out CustomizationItem ci))
+            if (t && t.TryGetComponent(out CustomizationItem ci))
             {
                 if (ci.icon)
                 {
@@ -190,7 +190,7 @@ namespace Tattoos
 
         private static Transform LoadTattoo(Transform t)
         {
-            if (t.TryGetComponent(out CustomizationItem ci) && !ci.eyes)
+            if (t && t.TryGetComponent(out CustomizationItem ci) && !ci.eyes)
             {
                 ci.eyes = new Texture2D(1, 1);
                 if (pathRegistere.TryGetValue(t, out string path))
