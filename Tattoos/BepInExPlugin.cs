@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.1")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -104,6 +104,7 @@ namespace Tattoos
             LoadTattoos("Legs", ref RM.code.allLegsTatoos);
             LoadTattoos("Face", ref RM.code.allFaceTatoos);
             LoadTattoos("Body", ref RM.code.allBodyTatoos);
+            GC.Collect();
         }
         private static void LoadTattoos(string folder, ref CommonArray resources)
         {
