@@ -12,25 +12,66 @@ namespace PoseAnimations
         public int currentFrame = 0;
         public float deltaTime = 0;
         public Dictionary<string, Transform> bones;
+        public float[] startPos = new float[3];
         public PoseAnimationData data;
+        [JsonIgnore]
+        public Vector3 StartPos
+        {
+            get
+            {
+                return new Vector3(startPos[0], startPos[1], startPos[2]);
+            }
+            set
+            {
+                startPos = new float[] { value.x, value.y, value.z };
+            }
+        }
     }
     public class PoseAnimationData
     {
         public string name;
         public float rate = 0;
         public bool loop = true;
-        public bool reverse = false;
+        public bool reverse = true;
+        public float[] startPos = new float[3];
         public List<PoseAnimationFrame> frames;
+        [JsonIgnore]
+        public Vector3 StartPos
+        {
+            get
+            {
+                return new Vector3(startPos[0], startPos[1], startPos[2]);
+            }
+            set
+            {
+                startPos = new float[] { value.x, value.y, value.z };
+            }
+        }
     }
     public class PoseAnimationFrame
     {
         public int index;
+        public float[] deltaPos = new float[3];
         public List<MyPoseData> poseDatas;
 
-        public PoseAnimationFrame(List<MyPoseData> poseDatas, int index)
+        public PoseAnimationFrame(List<MyPoseData> poseDatas, int index, Vector3 deltaPos)
         {
             this.poseDatas = poseDatas;
             this.index = index;
+            DeltaPosition = deltaPos;
+        }
+
+        [JsonIgnore]
+        public Vector3 DeltaPosition
+        {
+            get
+            {
+                return new Vector3(deltaPos[0], deltaPos[1], deltaPos[2]);
+            }
+            set
+            {
+                deltaPos = new float[] { value.x, value.y, value.z };
+            }
         }
     }
 
@@ -39,8 +80,8 @@ namespace PoseAnimations
         public MyPoseData(string name, Vector3 bonePos_, Quaternion boneRotation_)
         {
             boneName = name; 
-            bonePos = new float[] { bonePos_.x, bonePos_.y, bonePos_.z };
-            boneRotation = new float[] { boneRotation_.x, boneRotation_.y, boneRotation_.z, boneRotation_.w };
+            BonePos = bonePos_;
+            BoneRotation = boneRotation_;
         }
 
         public string boneName;
