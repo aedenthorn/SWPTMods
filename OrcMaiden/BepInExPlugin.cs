@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace OrcMaiden
 {
-    [BepInPlugin("aedenthorn.OrcMaiden", "Orc Maiden", "0.2.1")]
+    [BepInPlugin("aedenthorn.OrcMaiden", "Orc Maiden", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -69,7 +69,7 @@ namespace OrcMaiden
                 }
             }
         }
-        [HarmonyPatch(typeof(Scene), "SpawnPlayerSoldiers")]
+        //[HarmonyPatch(typeof(Scene), "SpawnPlayerSoldiers")]
         static class Scene_SpawnPlayerSoldiers_Patch
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

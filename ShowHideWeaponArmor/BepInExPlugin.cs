@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace ShowHideWeaponArmor
 {
-    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.3.1")]
+    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
