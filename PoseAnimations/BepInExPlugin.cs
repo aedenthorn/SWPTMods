@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace PoseAnimations
 {
-    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.6.0")]
+    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -37,8 +37,9 @@ namespace PoseAnimations
         public static ConfigEntry<string> catName;
         public static ConfigEntry<float> minBoneRotation;
         public static ConfigEntry<float> maxBoneRotationPerFrame;
+        public static ConfigEntry<float> maxBoneMovementPerFrame;
         public static ConfigEntry<float> maxModelRotationPerFrame;
-        public static ConfigEntry<float> maxMovementPerFrame;
+        public static ConfigEntry<float> maxModelMovementPerFrame;
 
         public static Dictionary<string, PoseAnimationData> animationDict = new Dictionary<string, PoseAnimationData>();
         public static GameObject posesGameObject;
@@ -47,10 +48,7 @@ namespace PoseAnimations
 
         public static List<string> ignoreBones = new List<string>()
         {
-            "makeup loc (1)",
-            "lgroup",
-            "rgroup",
-            "head target"
+
         };
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -68,10 +66,11 @@ namespace PoseAnimations
             reverseByDefault = Config.Bind<bool>("Options", "ReverseByDefault", false, "Set new animations to play in reverse after playing forward by default");
             loopByDefault = Config.Bind<bool>("Options", "LoopByDefault", false, "Set new animations to loop by default");
             catName = Config.Bind<string>("Options", "CatName", "Animations", "Animations category name in UI Free Pose");
-            minBoneRotation = Config.Bind<float>("Options", "MinRotation", 0.5f, "Minimum bone rotation in degrees to be recorded (avoids idling jitter from breathing, etc.)");
+            minBoneRotation = Config.Bind<float>("Options", "MinBoneRotation", 0.5f, "Minimum bone rotation in degrees to be recorded (avoids idling jitter from breathing, etc.)");
             maxBoneRotationPerFrame = Config.Bind<float>("Options", "MaxBoneRotationPerFrame", 1, "Maximum rotation in degrees per bone per frame");
+            maxBoneMovementPerFrame = Config.Bind<float>("Options", "MaxBoneRotationPerFrame", 0.01f, "Maximum movement in meters per bone per frame");
             maxModelRotationPerFrame = Config.Bind<float>("Options", "MaxModelRotationPerFrame", 1, "Maximum model rotation in degrees per frame");
-            maxMovementPerFrame = Config.Bind<float>("Options", "MaxMovementPerFrame", 0.01f, "Maximum model movement per frame");
+            maxModelMovementPerFrame = Config.Bind<float>("Options", "MaxModelMovementPerFrame", 0.01f, "Maximum model movement in meters per frame");
 
             addModKey = Config.Bind<string>("HotKeys", "AddModKey", "left shift", "Modifier key to add current pose to selected animation");
             deleteFrameModKey = Config.Bind<string>("HotKeys", "DeleteFrameModKey", "left ctrl", "Modifier key to delete last frame from selected animation");
@@ -279,7 +278,10 @@ namespace PoseAnimations
                         foreach (var boneData in currentDelta.boneDatas)
                         {
                             if (pi.bones.ContainsKey(boneData.boneName))
+                            {
+                                pi.bones[boneData.boneName].localPosition = Vector3.Lerp(boneData.StartPos, boneData.EndPos, fraction);
                                 pi.bones[boneData.boneName].localRotation = Quaternion.Lerp(Quaternion.Euler(boneData.StartRot), Quaternion.Euler(boneData.EndRot), fraction);
+                            }
                         }
 
                         var rotOffset =  Quaternion.Euler(pi.StartRot) * Quaternion.Inverse(Quaternion.Euler(pi.data.StartRot));
@@ -434,7 +436,7 @@ namespace PoseAnimations
                 {
                     var name = FixName(t.name);
                     if (!ignoreBones.Contains(name))
-                        pad.boneStarts.Add(new BoneDelta(name, t.localRotation.eulerAngles));
+                        pad.boneStarts.Add(new BoneDelta(name, t.localPosition, t.localRotation.eulerAngles));
                 }
 
                 //Dbgl($"Adding {boneDatas.Count} bones to first frame");
@@ -482,17 +484,23 @@ namespace PoseAnimations
                         var oldFrameBoneData = pad.deltas[i].boneDatas.Find(f => f.boneName == name);
                         if (oldFrameBoneData == null)
                             continue;
-                        if (Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) > minBoneRotation.Value)
-                        {
-                            boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
+                        if (Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) < minBoneRotation.Value && Vector3.Distance(t.localPosition, oldFrameBoneData.EndPos) == 0)
+                            continue;
 
-                            //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
-                            if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
-                            {
-                                int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
-                                if (reqFrames > totalFrames)
-                                    totalFrames = reqFrames;
-                            }
+                        boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
+
+                        //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
+                        if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
+                        {
+                            int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
+                            if (reqFrames > totalFrames)
+                                totalFrames = reqFrames;
+                        }
+                        if (Vector3.Distance(oldFrameBoneData.EndPos, t.localPosition) > maxBoneMovementPerFrame.Value)
+                        {
+                            int reqFrames = Mathf.CeilToInt(Vector3.Distance(oldFrameBoneData.EndPos, t.localPosition) / maxBoneMovementPerFrame.Value);
+                            if (reqFrames > totalFrames)
+                                totalFrames = reqFrames;
                         }
                         found = true;
                         break;
@@ -500,17 +508,16 @@ namespace PoseAnimations
                     if (!found)
                     {
                         var oldFrameBoneData = pad.boneStarts.Find(f => f.boneName == name);
-                        if (Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) > minBoneRotation.Value)
-                        {
-                            boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
+                        if (Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) < minBoneRotation.Value && Vector3.Distance(t.localPosition, oldFrameBoneData.EndPos) == 0)
+                            continue;
+                        boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
 
-                            //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
-                            if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
-                            {
-                                int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
-                                if (reqFrames > totalFrames)
-                                    totalFrames = reqFrames;
-                            }
+                        //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
+                        if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
+                        {
+                            int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
+                            if (reqFrames > totalFrames)
+                                totalFrames = reqFrames;
                         }
                     }
                 }
@@ -523,7 +530,7 @@ namespace PoseAnimations
                 if (rotationFrames > totalFrames)
                     totalFrames = Mathf.CeilToInt(rotationFrames);
 
-                float movementFrames = Vector3.Distance(Global.code.uiFreePose.selectedCharacter.position, lastPos) / maxMovementPerFrame.Value;
+                float movementFrames = Vector3.Distance(Global.code.uiFreePose.selectedCharacter.position, lastPos) / maxModelMovementPerFrame.Value;
                 if (movementFrames > totalFrames)
                     totalFrames = Mathf.CeilToInt(movementFrames);
 

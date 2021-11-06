@@ -6,9 +6,9 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace CheatMenu
+namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.CheatMenu", "Cheat Menu", "0.1.2")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.1.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -17,8 +17,8 @@ namespace CheatMenu
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
+        public static ConfigEntry<string> lastSave;
         public static ConfigEntry<string> hotKey;
-        public static ConfigEntry<bool> levelBypass;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -31,71 +31,48 @@ namespace CheatMenu
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
+            //nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
-            levelBypass = Config.Bind<bool>("Options", "LevelBypass", false, "Enable level bypass for equipment");
-            hotKey = Config.Bind<string>("Options", "HotKey", "f5", "Hotkey to toggle cheat menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            hotKey = Config.Bind<string>("Options", "HotKey", "f7", "Hotkey to toggle cheat menu. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            lastSave = Config.Bind<string>("ZZAuto", "LastSave", "", "Last save loaded (set automatically)");
 
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Info.Metadata.GUID);
             Dbgl("Plugin awake");
 
         }
 
 
-        [HarmonyPatch(typeof(Global), "Awake")]
-        static class Global_Awake_Patch
-        {
-            static void Postfix(Global __instance)
-            {
-                if (!modEnabled.Value)
-                    return;
-
-                Dbgl("Fixing spelling errors in cheat menu");
-
-                Text[] textList = __instance.uiCheat.transform.GetComponentsInChildren<Text>();
-                foreach(Text text in textList)
-                {
-                    text.text = text.text.Replace("Invinsible", "Invincible").Replace("Lingeries", "Lingerie");
-                }
-
-            }
-        }
-        [HarmonyPatch(typeof(Player), "Update")]
-        static class Player_Update_Patch
+        [HarmonyPatch(typeof(UIDesktop), "Update")]
+        static class UIDesktop_Update_Patch
         {
             static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
 
-                if (AedenthornUtils.CheckKeyDown(hotKey.Value))
+                if (AedenthornUtils.CheckKeyDown(hotKey.Value) && lastSave.Value.Length > 0)
                 {
-                    Dbgl("Toggling cheat menu");
-
-                    Global.code.uiCheat.gameObject.SetActive(!Global.code.uiCheat.gameObject.activeSelf);
+                    Dbgl($"loading last save {lastSave.Value}");
+                    Mainframe.code.uiLoadGame.Close();
+                    Mainframe.code.uiConfirmation.gameObject.SetActive(false);
+                    Mainframe.code.uiModBrowse.Close();
+                    Mainframe.code.uiNotice.Close();
+                    Mainframe.code.uISettings.Close();
+                    Mainframe.code.LoadGame(lastSave.Value);
                 }
 
             }
         }
-        public static Transform lastSelected;
-        [HarmonyPatch(typeof(EquipmentSlot), nameof(EquipmentSlot.Click))]
-        public static class Click_Patch
+        [HarmonyPatch(typeof(LoadGameIcon), "ConfirmLoadGame")]
+        static class LoadGameIcon_ConfirmLoadGame_Patch
         {
-            public static void Prefix(EquipmentSlot __instance, ref int __state)
+            static void Postfix(LoadGameIcon __instance)
             {
-                if (!modEnabled.Value || !levelBypass.Value || !Global.code.selectedItem)
+                if (!modEnabled.Value)
                     return;
-                lastSelected = Global.code.selectedItem;
-                __state = lastSelected.GetComponent<Item>().levelrequirement;
-                lastSelected.GetComponent<Item>().levelrequirement = 0;
-            }
-            public static void Postfix(EquipmentSlot __instance, int __state)
-            {
-                if (!modEnabled.Value || !levelBypass.Value || lastSelected == null)
-                    return;
-                lastSelected.GetComponent<Item>().levelrequirement = __state;
-                lastSelected = null;
+
+                lastSave.Value = __instance.foldername;
             }
         }
     }

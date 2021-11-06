@@ -124,27 +124,53 @@ namespace PoseAnimations
     }
     public class BoneDelta
     {
+        public string boneName;
+        public float[] startPos = new float[3];
+        public float[] endPos = new float[3];
+        public float[] startRot = new float[3];
+        public float[] endRot = new float[3];
         public BoneDelta()
         {
 
         }
 
-        public BoneDelta(string name, Vector3 endRot)
+        public BoneDelta(string name, Vector3 endPos, Vector3 endRot)
         {
-            boneName = name; 
+            boneName = name;
+            EndPos = endPos;
             EndRot = endRot;
         }
-        public BoneDelta(string name, Vector3 startRot, Vector3 endRot)
+        public BoneDelta(string name, Vector3 startPos, Vector3 endPos, Vector3 startRot, Vector3 endRot)
         {
             boneName = name; 
+            StartPos = startPos;
+            EndPos = endPos;
             StartRot = startRot;
             EndRot = endRot;
         }
 
-        public string boneName;
-        public float[] startRot = new float[3];
-        public float[] endRot = new float[3];
-
+        [JsonIgnore]
+        public Vector3 StartPos {
+            get 
+            {
+                return new Vector3(startPos[0], startPos[1], startPos[2]);
+            }
+            set
+            {
+                startPos = new float[] { value.x, value.y, value.z};
+            }
+        }
+        [JsonIgnore]
+        public Vector3 EndPos {
+            get 
+            {
+                return new Vector3(endPos[0], endPos[1], endPos[2]);
+            }
+            set
+            {
+                endPos = new float[] { value.x, value.y, value.z};
+            }
+        }
         [JsonIgnore]
         public Vector3 StartRot {
             get 
