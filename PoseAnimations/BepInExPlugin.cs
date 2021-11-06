@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace PoseAnimations
 {
-    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.7.0")]
+    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.8.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -31,6 +31,8 @@ namespace PoseAnimations
         public static ConfigEntry<string> saveKey;
         public static ConfigEntry<string> fromFileKey;
         public static ConfigEntry<string> deleteAnimationKey;
+        
+        public static ConfigEntry<string> framesTitle;
 
         public static ConfigEntry<bool> reverseByDefault;
         public static ConfigEntry<bool> loopByDefault;
@@ -42,13 +44,20 @@ namespace PoseAnimations
         public static ConfigEntry<float> maxModelMovementPerFrame;
 
         public static Dictionary<string, PoseAnimationData> animationDict = new Dictionary<string, PoseAnimationData>();
+        public static Dictionary<CharacterCustomization,PoseAnimationInstance> currentlyPosing = new Dictionary<CharacterCustomization, PoseAnimationInstance>();
+        
         public static GameObject posesGameObject;
         public static Transform addNewAnimationButton;
-        public static Dictionary<CharacterCustomization,PoseAnimationInstance> currentlyPosing = new Dictionary<CharacterCustomization, PoseAnimationInstance>();
+        public static GameObject framesObject;
+        public static InputField framesInput;
+        public static int framesPerDelta;
 
         public static List<string> ignoreBones = new List<string>()
         {
-
+            "makeup loc (1)",
+            "lgroup",
+            "rgroup",
+            "head target"
         };
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -81,7 +90,9 @@ namespace PoseAnimations
             saveKey = Config.Bind<string>("HotKeys", "SaveKey", "v", "Key to save hovered animation to disk");
             fromFileKey = Config.Bind<string>("HotKeys", "FromFileKey", "f", "Key to reload hovered animation from disk");
             
-            //nexusID = Config.Bind<int>("General", "NexusID", 94, "Nexus mod ID for updates");
+            framesTitle = Config.Bind<string>("Text", "FramesText", "Frames:", "Title for number of frames per delta");
+            
+            nexusID = Config.Bind<int>("General", "NexusID", 100, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             Dbgl("Plugin awake");
@@ -374,8 +385,15 @@ namespace PoseAnimations
         {
             public static void Postfix(UIFreePose __instance)
             {
-                if (!modEnabled.Value || __instance.curCategory != catName.Value)
+                if (!modEnabled.Value)
                     return;
+
+                if(__instance.curCategory != catName.Value)
+                {
+                    framesObject?.gameObject.SetActive(false);
+                    return;
+                }
+
 
                 Transform t = Instantiate(__instance.poseIconPrefab);
                 t.SetParent(__instance.poseIconGroup);
@@ -390,6 +408,37 @@ namespace PoseAnimations
                     __instance.poseIconGroup.GetChild(i).GetComponent<Button>().onClick.AddListener(delegate () { PoseButtonClicked(poseIconT); });
 
                 }
+
+                if (!framesObject)
+                {
+                    Dbgl($"Creating frames object");
+
+                    framesObject = new GameObject() { name = "Frames" };
+                    framesObject.transform.SetParent(__instance.categoryDropdown.transform.parent);
+                    framesObject.AddComponent<RectTransform>().anchoredPosition = __instance.categoryDropdown.GetComponent<RectTransform>().anchoredPosition + new Vector2(__instance.categoryDropdown.GetComponent<RectTransform>().rect.width, 0);
+
+                    Text text = Instantiate(Global.code.uiCombat.lineName.transform, framesObject.transform).GetComponent<Text>();
+                    text.text = framesTitle.Value;
+                    text.gameObject.name = "Title";
+                    text.GetComponent<RectTransform>().sizeDelta = new Vector2(80, 40);
+                    text.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 22);
+                    text.resizeTextMaxSize = 32;
+
+                    GameObject ti = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, framesObject.transform);
+                    ti.name = "Input Field";
+                    ti.GetComponent<RectTransform>().sizeDelta = new Vector2(80, 40);
+                    ti.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -10);
+
+                    //ti.GetComponent<RectTransform>().anchoredPosition *= new Vector2(0, 1);
+                    framesInput = ti.GetComponent<InputField>();
+                    framesInput.onValueChanged = new InputField.OnChangeEvent();
+                    framesInput.placeholder.GetComponent<Text>().text = "Auto";
+                    framesInput.placeholder.GetComponent<Text>().resizeTextMaxSize = 32;
+                    //framesInput.placeholder.GetComponent<Text>().resizeTextMaxSize = 32;
+                    framesInput.textComponent.resizeTextMaxSize = 32;
+                }
+                framesObject.SetActive(true);
+
             }
         }
         [HarmonyPatch(typeof(UIFreePose), nameof(UIFreePose.Open))]
@@ -470,7 +519,10 @@ namespace PoseAnimations
                 int totalFrames = 1;
 
                 PoseAnimationData pad = animationDict[buttonName];
-                
+
+                if (!int.TryParse(framesInput.text, out framesPerDelta))
+                    framesPerDelta = -1;
+
                 List<BoneDelta> boneDatas = new List<BoneDelta>();
                 foreach(Transform t in Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().bonesNeedSave)
                 {
@@ -490,18 +542,23 @@ namespace PoseAnimations
                         boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
 
                         //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
-                        if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
+
+                        if(framesPerDelta == -1)
                         {
-                            int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
-                            if (reqFrames > totalFrames)
-                                totalFrames = reqFrames;
+                            if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
+                            {
+                                int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
+                                if (reqFrames > totalFrames)
+                                    totalFrames = reqFrames;
+                            }
+                            if (Vector3.Distance(oldFrameBoneData.EndPos, t.localPosition) > maxBoneMovementPerFrame.Value)
+                            {
+                                int reqFrames = Mathf.CeilToInt(Vector3.Distance(oldFrameBoneData.EndPos, t.localPosition) / maxBoneMovementPerFrame.Value);
+                                if (reqFrames > totalFrames)
+                                    totalFrames = reqFrames;
+                            }
                         }
-                        if (Vector3.Distance(oldFrameBoneData.EndPos, t.localPosition) > maxBoneMovementPerFrame.Value)
-                        {
-                            int reqFrames = Mathf.CeilToInt(Vector3.Distance(oldFrameBoneData.EndPos, t.localPosition) / maxBoneMovementPerFrame.Value);
-                            if (reqFrames > totalFrames)
-                                totalFrames = reqFrames;
-                        }
+
                         found = true;
                         break;
                     }
@@ -513,7 +570,7 @@ namespace PoseAnimations
                         boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
 
                         //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
-                        if (Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
+                        if (framesPerDelta == -1 && Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
                         {
                             int reqFrames = Mathf.Abs(Mathf.CeilToInt(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) / maxBoneRotationPerFrame.Value));
                             if (reqFrames > totalFrames)
@@ -526,13 +583,20 @@ namespace PoseAnimations
                 var lastPos = pad.deltas.Count > 0 ? pad.StartPos + pad.deltas[pad.deltas.Count - 1].EndPosDelta : pad.StartPos;
                 var lastRot = pad.deltas.Count > 0 ? Quaternion.Euler(pad.StartRot) * Quaternion.Euler(pad.deltas[pad.deltas.Count - 1].EndRotDelta) : Quaternion.Euler(pad.StartRot);
                 
-                float rotationFrames = Mathf.Abs(Quaternion.Angle(Global.code.uiFreePose.selectedCharacter.rotation, lastRot)) / maxModelRotationPerFrame.Value;
-                if (rotationFrames > totalFrames)
-                    totalFrames = Mathf.CeilToInt(rotationFrames);
+                if(framesPerDelta == -1)
+                {
+                    float rotationFrames = Mathf.Abs(Quaternion.Angle(Global.code.uiFreePose.selectedCharacter.rotation, lastRot)) / maxModelRotationPerFrame.Value;
+                    if (rotationFrames > totalFrames)
+                        totalFrames = Mathf.CeilToInt(rotationFrames);
 
-                float movementFrames = Vector3.Distance(Global.code.uiFreePose.selectedCharacter.position, lastPos) / maxModelMovementPerFrame.Value;
-                if (movementFrames > totalFrames)
-                    totalFrames = Mathf.CeilToInt(movementFrames);
+                    float movementFrames = Vector3.Distance(Global.code.uiFreePose.selectedCharacter.position, lastPos) / maxModelMovementPerFrame.Value;
+                    if (movementFrames > totalFrames)
+                        totalFrames = Mathf.CeilToInt(movementFrames);
+                }
+                else
+                {
+                    totalFrames = framesPerDelta;
+                }
 
                 pad.deltas.Add(new PoseAnimationDelta(boneDatas, totalFrames, Global.code.uiFreePose.selectedCharacter.position - pad.StartPos, (Global.code.uiFreePose.selectedCharacter.rotation * Quaternion.Inverse(Quaternion.Euler(pad.StartRot))).eulerAngles));
 
@@ -573,6 +637,11 @@ namespace PoseAnimations
                 TransformGizmo.transformGizmo_.selectNow = null;
 
                 PoseAnimationData pad = animationDict[buttonName];
+                if (pad.deltas.Count == 0)
+                {
+                    Dbgl($"Animation contains no deltas!");
+                    return;
+                }
                 if (currentlyPosing.ContainsKey(Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>()))
                 {
                     string oldName = currentlyPosing[Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>()].data.name;
