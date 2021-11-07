@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace PoseAnimations
 {
-    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.8.0")]
+    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.9.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -286,12 +286,12 @@ namespace PoseAnimations
                         var currentDelta = pi.data.deltas[pi.currentDelta];
                         float fraction = (pi.currentFrame + 1) / (float)currentDelta.frames;
 
-                        foreach (var boneData in currentDelta.boneDatas)
+                        foreach (var kvp in currentDelta.boneDatas)
                         {
-                            if (pi.bones.ContainsKey(boneData.boneName))
+                            if (pi.bones.ContainsKey(kvp.Key))
                             {
-                                pi.bones[boneData.boneName].localPosition = Vector3.Lerp(boneData.StartPos, boneData.EndPos, fraction);
-                                pi.bones[boneData.boneName].localRotation = Quaternion.Lerp(Quaternion.Euler(boneData.StartRot), Quaternion.Euler(boneData.EndRot), fraction);
+                                pi.bones[kvp.Key].localPosition = Vector3.Lerp(kvp.Value.StartPos, kvp.Value.EndPos, fraction);
+                                pi.bones[kvp.Key].localRotation = Quaternion.Lerp(Quaternion.Euler(kvp.Value.StartRot), Quaternion.Euler(kvp.Value.EndRot), fraction);
                             }
                         }
 
@@ -485,7 +485,7 @@ namespace PoseAnimations
                 {
                     var name = FixName(t.name);
                     if (!ignoreBones.Contains(name))
-                        pad.boneStarts.Add(new BoneDelta(name, t.localPosition, t.localRotation.eulerAngles));
+                        pad.boneStartDict.Add(name, new BoneDelta(t.localPosition, t.localRotation.eulerAngles));
                 }
 
                 //Dbgl($"Adding {boneDatas.Count} bones to first frame");
@@ -523,7 +523,7 @@ namespace PoseAnimations
                 if (!int.TryParse(framesInput.text, out framesPerDelta))
                     framesPerDelta = -1;
 
-                List<BoneDelta> boneDatas = new List<BoneDelta>();
+                Dictionary<string, BoneDelta> boneDatas = new Dictionary<string, BoneDelta>();
                 foreach(Transform t in Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>().bonesNeedSave)
                 {
                     var name = FixName(t.name);
@@ -533,13 +533,14 @@ namespace PoseAnimations
                     bool found = false;
                     for(int i = pad.deltas.Count - 1; i >= 0; i--)
                     {
-                        var oldFrameBoneData = pad.deltas[i].boneDatas.Find(f => f.boneName == name);
-                        if (oldFrameBoneData == null)
+                        if (!pad.deltas[i].boneDatas.ContainsKey(name))
                             continue;
+                        found = true;
+                        var oldFrameBoneData = pad.deltas[i].boneDatas[name];
                         if (Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) < minBoneRotation.Value && Vector3.Distance(t.localPosition, oldFrameBoneData.EndPos) == 0)
                             continue;
 
-                        boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
+                        boneDatas.Add(FixName(name), new BoneDelta(oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
 
                         //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
 
@@ -559,15 +560,14 @@ namespace PoseAnimations
                             }
                         }
 
-                        found = true;
                         break;
                     }
-                    if (!found)
+                    if (!found && pad.boneStartDict.ContainsKey(name))
                     {
-                        var oldFrameBoneData = pad.boneStarts.Find(f => f.boneName == name);
+                        var oldFrameBoneData = pad.boneStartDict[name];
                         if (Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles)) < minBoneRotation.Value && Vector3.Distance(t.localPosition, oldFrameBoneData.EndPos) == 0)
                             continue;
-                        boneDatas.Add(new BoneDelta(FixName(name), oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
+                        boneDatas.Add(FixName(name), new BoneDelta(oldFrameBoneData.EndPos, t.localPosition, oldFrameBoneData.EndRot, t.localRotation.eulerAngles));
 
                         //Dbgl($"frame {idx + 1}/{pad.frames.Count}, bone {boneData.boneName} total distance {Vector3.Distance(oldFrameBoneData.BonePos, boneData.BonePos)}, total rotation {Quaternion.Angle(oldFrameBoneData.BoneRotation, boneData.BoneRotation)}");
                         if (framesPerDelta == -1 && Mathf.Abs(Quaternion.Angle(Quaternion.Euler(oldFrameBoneData.EndRot), Quaternion.Euler(t.localEulerAngles))) > maxBoneRotationPerFrame.Value)
@@ -628,6 +628,7 @@ namespace PoseAnimations
             }
             else
             {
+                /*
                 Global.code.freeCamera.GetComponent<FreelookCamera>().LetRuntimeTransformRun();
                 TransformGizmo.transformGizmo_.showTempGroup = false;
                 foreach (Transform transform in TransformGizmo.transformGizmo_.tempTransform)
@@ -635,6 +636,7 @@ namespace PoseAnimations
                     transform.gameObject.SetActive(false);
                 }
                 TransformGizmo.transformGizmo_.selectNow = null;
+                */
 
                 PoseAnimationData pad = animationDict[buttonName];
                 if (pad.deltas.Count == 0)
@@ -665,6 +667,11 @@ namespace PoseAnimations
                         continue;
 
                     instance.bones[name] = t;
+                    if (pad.boneStartDict.ContainsKey(name))
+                    {
+                        t.localPosition = pad.boneStartDict[name].EndPos;
+                        t.localEulerAngles = pad.boneStartDict[name].EndRot;
+                    }
                 }
                 currentlyPosing.Add(Global.code.uiFreePose.selectedCharacter.GetComponent<CharacterCustomization>(), instance);
             }

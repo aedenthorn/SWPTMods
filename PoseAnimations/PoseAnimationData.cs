@@ -51,7 +51,7 @@ namespace PoseAnimations
         public float[] startPos = new float[3];
         public float[] startRot = new float[3];
         public List<PoseAnimationDelta> deltas = new List<PoseAnimationDelta>();
-        public List<BoneDelta> boneStarts = new List<BoneDelta>();
+        public Dictionary<string, BoneDelta> boneStartDict = new Dictionary<string, BoneDelta>();
 
         [JsonIgnore]
         public Vector3 StartPos
@@ -83,13 +83,13 @@ namespace PoseAnimations
         public int frames;
         public float[] endPosDelta = new float[3];
         public float[] endRotDelta = new float[3];
-        public List<BoneDelta> boneDatas = new List<BoneDelta>();
+        public Dictionary<string, BoneDelta> boneDatas = new Dictionary<string, BoneDelta>();
 
         public PoseAnimationDelta()
         {
 
         }
-        public PoseAnimationDelta(List<BoneDelta> boneDatas, int frames, Vector3 endPosDelta, Vector3 endRotDelta)
+        public PoseAnimationDelta(Dictionary<string, BoneDelta> boneDatas, int frames, Vector3 endPosDelta, Vector3 endRotDelta)
         {
             this.boneDatas = boneDatas;
             this.frames = frames;
@@ -124,7 +124,6 @@ namespace PoseAnimations
     }
     public class BoneDelta
     {
-        public string boneName;
         public float[] startPos = new float[3];
         public float[] endPos = new float[3];
         public float[] startRot = new float[3];
@@ -134,15 +133,13 @@ namespace PoseAnimations
 
         }
 
-        public BoneDelta(string name, Vector3 endPos, Vector3 endRot)
+        public BoneDelta(Vector3 endPos, Vector3 endRot)
         {
-            boneName = name;
             EndPos = endPos;
             EndRot = endRot;
         }
-        public BoneDelta(string name, Vector3 startPos, Vector3 endPos, Vector3 startRot, Vector3 endRot)
+        public BoneDelta(Vector3 startPos, Vector3 endPos, Vector3 startRot, Vector3 endRot)
         {
-            boneName = name; 
             StartPos = startPos;
             EndPos = endPos;
             StartRot = startRot;
