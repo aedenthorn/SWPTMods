@@ -1,17 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 namespace LootVacuum
 {
-    [BepInPlugin("aedenthorn.LootVacuum", "Loot Vacuum", "0.1.3")]
+    [BepInPlugin("aedenthorn.LootVacuum", "Loot Vacuum", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -19,6 +16,7 @@ namespace LootVacuum
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<float> maxVacuumDistance;
+        public static ConfigEntry<float> minVacuumDistance;
         public static ConfigEntry<float> vacuumVelocity;
         public static ConfigEntry<bool> vacuumWeapons;
         public static ConfigEntry<bool> vacuumArmor;
@@ -48,6 +46,7 @@ namespace LootVacuum
 
             vacuumVelocity = Config.Bind<float>("Options", "VacuumVelocity", 3f, "Vacuum veloctiy.");
             maxVacuumDistance = Config.Bind<float>("Options", "MaxVacuumDistance", 10f, "Max vacuum distance.");
+            minVacuumDistance = Config.Bind<float>("Options", "MinVacuumDistance", 0.1f, "Min distance after which vacuumed objects are ignored.");
 
             vacuumWeapons = Config.Bind<bool>("Toggles", "VacuumWeapons", true, "Vacuum weapons.");
             vacuumArmor = Config.Bind<bool>("Toggles", "VacuumArmor", true, "Vacuum armour.");
@@ -71,7 +70,7 @@ namespace LootVacuum
                     continue;
                 }
                 movingTransformList[i].position = Vector3.MoveTowards(movingTransformList[i].position, Player.code.transform.position, Time.deltaTime * vacuumVelocity.Value);
-                if (Vector3.Distance(movingTransformList[i].position, Player.code.transform.position) < 0.05f)
+                if (Vector3.Distance(movingTransformList[i].position, Player.code.transform.position) < minVacuumDistance.Value)
                 {
                     if (movingTransformList[i].name == "Gold" || movingTransformList[i].name == "Crystals")
                     {

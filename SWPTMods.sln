@@ -161,6 +161,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickLoad", "QuickLoad\Quic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SceneStartFix", "SceneStartFix\SceneStartFix.csproj", "{BF0DA264-C27C-445A-86CF-611A1AF2B49B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanionWeaponSwap", "CompanionWeaponSwap\CompanionWeaponSwap.csproj", "{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -483,6 +485,10 @@ Global
 		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
