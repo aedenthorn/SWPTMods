@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace BattleSkip
 {
-    [BepInPlugin("aedenthorn.BattleSkip", "Battle Skip", "0.1.2")]
+    [BepInPlugin("aedenthorn.BattleSkip", "Battle Skip", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -198,7 +198,6 @@ namespace BattleSkip
 
             Global.code.curlocation.isCleared = true;
             Global.code.curlocation.gameObject.SetActive(false);
-            Global.code.curlocation.GetComponent<Location>().disableMapIcon = true;
             Global.code.uiAchievements.AddPoint(AchievementType.skirmishwon, 1);
             //Global.code.uiCombat.ShowHeader(Localization.GetContent("Scene_2", Array.Empty<object>()));
             //Global.code.uiCombat.blinkingPrompt.text = Localization.GetContent("Global_2", Array.Empty<object>());
@@ -289,7 +288,7 @@ namespace BattleSkip
 
                 // etc.
 
-                Global.code.uiAchievements.AddPoint(AchievementType.totalkills, 1);
+                Global.code.uiAchievements.AddPoint(AchievementType.totalkill, 1);
 
                 LootDrop ld = t.GetComponent<LootDrop>();
 

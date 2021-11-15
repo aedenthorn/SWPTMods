@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace EnhancedFreePose
 {
-    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.7.1")]
+    [BepInPlugin("aedenthorn.EnhancedFreePose", "Enhanced Free Pose", "0.8.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -26,6 +26,7 @@ namespace EnhancedFreePose
         public static ConfigEntry<int> nexusID;
         
         public static ConfigEntry<float> freeCameraSpeed;
+        public static ConfigEntry<float> rotateSpeed;
         public static ConfigEntry<float> freeCameraBoostMult;
         public static ConfigEntry<string> xRotateModKey;
         public static ConfigEntry<string> zRotateModKey;
@@ -47,6 +48,7 @@ namespace EnhancedFreePose
 
             maxModels = Config.Bind<int>("Options", "MaxModels", 8, "Maximum number of models to allow.");
             freeCameraSpeed = Config.Bind<float>("Options", "FreeCameraSpeed", 2f, "Free camera move speed.");
+            rotateSpeed = Config.Bind<float>("Options", "rotateSpeed", 10f, "Rotation speed.");
             freeCameraBoostMult = Config.Bind<float>("Options", "FreeCameraBoostMult", 3f, "Multiply camera move speed by this when holding down game's camera boost key (left shift).");
             xRotateModKey = Config.Bind<string>("Options", "XRotateModKey", "left shift", "Modifier key to rotate around X-axis. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             zRotateModKey = Config.Bind<string>("Options", "ZRotateModKey", "left ctrl", "Modifier key to rotate around Z-axis. Use https://docs.unity3d.com/Manual/class-InputManager.html");
@@ -376,16 +378,16 @@ namespace EnhancedFreePose
                         if (AedenthornUtils.CheckKeyHeld(xRotateModKey.Value))
                         {
                             //Dbgl($"trying to rotate {__instance.mover.transform.eulerAngles} x by {__instance.deltaX}");
-                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(deltaX * __instance.speed_Rotate, 0f, 0f), Time.deltaTime / 20f);
+                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(-deltaX * rotateSpeed.Value, 0f, 0f), Time.deltaTime);
                         }
                         else if (AedenthornUtils.CheckKeyHeld(zRotateModKey.Value))
                         {
                             //Dbgl($"trying to rotate {__instance.mover.transform.eulerAngles} z by {__instance.deltaX}");
-                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(0f, 0f, deltaX * __instance.speed_Rotate), Time.deltaTime / 20f);
+                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(0f, 0f, -deltaX * rotateSpeed.Value), Time.deltaTime);
                         }
                         else
                         {
-                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(0f, -deltaX * __instance.speed_Rotate, 0f), Time.deltaTime / 20f);
+                            __instance.mover.transform.eulerAngles = Vector3.Lerp(__state, __state + new Vector3(0f, -deltaX * rotateSpeed.Value, 0f), Time.deltaTime);
                         }
                     }
                     else

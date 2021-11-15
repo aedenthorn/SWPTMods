@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.1")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.7.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;

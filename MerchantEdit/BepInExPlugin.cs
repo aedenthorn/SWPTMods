@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace MerchantEdit
 {
-    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.2.0")]
+    [BepInPlugin("aedenthorn.MerchantEdit", "Merchant Edit", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -73,7 +73,7 @@ namespace MerchantEdit
                     { "Fat_Orc", GameObject.Find("/Scene/Statics/Bar/Fat_Orc") },
                     { "Ork_fighter", GameObject.Find("/Scene/Statics/Smith Model")},
                     { "Little_Demon", GameObject.Find("/Scene/Statics/Bar/Little Demon Skin3 Base mesh") },
-                    { "Slaver", GameObject.Find("Necromant remaster custom rigg Skin2") }
+                    { "Slaver", GameObject.Find("/Scene/Statics/Base mesh skin1") }
                 };
 
                 if (!modelObjects["Bartender"])
@@ -117,6 +117,13 @@ namespace MerchantEdit
 
         private void SwitchModel(Dictionary<string, GameObject> modelObjects, string custom, string vanilla)
         {
+
+            if(!modelObjects[vanilla])
+            {
+                Dbgl($"Cannot find vanilla moder for {vanilla}");
+                return;
+            }
+
             GameObject go = null;
 
 

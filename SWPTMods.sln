@@ -155,7 +155,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTools", "ConsoleTool
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoseAnimations", "PoseAnimations\PoseAnimations.csproj", "{6873D16A-68F7-4B8E-9007-C5311680AF76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurnitureCost", "FurnitureCost\FurnitureCost.csproj", "{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FurnitureCost", "FurnitureCost\FurnitureCost.csproj", "{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickLoad", "QuickLoad\QuickLoad.csproj", "{CB31F11F-9268-4D0B-80E8-6BEF3EB6EC69}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SceneStartFix", "SceneStartFix\SceneStartFix.csproj", "{BF0DA264-C27C-445A-86CF-611A1AF2B49B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanionWeaponSwap", "CompanionWeaponSwap\CompanionWeaponSwap.csproj", "{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -471,6 +477,18 @@ Global
 		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F2F1DD2-5E96-47EF-9F80-1BFD0F2DE28F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB31F11F-9268-4D0B-80E8-6BEF3EB6EC69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB31F11F-9268-4D0B-80E8-6BEF3EB6EC69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB31F11F-9268-4D0B-80E8-6BEF3EB6EC69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB31F11F-9268-4D0B-80E8-6BEF3EB6EC69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF0DA264-C27C-445A-86CF-611A1AF2B49B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62C34D0B-CC39-42C5-A107-4EAEC4EC05EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

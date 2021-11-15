@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickSwapItems
 {
-    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap", "0.3.2")]
+    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -14,6 +14,7 @@ namespace QuickSwapItems
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<string> hotKeys;
+        public static ConfigEntry<string> dropKey;
         public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -29,6 +30,7 @@ namespace QuickSwapItems
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
 
             hotKeys = Config.Bind<string>("Options", "HotKeyArray", "1,2,3,4,5,6,7,8", "Comma-separated list of hotkeys to switch inventories or send selected item to specific inventory. First entry refers to the player. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            dropKey = Config.Bind<string>("Options", "DropKey", "o", "Hot key to drop selected item. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
             nexusID = Config.Bind<int>("General", "NexusID", 5, "Nexus mod ID for updates");
 
@@ -45,6 +47,11 @@ namespace QuickSwapItems
             {
                 if (!modEnabled.Value || !Player.code)
                     return;
+
+                if (AedenthornUtils.CheckKeyDown(dropKey.Value) && __instance.selectedItem)
+                {
+                    __instance.uiInventory.DiscardItem();
+                }
 
                 string[] keyarray = hotKeys.Value.Split(',');
                 for(int i = 0; i < keyarray.Length; i++)
