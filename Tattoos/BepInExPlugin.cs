@@ -116,10 +116,10 @@ namespace Tattoos
             int count = 0;
             try
             {
-                foreach (string iconPath in Directory.GetFiles(Path.Combine(assetPath, folder), "*_icon.png"))
+                foreach (string texPath in Directory.GetFiles(Path.Combine(assetPath, folder), "*.png"))
                 {
-                    string texPath = iconPath.Replace("_icon.png", ".png");
-                    if (!File.Exists(texPath))
+                    //string texPath = iconPath.Replace("_icon.png", ".png");
+                    if (texPath.EndsWith("_icon.png"))
                         continue;
 
                     if (tattooRegister.TryGetValue(texPath, out Transform t))
@@ -176,7 +176,15 @@ namespace Tattoos
                     ci.icon = new Texture2D(1, 1);
                     if (pathRegistere.TryGetValue(t, out string path))
                     {
-                        ci.icon.LoadImage(File.ReadAllBytes(path));
+                        var icon_path = path.Replace(".png", "_icon.png");
+                        if (File.Exists(icon_path))
+						{
+                            ci.icon.LoadImage(File.ReadAllBytes(icon_path));
+                        }
+                        else
+						{
+                            ci.icon.LoadImage(File.ReadAllBytes(path));
+                        }
                         return ci.icon;
                     }
                     else
