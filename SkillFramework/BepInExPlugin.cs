@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace SkillFramework
 {
-    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.2.1")]
+    [BepInPlugin("aedenthorn.SkillFramework", "Skill Framework", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
