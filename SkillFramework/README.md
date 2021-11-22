@@ -126,6 +126,19 @@ Now in the class you can have all the code related to your skill, it can also be
 as long as your use the directive ``Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);``
 at the end of your ``Awake()`` method of your plugin.
 
+By default the skill will be added in the ``Combat`` categories (which is the second one), but you can
+choose the category by using the static constant available in the ``SkillCategories`` class.
+
+Here's how to declare a skill with another category:
+
+```C#
+mySkill = new MySkill()
+          {
+                iconName = typeof(MySkill).Name,
+                skillCategory = SkillCategories.Magic
+          }.Build(this, "1 - My SKill")
+```
+
 ## Delegates
 
 This is not the end. This plugin provide a bunch of thing to avoid using patches that can
