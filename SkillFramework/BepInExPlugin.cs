@@ -41,6 +41,17 @@ namespace SkillFramework
 
         }
 
+        public static Transform[] GetUICharacterSkillCategoriesParents(UICharacter uICharacter)
+        {
+            return new Transform[]
+            {
+            uICharacter.daggerproficiency.transform.parent,
+            uICharacter.ignorpain.transform.parent,
+            uICharacter.healaura.transform.parent,
+            uICharacter.goldenhand.transform.parent
+            };
+        }
+
         public static int GetCharacterSkillLevel(string charName, string skillname)
         {
             if (!characterSkillLevels.ContainsKey(charName))
@@ -68,7 +79,7 @@ namespace SkillFramework
                     return;
 
                 // get categories transform elements
-                Transform[] parents = AedenthornUtils.GetUICharacterSkillCategoriesParents(__instance);
+                Transform[] parents = GetUICharacterSkillCategoriesParents(__instance);
 
                 foreach (SkillInfo skillInfo in customSkills.Values)
                 {
