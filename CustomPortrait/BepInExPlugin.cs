@@ -80,7 +80,7 @@ namespace CustomPortrait
 
             if (AedenthornUtils.CheckKeyDown(hotkey.Value))
             {
-                if ((AedenthornUtils.CheckKeyHeld(portraitModkey.Value, true) || (AedenthornUtils.CheckKeyHeld(portraitModkey.Value, false) && !AedenthornUtils.CheckKeyHeld(screenshotModkey.Value, true))) && (Global.code.uiInventory.gameObject.activeSelf == true || Global.code.uiPose.gameObject.activeSelf == true || Global.code.uiFreePose.gameObject.activeSelf == true))
+                if ((AedenthornUtils.CheckKeyHeld(portraitModkey.Value, true) || (AedenthornUtils.CheckKeyHeld(portraitModkey.Value, false) && !AedenthornUtils.CheckKeyHeld(screenshotModkey.Value, true))) && (Global.code.uiInventory.gameObject.activeSelf || Global.code.uiPose.gameObject.activeSelf || Global.code.uiFreePose.gameObject.activeSelf))
                 {
                     Dbgl("Pressed portrait hotkey");
 

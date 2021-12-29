@@ -53,7 +53,7 @@ namespace RescueMissions
                     if (transform)
                     {
                         Location location = transform.GetComponent<Location>();
-                        if (location && location.locationType == LocationType.rescue && !location.companionPrisoner && location.level <= Player.code._ID.level && transform.parent?.gameObject.activeSelf == true && Random.value < rescueMissionChance.Value)
+                        if (location && location.locationType == LocationType.rescue && !location.companionPrisoner && location.level <= Player.code._ID.level && transform.parent?.gameObject.activeSelf && Random.value < rescueMissionChance.Value)
                         {
                             Dbgl("Trying to add rescue companion");
 

@@ -101,19 +101,19 @@ namespace CustomMainMenu
 
         private void LightSettingChanged(object sender, EventArgs e)
         {
-            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf == true)
+            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf)
                 LoadCustomLightData();
         }
 
         private void PoseSettingChanged(object sender, EventArgs e)
         {
-            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf == true)
+            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf)
                 LoadPoseData();
         }
         
         private void SettingChanged(object sender, EventArgs e)
         {
-            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf == true)
+            if (SceneManager.GetActiveScene().name == "Desktop" && mmCharacter?.gameObject.activeSelf)
                 LoadCustomCharacter();
         }
     }

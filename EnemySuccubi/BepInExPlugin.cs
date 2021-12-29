@@ -78,7 +78,7 @@ namespace EnemySuccubi
         {
             public static void Postfix(EnemySpawner __instance, ref Transform __result)
             {
-                if (!modEnabled.Value || __result.GetComponent<Monster>()?.isElite == true)
+                if (!modEnabled.Value || __result.GetComponent<Monster>()?.isElite)
                     return;
 
                 if (TrySpawnOrdinary(__result))

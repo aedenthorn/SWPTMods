@@ -61,7 +61,7 @@ namespace ConfigurationManager
                     return null;
                 }
 
-                entry.Browsable = innerProp.CanRead && innerProp.CanWrite && entry.Browsable != false;
+                entry.Browsable = innerProp.CanRead && innerProp.CanWrite && entry.Browsable;
 
                 entry.Property = innerProp;
                 entry.Instance = wrapper;

@@ -46,7 +46,7 @@ namespace ConfigurationManager
 
                 //BepInExPlugin.Dbgl(plugin.name);
 
-                if (plugin.Info.Metadata.GUID == "com.bepis.bepinex.configurationmanager" || plugin.enabled == false)
+                if (plugin.Info.Metadata.GUID == "com.bepis.bepinex.configurationmanager" || !plugin.enabled)
                 {
                     BepInExPlugin.Dbgl($"plugin: {plugin.Info.Metadata.Name} enabled {plugin.enabled}");
                 }
@@ -68,11 +68,11 @@ namespace ConfigurationManager
 
                 detected.AddRange(GetPluginConfig(plugin).Cast<SettingEntryBase>());
 
-                int count = detected.FindAll(x => x.Browsable == false).Count;
+                int count = detected.FindAll(x => !x.Browsable).Count;
                 if(count > 0)
                 {
                     BepInExPlugin.Dbgl($"{count} settings are not browseable, removing.");
-                    detected.RemoveAll(x => x.Browsable == false);
+                    detected.RemoveAll(x => !x.Browsable);
                 }
 
                 if (!detected.Any())

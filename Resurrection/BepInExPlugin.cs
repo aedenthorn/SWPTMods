@@ -88,7 +88,7 @@ namespace Resurrection
                             resurrectSkill.gameObject.name = "Resurrection Spell";
                             resurrectSkill.manaConsumption = manaCost.Value;
                         }
-                        IEnumerable<Transform> deadCompanions = FindObjectsOfType<Companion>().ToList().FindAll(t => t.GetComponent<Companion>() && t.GetComponent<ID>()?.isFriendly == true && t.gameObject.tag == "D").Select(c => c.transform);
+                        IEnumerable<Transform> deadCompanions = FindObjectsOfType<Companion>().ToList().FindAll(t => t.GetComponent<Companion>() && t.GetComponent<ID>()?.isFriendly && t.gameObject.tag == "D").Select(c => c.transform);
                         deadCompanion = null;
                         if (deadCompanions.Any())
                         {

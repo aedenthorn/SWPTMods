@@ -55,7 +55,7 @@ namespace CompareEquipment
         {
             static void Postfix(UICombat __instance)
             {
-                if (!modEnabled.Value || __instance.descriptionsPanel?.gameObject.activeSelf != true)
+                if (!modEnabled.Value || !__instance.descriptionsPanel?.gameObject.activeSelf)
                     return;
 
                 if (AedenthornUtils.CheckKeyDown(weaponModKey.Value) || AedenthornUtils.CheckKeyUp(weaponModKey.Value))

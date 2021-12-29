@@ -308,7 +308,7 @@ namespace BepInExModSupport
                 
 
 
-                if (!mainMenu && Mainframe.code?.uiModBrowse.gameObject.activeSelf != true)
+                if (!mainMenu && !Mainframe.code?.uiModBrowse.gameObject.activeSelf)
                 {
                     isCheckingUpdates = false;
                     yield break;
@@ -387,7 +387,7 @@ namespace BepInExModSupport
                             check = true;
                         }
                     }
-                    if (found == false)
+                    if (!found)
                     {
                         Dbgl("Mod version string not found on page!");
                         //File.WriteAllLines(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), id + "_page.txt"), lines);

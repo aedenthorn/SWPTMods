@@ -238,7 +238,7 @@ namespace EnhancedFreePose
         {
             public static void Prefix(FreelookCamera __instance)
             {
-                if (!modEnabled.Value || Global.code?.uiFreePose.gameObject.activeSelf != true)
+                if (!modEnabled.Value || !Global.code?.uiFreePose.gameObject.activeSelf)
                     return;
                 __instance.Speed = freeCameraSpeed.Value;
                 __instance.BoostSpeed = freeCameraSpeed.Value * freeCameraBoostMult.Value;
@@ -262,7 +262,7 @@ namespace EnhancedFreePose
             {
                 try
                 {
-                    if (!modEnabled.Value || Global.code?.uiFreePose?.gameObject?.activeSelf != true || ___mytransform == null)
+                    if (!modEnabled.Value || !Global.code?.uiFreePose?.gameObject?.activeSelf || ___mytransform == null)
                         return;
                 }
                 catch { return; }
@@ -273,7 +273,7 @@ namespace EnhancedFreePose
             {
                 try
                 {
-                    if (!modEnabled.Value || Global.code?.uiFreePose?.gameObject?.activeSelf != true || !___mytransform || __state == null)
+                    if (!modEnabled.Value || !Global.code?.uiFreePose?.gameObject?.activeSelf || !___mytransform || __state == null)
                         return;
                 }
                 catch

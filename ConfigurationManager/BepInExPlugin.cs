@@ -584,11 +584,11 @@ namespace ConfigurationManager
             else
             {
                 if (!_showAdvanced.Value)
-                    results = results.Where(x => x.IsAdvanced != true);
+                    results = results.Where(x => !x.IsAdvanced);
                 if (!_showKeybinds.Value)
                     results = results.Where(x => !IsKeyboardShortcut(x));
                 if (!_showSettings.Value)
-                    results = results.Where(x => x.IsAdvanced == true || IsKeyboardShortcut(x));
+                    results = results.Where(x => x.IsAdvanced || IsKeyboardShortcut(x));
             }
 
             const string shortcutsCatName = "Keyboard shortcuts";

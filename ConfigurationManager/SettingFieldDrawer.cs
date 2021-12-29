@@ -238,7 +238,7 @@ namespace ConfigurationManager
                 setting.Set(newValue);
             }
 
-            if (setting.ShowRangeAsPercent == true)
+            if (setting.ShowRangeAsPercent)
             {
                 DrawCenteredLabel(
                     Mathf.Round(100 * Mathf.Abs(result - leftValue) / Mathf.Abs(rightValue - leftValue)) + "%",

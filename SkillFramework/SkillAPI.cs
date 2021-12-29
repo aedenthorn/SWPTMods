@@ -26,7 +26,7 @@ namespace SkillFramework
                 reqLevel = reqLevel,
                 isActiveSkill = isActiveSkill
             };
-            if (Global.code?.uiCharacter?.gameObject.activeSelf == true)
+            if (Global.code?.uiCharacter?.gameObject.activeSelf)
                 Global.code.uiCharacter.Refresh();
         }
         public static SkillInfo GetSkill(string id)

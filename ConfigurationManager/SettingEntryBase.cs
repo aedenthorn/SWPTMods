@@ -111,7 +111,7 @@ namespace ConfigurationManager
         /// </summary>
         public void Set(object newVal)
         {
-            if (ReadOnly != true)
+            if (!ReadOnly)
                 SetValue(newVal);
         }
 

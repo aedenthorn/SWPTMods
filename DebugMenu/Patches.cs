@@ -151,7 +151,7 @@ namespace DebugMenu
         {
             public static bool Prefix()
             {
-                if (!modEnabled.Value || uiSpawnItem?.gameObject.activeSelf != true)
+                if (!modEnabled.Value || !uiSpawnItem?.gameObject.activeSelf)
                     return true;
                 return false;
             }
@@ -163,7 +163,7 @@ namespace DebugMenu
         {
             public static bool Prefix()
             {
-                if (!modEnabled.Value || (uiDebug?.gameObject.activeSelf != true && uiSpawnItem?.gameObject.activeSelf != true))
+                if (!modEnabled.Value || (!uiDebug?.gameObject.activeSelf && !uiSpawnItem?.gameObject.activeSelf))
                     return true;
 
                 Global.code.uiCombat.HideHint();
@@ -275,7 +275,7 @@ namespace DebugMenu
                 __instance.rigidbody.useGravity = !flyMode.Value;
                 __instance.GetComponent<CapsuleCollider>().enabled = !flyMode.Value;
 
-                if (!Global.code.onGUI && spawnInput?.gameObject.activeSelf != true && AedenthornUtils.CheckKeyDown(flyToggleKey.Value))
+                if (!Global.code.onGUI && !spawnInput?.gameObject.activeSelf && AedenthornUtils.CheckKeyDown(flyToggleKey.Value))
                     flyMode.Value = !flyMode.Value;
 
                 if (flyMode.Value)
