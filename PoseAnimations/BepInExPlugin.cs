@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace PoseAnimations
 {
-    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.9.0")]
+    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.10.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -101,84 +101,10 @@ namespace PoseAnimations
             DontDestroyOnLoad(posesGameObject);
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             if (!modEnabled.Value || !Player.code || !Global.code.uiFreePose.enabled)
                 return;
-            
-            if(Global.code.uiFreePose.curCategory == catName.Value && (AedenthornUtils.CheckKeyDown(setReverseKey.Value) || AedenthornUtils.CheckKeyDown(setLoopKey.Value) || AedenthornUtils.CheckKeyDown(saveKey.Value) || AedenthornUtils.CheckKeyDown(fromFileKey.Value) || AedenthornUtils.CheckKeyDown(deleteAnimationKey.Value)))
-            {
-                PointerEventData eventData = new PointerEventData(EventSystem.current)
-                {
-                    position = Input.mousePosition
-                };
-                List<RaycastResult> raycastResults = new List<RaycastResult>();
-                EventSystem.current.RaycastAll(eventData, raycastResults);
-
-                foreach (RaycastResult rcr in raycastResults)
-                {
-                    if (rcr.gameObject.layer == LayerMask.NameToLayer("UI") && rcr.gameObject.GetComponent<PoseIcon>())
-                    {
-                        if (rcr.gameObject.name == "AddNewAnimation" || !animationDict.ContainsKey(rcr.gameObject.name))
-                            break;
-
-                        PoseAnimationData pad = animationDict[rcr.gameObject.name];
-
-                        if (AedenthornUtils.CheckKeyDown(setReverseKey.Value))
-                        {
-                            pad.reverse = !pad.reverse;
-                            foreach(var kvp in currentlyPosing)
-                            {
-                                if (kvp.Value.name == pad.name)
-                                    kvp.Value.data.reverse = pad.reverse;
-                            }
-                            Global.code.uiCombat.ShowHeader(Localization.GetContent("Reverse: "+pad.reverse, new object[0]));
-                        }
-                        else if (AedenthornUtils.CheckKeyDown(setLoopKey.Value))
-                        {
-                            pad.loop = !pad.loop;
-                            foreach (var kvp in currentlyPosing)
-                            {
-                                if (kvp.Value.name == pad.name)
-                                    kvp.Value.data.loop = pad.loop;
-                            }
-                            Global.code.uiCombat.ShowHeader(Localization.GetContent("Loop: " + pad.loop, new object[0]));
-                        }
-                        else if (AedenthornUtils.CheckKeyDown(resetStartPosKey.Value))
-                        {
-                            pad.StartPos = Global.code.uiFreePose.selectedCharacter.position;
-                            Global.code.uiCombat.ShowHeader(Localization.GetContent("Animation start position reset to " + pad.StartPos, new object[0]));
-                        }
-                        else if (AedenthornUtils.CheckKeyDown(saveKey.Value))
-                        {
-                            File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
-                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} saved", new object[0]), pad.name));
-                        }
-                        else if (AedenthornUtils.CheckKeyDown(fromFileKey.Value))
-                        {
-                            animationDict[pad.name] = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(Path.Combine(AedenthornUtils.GetAssetPath(this), pad.name+".json")));
-                            try
-                            {
-                                Texture2D icon = new Texture2D(1, 1);
-                                icon.LoadImage(File.ReadAllBytes(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".png")));
-                                RM.code.allFreePoses.GetItemWithName(pad.name).GetComponent<Pose>().icon = icon;
-                                rcr.gameObject.GetComponent<RawImage>().texture = icon;
-                            }
-                            catch { }
-                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} reloaded", new object[0]), pad.name));
-                        }
-                        else if (AedenthornUtils.CheckKeyDown(deleteAnimationKey.Value))
-                        {
-                            animationDict.Remove(pad.name);
-                            File.Delete(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"));
-                            RM.code.allFreePoses.RemoveItemWithName(pad.name);
-                            Global.code.uiFreePose.Refresh();
-                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} deleted", new object[0]), pad.name));
-                        }
-                        break;
-                    }
-                }
-            }
 
             if (currentlyPosing.Any())
             {
@@ -295,7 +221,7 @@ namespace PoseAnimations
                             }
                         }
 
-                        var rotOffset =  Quaternion.Euler(pi.StartRot) * Quaternion.Inverse(Quaternion.Euler(pi.data.StartRot));
+                        var rotOffset = Quaternion.Euler(pi.StartRot) * Quaternion.Inverse(Quaternion.Euler(pi.data.StartRot));
                         //var posOffset = rotOffset * (pi.StartPos - pi.data.StartPos);
                         //var posOffset = pi.StartPos - pi.data.StartPos;
 
@@ -323,6 +249,87 @@ namespace PoseAnimations
                     }
                 }
             }
+        }
+        private void Update()
+        {
+            if (!modEnabled.Value || !Player.code || !Global.code.uiFreePose.enabled)
+                return;
+            
+            if(Global.code.uiFreePose.curCategory == catName.Value && (AedenthornUtils.CheckKeyDown(setReverseKey.Value) || AedenthornUtils.CheckKeyDown(setLoopKey.Value) || AedenthornUtils.CheckKeyDown(saveKey.Value) || AedenthornUtils.CheckKeyDown(fromFileKey.Value) || AedenthornUtils.CheckKeyDown(deleteAnimationKey.Value)))
+            {
+                PointerEventData eventData = new PointerEventData(EventSystem.current)
+                {
+                    position = Input.mousePosition
+                };
+                List<RaycastResult> raycastResults = new List<RaycastResult>();
+                EventSystem.current.RaycastAll(eventData, raycastResults);
+
+                foreach (RaycastResult rcr in raycastResults)
+                {
+                    if (rcr.gameObject.layer == LayerMask.NameToLayer("UI") && rcr.gameObject.GetComponent<PoseIcon>())
+                    {
+                        if (rcr.gameObject.name == "AddNewAnimation" || !animationDict.ContainsKey(rcr.gameObject.name))
+                            break;
+
+                        PoseAnimationData pad = animationDict[rcr.gameObject.name];
+
+                        if (AedenthornUtils.CheckKeyDown(setReverseKey.Value))
+                        {
+                            pad.reverse = !pad.reverse;
+                            foreach(var kvp in currentlyPosing)
+                            {
+                                if (kvp.Value.name == pad.name)
+                                    kvp.Value.data.reverse = pad.reverse;
+                            }
+                            Global.code.uiCombat.ShowHeader(Localization.GetContent("Reverse: "+pad.reverse, new object[0]));
+                        }
+                        else if (AedenthornUtils.CheckKeyDown(setLoopKey.Value))
+                        {
+                            pad.loop = !pad.loop;
+                            foreach (var kvp in currentlyPosing)
+                            {
+                                if (kvp.Value.name == pad.name)
+                                    kvp.Value.data.loop = pad.loop;
+                            }
+                            Global.code.uiCombat.ShowHeader(Localization.GetContent("Loop: " + pad.loop, new object[0]));
+                        }
+                        else if (AedenthornUtils.CheckKeyDown(resetStartPosKey.Value))
+                        {
+                            pad.StartPos = Global.code.uiFreePose.selectedCharacter.position;
+                            Global.code.uiCombat.ShowHeader(Localization.GetContent("Animation start position reset to " + pad.StartPos, new object[0]));
+                        }
+                        else if (AedenthornUtils.CheckKeyDown(saveKey.Value))
+                        {
+                            File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"), JsonConvert.SerializeObject(pad, Formatting.Indented));
+                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} saved", new object[0]), pad.name));
+                        }
+                        else if (AedenthornUtils.CheckKeyDown(fromFileKey.Value))
+                        {
+                            animationDict[pad.name] = JsonConvert.DeserializeObject<PoseAnimationData>(File.ReadAllText(Path.Combine(AedenthornUtils.GetAssetPath(this), pad.name+".json")));
+                            try
+                            {
+                                Texture2D icon = new Texture2D(1, 1);
+                                icon.LoadImage(File.ReadAllBytes(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".png")));
+                                RM.code.allFreePoses.GetItemWithName(pad.name).GetComponent<Pose>().icon = icon;
+                                rcr.gameObject.GetComponent<RawImage>().texture = icon;
+                            }
+                            catch { }
+                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} reloaded", new object[0]), pad.name));
+                        }
+                        else if (AedenthornUtils.CheckKeyDown(deleteAnimationKey.Value))
+                        {
+                            animationDict.Remove(pad.name);
+                            File.Delete(Path.Combine(AedenthornUtils.GetAssetPath(context), pad.name + ".json"));
+                            RM.code.allFreePoses.RemoveItemWithName(pad.name);
+                            Global.code.uiFreePose.Refresh();
+                            Global.code.uiCombat.ShowHeader(string.Format(Localization.GetContent("Pose animation {0} deleted", new object[0]), pad.name));
+                        }
+                        break;
+                    }
+                }
+            }
+
+            
         }
 
         [HarmonyPatch(typeof(RM), "LoadResources")]

@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Tattoos
 {
-    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.8.0")]
+    [BepInPlugin("aedenthorn.Tattoos", "Tattoos", "0.9.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -36,8 +36,9 @@ namespace Tattoos
         private static Slider strengthSlider;
 
         private static Texture2D defaultWombIcon;
-        private static readonly Dictionary<Transform, string> pathRegistere = new Dictionary<Transform, string>();
-        private static readonly Dictionary<string, Transform> tattooRegister = new Dictionary<string, Transform>();
+        private static Texture2D blankTexture;
+        private static readonly Dictionary<Transform, string> pathDict = new Dictionary<Transform, string>();
+        private static readonly Dictionary<string, Transform> tattooDict = new Dictionary<string, Transform>();
 
         //Why not using context.Logger.LogInfo / .LogWarning / .LogError ?
         public static void Dbgl(string str = "", bool pref = true)
@@ -122,7 +123,7 @@ namespace Tattoos
                     if (texPath.EndsWith("_icon.png"))
                         continue;
 
-                    if (tattooRegister.TryGetValue(texPath, out Transform t))
+                    if (tattooDict.TryGetValue(texPath, out Transform t))
                     {
                         //Lazy loading!!!
                         //textureDict[texPath].LoadImage(File.ReadAllBytes(texPath));
@@ -151,8 +152,8 @@ namespace Tattoos
                     resources.AddItem(t);
                     count++;
 
-                    pathRegistere.Add(t, texPath);
-                    tattooRegister.Add(texPath, t);
+                    pathDict.Add(t, texPath);
+                    tattooDict.Add(texPath, t);
                 }
                 Dbgl($"Got {count} {folder} tattoos");
             }
@@ -174,7 +175,7 @@ namespace Tattoos
                 else
                 {
                     ci.icon = new Texture2D(1, 1);
-                    if (pathRegistere.TryGetValue(t, out string path))
+                    if (pathDict.TryGetValue(t, out string path))
                     {
                         var icon_path = path.Replace(".png", "_icon.png");
                         if (File.Exists(icon_path))
@@ -201,7 +202,7 @@ namespace Tattoos
             if (t && t.TryGetComponent(out CustomizationItem ci) && !ci.eyes)
             {
                 ci.eyes = new Texture2D(1, 1);
-                if (pathRegistere.TryGetValue(t, out string path))
+                if (pathDict.TryGetValue(t, out string path))
                 {
                     ci.eyes.LoadImage(File.ReadAllBytes(path));
                 }
@@ -262,9 +263,12 @@ namespace Tattoos
                 DontDestroyOnLoad(tattooGO);
 
                 defaultWombIcon = new Texture2D(1, 1);
+                blankTexture = new Texture2D(1, 1);
 
                 if (File.Exists(Path.Combine(assetPath, "wombIcon.png")))
                     defaultWombIcon.LoadImage(File.ReadAllBytes(Path.Combine(assetPath, "wombIcon.png")));
+                if (File.Exists(Path.Combine(assetPath, "blank.png")))
+                    blankTexture.LoadImage(File.ReadAllBytes(Path.Combine(assetPath, "blank.png")));
 
                 RegisterAllTattoos();
             }
@@ -455,7 +459,7 @@ namespace Tattoos
                 {
                     Dbgl("Clicked");
                     __instance.curCustomization.wombTattoo = null;
-                    __instance.curCustomization.body.materials[0].SetTexture("_MakeUpMask2_RGB", null);
+                    __instance.curCustomization.body.materials[0].SetTexture("_MakeUpMask2_RGB", blankTexture);
                 });
 
                 __instance.StartCoroutine(CoroutineLeg(__instance));
