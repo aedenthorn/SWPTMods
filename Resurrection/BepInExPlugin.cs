@@ -75,7 +75,7 @@ namespace Resurrection
         {
             static void Postfix(Player __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || Global.code.onGUI)
                     return;
                 if (AedenthornUtils.CheckKeyDown(castKey.Value))
                 {

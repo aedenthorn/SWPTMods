@@ -163,7 +163,7 @@ namespace DebugMenu
         {
             public static bool Prefix()
             {
-                if (!modEnabled.Value || (uiDebug?.gameObject.activeSelf != true && uiSpawnItem?.gameObject.activeSelf != true))
+                if (!modEnabled.Value || !Global.code?.uiCombat || (uiDebug?.gameObject?.activeSelf != true && uiSpawnItem?.gameObject?.activeSelf != true))
                     return true;
 
                 Global.code.uiCombat.HideHint();

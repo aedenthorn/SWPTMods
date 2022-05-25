@@ -51,19 +51,8 @@ namespace DebugMenu
                 if (t)
                     enemies.Add(t.name);
 
-            List<string> squads = new List<string>();
-            foreach (Transform t in RM.code.allSquads.items)
-                if (t)
-                    squads.Add(t.name);
 
-            List<string> fieldArmies = new List<string>();
-            foreach (Transform t in RM.code.allFieldArmies.items)
-                if (t)
-                    fieldArmies.Add(t.name);
-
-            string output = "Enemies:\n\n\t" + string.Join("\n\t", enemies)
-                + "\n\n\nSquads:\n\n\t" + string.Join("\n\t", squads)
-                + "\n\n\nField Armies:\n\n\t" + string.Join("\n\t", fieldArmies);
+            string output = "Enemies:\n\n\t" + string.Join("\n\t", enemies);
 
             string path = Path.Combine(AedenthornUtils.GetAssetPath(typeof(BepInExPlugin).Namespace), "dump_enemies.txt");
             File.WriteAllText(path, output);

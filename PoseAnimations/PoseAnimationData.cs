@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace PoseAnimations
@@ -16,31 +14,6 @@ namespace PoseAnimations
         public float[] startPos = new float[3];
         public float[] startRot = new float[3];
         public PoseAnimationData data;
-
-        [JsonIgnore]
-        public Vector3 StartPos
-        {
-            get
-            {
-                return new Vector3(startPos[0], startPos[1], startPos[2]);
-            }
-            set
-            {
-                startPos = new float[] { value.x, value.y, value.z };
-            }
-        }
-        [JsonIgnore]
-        public Vector3 StartRot
-        {
-            get
-            {
-                return new Vector3(startRot[0], startRot[1], startRot[2]);
-            }
-            set
-            {
-                startRot = new float[] { value.x, value.y, value.z };
-            }
-        }
     }
     public class PoseAnimationData
     {
@@ -52,31 +25,6 @@ namespace PoseAnimations
         public float[] startRot = new float[3];
         public List<PoseAnimationDelta> deltas = new List<PoseAnimationDelta>();
         public Dictionary<string, BoneDelta> boneStartDict = new Dictionary<string, BoneDelta>();
-
-        [JsonIgnore]
-        public Vector3 StartPos
-        {
-            get
-            {
-                return new Vector3(startPos[0], startPos[1], startPos[2]);
-            }
-            set
-            {
-                startPos = new float[] { value.x, value.y, value.z };
-            }
-        }
-        [JsonIgnore]
-        public Vector3 StartRot
-        {
-            get
-            {
-                return new Vector3(startRot[0], startRot[1], startRot[2]);
-            }
-            set
-            {
-                startRot = new float[] { value.x, value.y, value.z };
-            }
-        }
     }
     public class PoseAnimationDelta
     {
@@ -89,38 +37,14 @@ namespace PoseAnimations
         {
 
         }
-        public PoseAnimationDelta(Dictionary<string, BoneDelta> boneDatas, int frames, Vector3 endPosDelta, Vector3 endRotDelta)
+        public PoseAnimationDelta(Dictionary<string, BoneDelta> boneDatas, int frames, float[] endPosDelta, float[] endRotDelta)
         {
             this.boneDatas = boneDatas;
             this.frames = frames;
-            EndPosDelta = endPosDelta;
-            EndRotDelta = endRotDelta;
+            this.endPosDelta = endPosDelta;
+            this.endRotDelta = endRotDelta;
         }
 
-        [JsonIgnore]
-        public Vector3 EndPosDelta
-        {
-            get
-            {
-                return new Vector3(endPosDelta[0], endPosDelta[1], endPosDelta[2]);
-            }
-            set
-            {
-                endPosDelta = new float[] { value.x, value.y, value.z };
-            }
-        }
-        [JsonIgnore]
-        public Vector3 EndRotDelta
-        {
-            get
-            {
-                return new Vector3(endRotDelta[0], endRotDelta[1], endRotDelta[2]);
-            }
-            set
-            {
-                endRotDelta = new float[] { value.x, value.y, value.z };
-            }
-        }
     }
     public class BoneDelta
     {
@@ -133,62 +57,17 @@ namespace PoseAnimations
 
         }
 
-        public BoneDelta(Vector3 endPos, Vector3 endRot)
+        public BoneDelta(float[] endPos, float[] endRot)
         {
-            EndPos = endPos;
-            EndRot = endRot;
+            this.endPos = endPos;
+            this.endRot = endRot;
         }
-        public BoneDelta(Vector3 startPos, Vector3 endPos, Vector3 startRot, Vector3 endRot)
+        public BoneDelta(float[] startPos, float[] endPos, float[] startRot, float[] endRot)
         {
-            StartPos = startPos;
-            EndPos = endPos;
-            StartRot = startRot;
-            EndRot = endRot;
-        }
-
-        [JsonIgnore]
-        public Vector3 StartPos {
-            get 
-            {
-                return new Vector3(startPos[0], startPos[1], startPos[2]);
-            }
-            set
-            {
-                startPos = new float[] { value.x, value.y, value.z};
-            }
-        }
-        [JsonIgnore]
-        public Vector3 EndPos {
-            get 
-            {
-                return new Vector3(endPos[0], endPos[1], endPos[2]);
-            }
-            set
-            {
-                endPos = new float[] { value.x, value.y, value.z};
-            }
-        }
-        [JsonIgnore]
-        public Vector3 StartRot {
-            get 
-            {
-                return new Vector3(startRot[0], startRot[1], startRot[2]);
-            }
-            set
-            {
-                startRot = new float[] { value.x, value.y, value.z};
-            }
-        }
-        [JsonIgnore]
-        public Vector3 EndRot {
-            get 
-            {
-                return new Vector3(endRot[0], endRot[1], endRot[2]);
-            }
-            set
-            {
-                endRot = new float[] { value.x, value.y, value.z};
-            }
+            this.startPos = startPos;
+            this.endPos = endPos;
+            this.startRot = startRot;
+            this.endRot = endRot;
         }
     }
 }

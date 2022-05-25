@@ -1,15 +1,18 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Transmogrification
 {
-    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.2.1")]
+    [BepInPlugin("aedenthorn.Transmogrification", "Transmogrification", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -26,6 +29,7 @@ namespace Transmogrification
         public static ConfigEntry<Color> appearStringColor;
 
         private static EquipmentSlot currentSlot;
+        private static ItemIcon currentIcon;
         private static Dictionary<int, string> itemAppearances = new Dictionary<int, string>();
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -93,7 +97,7 @@ namespace Transmogrification
             {
                 if (!modEnabled.Value)
                     return;
-                    currentSlot = __instance;
+                currentSlot = __instance;
             }
         }
         [HarmonyPatch(typeof(EquipmentSlot), nameof(EquipmentSlot.OnPointerExit))]
@@ -107,8 +111,29 @@ namespace Transmogrification
                 currentSlot = null;
             }
         }
+        [HarmonyPatch(typeof(ItemIcon), nameof(ItemIcon.OnPointerEnter))]
+        static class ItemIcon_OnPointerEnter_Patch
+        {
 
-        
+            static void Postfix(ItemIcon __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                currentIcon = __instance;
+            }
+        }
+        [HarmonyPatch(typeof(ItemIcon), nameof(ItemIcon.OnPointerExit), new Type[] { })]
+        static class ItemIcon_OnPointerExit_Patch
+        {
+
+            static void Postfix(EquipmentSlot __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                currentIcon = null;
+            }
+        }
+
         [HarmonyPatch(typeof(Mainframe), "SaveItem")]
         static class SaveItem_Patch
         {
@@ -143,40 +168,98 @@ namespace Transmogrification
                 string name = ES2.Load<string>(__instance.GetFolderName() + "Items.txt?tag=transmog" + id);
 
                 Dbgl($"setting loaded item {__result.name} {id} appearance as {name}");
-
+                itemAppearances[__result.GetInstanceID()] = name;
                 Transform source = RM.code.allItems.GetItemWithName(name);
                 ReplaceAppearance(source, __result);
-                itemAppearances[__result.GetInstanceID()] = name;
             }
         }
+
+
+        [HarmonyPatch(typeof(Item), nameof(Item.InstantiateModel))]
+        static class InstantiateModel_Patch
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = new List<CodeInstruction>(instructions);
+                var newCodes = new List<CodeInstruction>();
+                for (int i = 0; i < codes.Count; i++)
+                {
+                    if (i > 2 && codes[i - 3].opcode == OpCodes.Ldstr && ((string)codes[i - 3].operand).StartsWith("Clothes Prefabs/"))
+                    {
+                        newCodes.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(BepInExPlugin), nameof(BepInExPlugin.GetTransmogModel))));
+                    }
+                    else
+                    {
+
+                        newCodes.Add(codes[i]);
+                    }
+                }
+                return newCodes.AsEnumerable();
+            }
+        }
+
+        private static string GetTransmogModel(Transform item)
+        {
+            return itemAppearances.ContainsKey(item.GetInstanceID()) ? itemAppearances[item.GetInstanceID()] : item.name;
+        }
+
+
 
         [HarmonyPatch(typeof(UIInventory), "Update")]
         static class UIInventory_Update_Patch
         {
             static void Postfix(UIInventory __instance)
             {
-                if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf || !currentSlot || !currentSlot.item || !AedenthornUtils.CheckKeyDown(hotKey.Value))
+                if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf || !AedenthornUtils.CheckKeyDown(hotKey.Value))
                     return;
 
-                Dbgl($"Pressed hotkey on slot with item {currentSlot.item.name}");
+                Transform item;
+                string slotName;
+                SlotType slotType;
+                if (currentSlot?.item)
+                {
+                    item = currentSlot.item;
+                    slotName = currentSlot.name;
+                    slotType = currentSlot.slotType;
+                }
+                else if (currentIcon?.item && currentIcon.item.GetComponent<Item>().slotType != SlotType.none)
+                {
+                    item = currentIcon.item;
+                    slotName = currentIcon.name;
+                    slotType = currentIcon.item.GetComponent<Item>().slotType;
+                }
+                else return;
+
+                if (item == null)
+                    return;
+
+                Dbgl($"Pressed hotkey on slot with item {item.name}");
 
                 Transform source;
-                if (AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false) && !AedenthornUtils.CheckKeyHeld(modKeyOff.Value, true) && Global.code.selectedItem && currentSlot.slotType == Global.code.selectedItem.GetComponent<Item>().slotType && (currentSlot.slotType != SlotType.weapon || currentSlot.item.GetComponent<Item>().itemType == Global.code.selectedItem.GetComponent<Item>().itemType))
+                if (AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false) && !AedenthornUtils.CheckKeyHeld(modKeyOff.Value, true) && Global.code.selectedItem && slotType == Global.code.selectedItem.GetComponent<Item>().slotType && (slotType != SlotType.weapon || item.GetComponent<Item>().itemType == Global.code.selectedItem.GetComponent<Item>().itemType))
                 {
-                    Dbgl($"Transmogrifying {currentSlot.item.name} into {Global.code.selectedItem.name}");
-                    source = Global.code.selectedItem;
-                    itemAppearances[currentSlot.item.GetInstanceID()] = Global.code.selectedItem.name;
+                    Dbgl($"Transmogrifying {item.name} into {Global.code.selectedItem.name}");
+                    if (Global.code.selectedItem.GetComponent<Item>().itemType == ItemType.lingerie)
+                    {
+                        source = Resources.Load<Transform>("Clothes Prefabs/Lingeries/" + Global.code.selectedItem.name);
+                    }
+                    else
+                    {
+                        source = Resources.Load<Transform>("Clothes Prefabs/Armors/" + Global.code.selectedItem.name);
+                    }
+
+                    itemAppearances[item.GetInstanceID()] = Global.code.selectedItem.name;
                 }
-                else if (AedenthornUtils.CheckKeyHeld(modKeyOff.Value, false) && itemAppearances.ContainsKey(currentSlot.item.GetInstanceID()))
+                else if (AedenthornUtils.CheckKeyHeld(modKeyOff.Value, false) && itemAppearances.ContainsKey(item.GetInstanceID()))
                 {
-                    Dbgl($"Detransmogrifying {currentSlot.item.name}");
-                    source = RM.code.allItems.GetItemWithName(currentSlot.item.name);
-                    itemAppearances.Remove(currentSlot.item.GetInstanceID());
+                    Dbgl($"Detransmogrifying {item.name}");
+                    source = RM.code.allItems.GetItemWithName(item.name);
+                    itemAppearances.Remove(item.GetInstanceID());
                 }
                 else
                     return;
 
-                ReplaceAppearance(source, currentSlot.item);
+                ReplaceAppearance(source, item);
 
                 if (destroyOriginal.Value && AedenthornUtils.CheckKeyHeld(modKeyOn.Value, false))
                 {
@@ -185,43 +268,39 @@ namespace Transmogrification
                     Destroy(Global.code.selectedItem);
                 }
 
-                context.StartCoroutine(RefreshItem(currentSlot.item));
+                context.StartCoroutine(RefreshItem(item, slotName));
             }
         }
 
-        private static IEnumerator RefreshItem(Transform item)
+        private static IEnumerator RefreshItem(Transform item, string slotName)
         {
             Global.code.uiInventory.curCustomization.RemoveItem(item);
             yield return new WaitForEndOfFrame();
-            Global.code.uiInventory.curCustomization.AddItem(item, currentSlot.name);
+            Global.code.uiInventory.curCustomization.AddItem(item, slotName);
             Global.code.uiInventory.RefreshEquipment();
+            Global.code.uiInventory.curStorage.inventory.Refresh();
 
         }
 
-        private static void ReplaceAppearance(Transform source, Transform destination)
+        private static void ReplaceAppearance(Transform source, Transform target)
         {
-            for (int i = destination.childCount - 1; i >= 0; i--)
+            if(source == null)
             {
-                Dbgl($"Removing child {destination.GetChild(i).name}");
+                Dbgl("Source is null");
+                return;
+            }
+            target.GetComponent<Item>().icon = source.GetComponent<Item>().icon;
+        }
+        public static string GetFullName(Transform t)
+        {
+            string name = t.name;
+            while (t.parent != null)
+            {
 
-                DestroyImmediate(destination.GetChild(i).gameObject);
+                t = t.parent;
+                name = t.name + "/" + name;
             }
-            if (destination.GetComponent<Appeal>())
-            {
-                destination.GetComponent<Appeal>().allRenderers.Clear();
-            }
-
-            for (int i = 0; i < source.childCount; i++)
-            {
-                Transform t = Instantiate(source.GetChild(i), destination);
-                t.name = source.GetChild(i).name;
-                Dbgl($"Adding child {t.name}");
-                if (destination.GetComponent<Appeal>() && t.GetComponent<SkinnedMeshRenderer>())
-                {
-                    destination.GetComponent<Appeal>().allRenderers.Add(t.GetComponent<SkinnedMeshRenderer>());
-                }
-            }
-            destination.GetComponent<Item>().icon = source.GetComponent<Item>().icon;
+            return name;
         }
     }
 }

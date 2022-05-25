@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace DebugMenu
 {
@@ -14,6 +15,8 @@ namespace DebugMenu
             Dbgl("Opening Spawn Item UI");
             if (uiSpawnItem == null)
             {
+                Dbgl("Creating Spawn Item UI elements");
+
                 Global.code.onGUI = true;
                 uiSpawnItem = new GameObject() {name = "Spawn Item UI" }.transform;
                 uiSpawnItem.SetParent(Global.code.uiCheat.transform.parent);
@@ -32,6 +35,7 @@ namespace DebugMenu
                 ti.name = "Input Field";
                 ti.GetComponent<RectTransform>().anchoredPosition *= new Vector2(0,1);
                 spawnInput = ti.GetComponent<InputField>();
+                spawnInput.text = "";
                 spawnInput.onValueChanged = new InputField.OnChangeEvent();
                 spawnInput.onValueChanged.AddListener(UpdateSpawnText); 
                 spawnInput.placeholder.GetComponent<Text>().text = "Item Name";
@@ -40,6 +44,7 @@ namespace DebugMenu
                 tp.name = "Prefix Field";
                 tp.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height * 2);
                 spawnPrefixInput = tp.GetComponent<InputField>();
+                spawnPrefixInput.text = "";
                 spawnPrefixInput.onValueChanged = new InputField.OnChangeEvent();
                 spawnPrefixInput.onValueChanged.AddListener(UpdateSpawnText); 
                 spawnPrefixInput.placeholder.GetComponent<Text>().text = "Prefix Name";
@@ -49,6 +54,7 @@ namespace DebugMenu
                 ts.name = "Suffix Field";
                 ts.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height);
                 spawnSuffixInput = ts.GetComponent<InputField>();
+                spawnSuffixInput.text = "";
                 spawnSuffixInput.onValueChanged = new InputField.OnChangeEvent();
                 spawnSuffixInput.onValueChanged.AddListener(UpdateSpawnText); 
                 spawnSuffixInput.placeholder.GetComponent<Text>().text = "Suffix Name";
@@ -138,6 +144,8 @@ namespace DebugMenu
 
         private static void SpawnItem()
         {
+            Dbgl($"spawnInput: {spawnInput != null}");
+            Dbgl($"spawnInput text: {spawnInput.text}");
             string itemName = GetNameFromText(spawnInput.text.Trim(), itemNames);
 
             if (itemName == null)
@@ -145,11 +153,18 @@ namespace DebugMenu
                 Dbgl($"Couldn't find {spawnInput.text} to spawn");
                 return;
             }
+            var itemTemp = RM.code.allItems.GetItemWithName(itemName);
 
-            Transform item = Utility.Instantiate(RM.code.allItems.GetItemWithName(itemName));
+            Dbgl($"Got item {itemName}: {itemTemp != null}");
+            if(itemTemp == null)
+            {
+                return;
+            }
+            Transform item = Utility.Instantiate(itemTemp);
             
             if (item != null)
             {
+
                 SlotType st = item.GetComponent<Item>().slotType;
 
                 string prefix = null;
@@ -173,19 +188,28 @@ namespace DebugMenu
                         item.GetComponent<Item>().surfix = RM.code.armorSurfixes.GetItemWithName(suffix).GetComponent<Item>();
                 }
 
-                RM.code.balancer.GetItemStats(item, -1);
+                Transform parentItem;
+                if (!item.GetComponent<Collider>())
+                {
+                    parentItem = item.GetComponent<Item>().InstantiateModel(null);
+                    Destroy(parentItem.GetComponent<Item>());
+                    item.SetParent(parentItem);
+                    item.localPosition = Vector3.zero;
+                }
+                else
+                {
+                    parentItem = item;
+                }
 
-                item.GetComponent<Item>().autoPickup = false;
-                item.GetComponent<Collider>().enabled = false;
-                item.GetComponent<Collider>().enabled = true;
-                item.GetComponent<Rigidbody>().isKinematic = false;
-                item.GetComponent<Rigidbody>().useGravity = true;
-                item.position = Player.code.transform.position + new Vector3(0f, 1f, 0f);
-                item.position += Player.code.transform.forward * 1f;
-                item.SetParent(null);
-                item.GetComponent<Item>().owner = null;
+                RM.code.balancer.GetItemStats(item, 0);
+                parentItem.GetComponent<Item>().autoPickup = false;
+                parentItem.position = Player.code.transform.position + new Vector3(0f, 1.2f, 0f);
+                parentItem.GetComponent<Collider>().enabled = false;
+                parentItem.GetComponent<Collider>().enabled = true;
+                parentItem.GetComponent<Rigidbody>().isKinematic = false;
+                parentItem.GetComponent<Rigidbody>().useGravity = true;
+                parentItem.GetComponent<Rigidbody>().collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
                 item.GetComponent<Item>().Drop();
-                item.gameObject.SetActive(true);
                 Dbgl($"Spawned {spawnHintText.text}");
                 Global.code.uiCombat.ShowHeader($"Spawned {spawnHintText.text}");
             }

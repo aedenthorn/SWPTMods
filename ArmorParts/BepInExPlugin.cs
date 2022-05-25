@@ -7,12 +7,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace ArmorParts
 {
-    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.2.1")]
+    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -36,6 +37,7 @@ namespace ArmorParts
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
+
         private void Awake()
         {
             context = this;
@@ -55,29 +57,64 @@ namespace ArmorParts
 
         }
 
+        [HarmonyPatch(typeof(Item), nameof(Item.InstantiateModel))]
+        static class InstantiateModel_Patch
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                Dbgl($"Transpiling Item.InstantiateModel");
+
+                var codes = new List<CodeInstruction>(instructions);
+                var newCodes = new List<CodeInstruction>();
+                for (int i = 0; i < codes.Count; i++)
+                {
+                    if (i > 1 && codes[i - 2].opcode == OpCodes.Ldarg_0 && codes[i - 1].opcode == OpCodes.Ldloc_0 && codes[i].opcode == OpCodes.Call && (MethodInfo)codes[i].operand == AccessTools.Method(typeof(Utility), nameof(Utility.Instantiate)))
+                    {
+                        Dbgl($"Changing instantiate method");
+                        newCodes.Add(new CodeInstruction(OpCodes.Ldarg_0));
+                        newCodes.Add(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(BepInExPlugin), nameof(BepInExPlugin.GetArmorPartsModel))));
+                    }
+                    else
+                        newCodes.Add(codes[i]);
+                }
+                return newCodes.AsEnumerable();
+            }
+        }
+
+        private static Transform GetArmorPartsModel(Transform transform, Item item)
+        {
+            Transform t = Utility.Instantiate(transform);
+            if (modEnabled.Value && partsTransformDict.ContainsKey(item.transform))
+            {
+                Dbgl($"Setting armor parts for model {t.name}");
+                SetArmorParts(t, partsTransformDict[item.transform], item.itemType);
+            }
+            return t;
+        }
+
         [HarmonyPatch(typeof(Mainframe), "SaveItem")]
         static class SaveItem_Patch
         {
-
             static void Postfix(Mainframe __instance, Transform item)
             {
-                if (!modEnabled.Value || item.GetComponent<Item>().slotType != SlotType.armor || !partsTransformDict.ContainsKey(item))
+                if (!modEnabled.Value || !item.GetComponent<Item>() || item.GetComponent<Item>().slotType != SlotType.armor || !partsTransformDict.ContainsKey(item))
                     return;
 
                 string GUID = partsTransformDict[item].GUID;
 
-                Dbgl($"saving item {item.name} GUID as {GUID}");
+                Dbgl($"saving item {item.name} id {item.GetInstanceID()} GUID as {GUID}");
 
                 ES2.Save(GUID, __instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + item.GetInstanceID());
             }
         }
+
         [HarmonyPatch(typeof(Mainframe), "LoadItem")]
         static class LoadItem_Patch
         {
 
             static void Postfix(Mainframe __instance, int id, Transform __result)
             {
-                if (!modEnabled.Value || !ES2.Exists(__instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + id))
+                if (!modEnabled.Value || __result.GetComponent<Item>().slotType != SlotType.armor || !ES2.Exists(__instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + id))
                     return;
 
                 string GUID = ES2.Load<string>(__instance.GetFolderName() + "Items.txt?tag=armorpartsmod_" + id);
@@ -90,7 +127,6 @@ namespace ArmorParts
 
                 Dbgl($"got guid {GUID} for loaded item {__result.name}");
 
-                SetArmorParts(__result, partsGUIDDict[GUID]);
                 partsTransformDict[__result] = partsGUIDDict[GUID];
             }
         }
@@ -106,6 +142,7 @@ namespace ArmorParts
                 currentIcon = __instance;
             }
         }
+
         [HarmonyPatch(typeof(ItemIcon), nameof(ItemIcon.OnPointerExit), new Type[] { })]
         static class ItemIcon_OnPointerExit_Patch
         {
@@ -129,6 +166,7 @@ namespace ArmorParts
                 currentSlot = __instance;
             }
         }
+
         [HarmonyPatch(typeof(EquipmentSlot), nameof(EquipmentSlot.OnPointerExit))]
         static class EquipmentSlot_OnPointerExit_Patch
         {
@@ -162,42 +200,21 @@ namespace ArmorParts
                 if (!partsTransformDict.ContainsKey(t))
                     return;
 
-                Dbgl("checking clothing");
-
                 if (partsTransformDict[t].showBra && __instance.bra)
                 {
-                    Dbgl("showing bra");
                     __instance.bra.gameObject.SetActive(true);
                 }
                 if (partsTransformDict[t].showPanties && __instance.panties)
                 {
-                    Dbgl("showing panties");
                     __instance.panties.gameObject.SetActive(true);
                 }
                 if (partsTransformDict[t].showSuspenders && __instance.suspenders)
                 {
-                    Dbgl("showing suspenders");
                     __instance.suspenders.gameObject.SetActive(true);
                 }
             }
         }
 
-        [HarmonyPatch(typeof(CharacterCustomization), nameof(CharacterCustomization.AddItem))]
-        static class CharacterCustomization_AddItem_Patch
-        {
-
-            static void Prefix(CharacterCustomization __instance, Transform item, string slotName)
-            {
-                if (!modEnabled.Value || slotName != "armor")
-                    return;
-
-                if (partsTransformDict.ContainsKey(item))
-                {
-                    SetArmorParts(item, partsTransformDict[item]);
-                    Dbgl($"loaded data for {item.GetInstanceID()}");
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(UIInventory), "Update")]
         static class UIInventory_Update_Patch
@@ -207,14 +224,8 @@ namespace ArmorParts
                 if (!modEnabled.Value || !Global.code.uiInventory.gameObject.activeSelf || (!currentSlot?.item && !currentIcon?.item) || !AedenthornUtils.CheckKeyDown(hotKey.Value))
                     return;
 
-                Transform item;
-                if (currentSlot?.item && currentSlot.slotType == SlotType.armor)
-                    item = currentSlot.item;
-                else if (currentIcon?.item && currentIcon.item.GetComponent<Item>().slotType == SlotType.armor)
-                    item = currentIcon.item;
-                else return;
-
-                if (item == null)
+                Transform item = GetCurrentItem();
+                if (!item)
                     return;
 
                 Dbgl($"Pressed hotkey on slot with armor {item.name}");
@@ -227,8 +238,7 @@ namespace ArmorParts
                 {
                     ArmorPartsData data = new ArmorPartsData();
                     data.name = item.name;
-                    data.GUID = partsTransformDict[item].GUID;
-
+                    data.GUID = partsTransformDict[item.parent].GUID;
                     for (int i = 0; i < item.childCount; i++)
                     {
                         if (item.GetChild(i).name.Contains(":"))
@@ -240,22 +250,39 @@ namespace ArmorParts
                         }
                     }
                     SaveData(item, data);
-
+                    context.StartCoroutine(RefreshItem(item.parent));
                     Dbgl($"Reset data for {item.name}");
                 }
                 else
                 {
                     LoadFromFiles();
-                    if (partsTransformDict.ContainsKey(item))
+                    if (partsTransformDict.ContainsKey(item.parent))
                     {
-                        SetArmorParts(item, partsTransformDict[item]);
                         Dbgl($"loaded data for {item.name}");
-                        context.StartCoroutine(RefreshItem(item));
+                        context.StartCoroutine(RefreshItem(item.parent));
                     }
                 }
             }
         }
+        private static Transform GetCurrentItem()
+        {
+            Transform item = null;
+            if (currentSlot?.item && currentSlot.slotType == SlotType.armor)
+                item = currentSlot.item;
+            else if (currentIcon?.item && currentIcon.item.GetComponentInChildren<Item>().slotType == SlotType.armor)
+                item = currentIcon.item;
 
+            if (!item)
+                return null;
+
+            if (!item.Find(item.name))
+            {
+                Dbgl($"Child transform not found!");
+                return null;
+            }
+
+            return item.Find(item.name);
+        }
 
         private static void LoadFromFiles()
         {
@@ -288,29 +315,33 @@ namespace ArmorParts
             }
         }
 
-        private static void SaveData(Transform item)
+        private static void SaveData(Transform childItem)
         {
             ArmorPartsData data = new ArmorPartsData();
-            data.name = item.name;
-            if (partsTransformDict.ContainsKey(item))
-                data.GUID = partsTransformDict[item].GUID;
+            data.name = childItem.name;
+            if (partsTransformDict.ContainsKey(childItem.parent))
+                data.GUID = partsTransformDict[childItem.parent].GUID;
             else
                 data.GUID = Guid.NewGuid().ToString();
-            for (int i = 0; i < item.childCount; i++)
+            for (int i = 0; i < childItem.childCount; i++)
             {
-                if (item.GetChild(i).gameObject.activeSelf)
-                    data.parts.Add(item.GetChild(i).name);
+                if (childItem.GetChild(i).gameObject.activeSelf)
+                    data.parts.Add(childItem.GetChild(i).name);
             }
-            SaveData(item, data);
+            SaveData(childItem, data);
         }
-        private static void SaveData(Transform item, ArmorPartsData data)
+
+        private static void SaveData(Transform childItem, ArmorPartsData data)
         {
-            File.WriteAllText(Path.Combine(assetPath, $"{item.name}_{data.GUID}.json"), JsonUtility.ToJson(data));
-            Dbgl($"saved data to {Path.Combine(assetPath, $"{item.name}_{data.GUID}.json")}");
-            partsTransformDict[item] = data;
+            File.WriteAllText(Path.Combine(assetPath, $"{childItem.name}_{data.GUID}.json"), JsonUtility.ToJson(data));
+            Dbgl($"saved data to {Path.Combine(assetPath, $"{childItem.name}_{data.GUID}.json")}");
+            partsTransformDict[childItem.parent] = data;
         }
+
         private static IEnumerator RefreshItem(Transform item)
         {
+            Dbgl($"Refreshing item {item.name}");
+
             Global.code.uiInventory.curCustomization.RemoveItem(item);
             yield return new WaitForEndOfFrame();
             Global.code.uiInventory.curCustomization.AddItem(item, currentSlot.name);
@@ -318,33 +349,44 @@ namespace ArmorParts
 
         }
 
-        private static void SetArmorParts(Transform item, ArmorPartsData data)
+        private static void SetArmorParts(Transform childItem, ArmorPartsData data, ItemType itemType)
         {
-            for (int i = 0; i < item.childCount; i++)
+            for (int i = 0; i < childItem.childCount; i++)
             {
-                if (item.GetChild(i).name.Contains(":"))
+                if (childItem.GetChild(i).name.Contains(":"))
                 {
-                    if (!data.parts.Contains(item.GetChild(i).name))
-                        Destroy(item.GetChild(i).gameObject);
+                    if (!data.parts.Contains(childItem.GetChild(i).name))
+                        Destroy(childItem.GetChild(i).gameObject);
                     else
-                        item.GetChild(i).gameObject.SetActive(true);
+                        childItem.GetChild(i).gameObject.SetActive(true);
                 }
                 else
-                    item.GetChild(i).gameObject.SetActive(data.parts.Contains(item.GetChild(i).name));
+                    childItem.GetChild(i).gameObject.SetActive(data.parts.Contains(childItem.GetChild(i).name));
             }
             foreach(string part in data.parts)
             {
-                if (!part.Contains(":") || item.Find(part))
+                if (!part.Contains(":") || childItem.Find(part))
                     continue;
                 string[] tp = part.Split(':');
-                Transform t = RM.code.allItems.GetItemWithName(tp[0]);
-                if (!t)
-                    continue;
-                Transform p = t.Find(tp[1]);
-                if (p)
+                Dbgl($"Adding external part {part}");
+                Transform t;
+                if (itemType == ItemType.lingerie)
                 {
-                    Transform added = Instantiate(p, item);
-                    added.name = part;
+                    t = Resources.Load<Transform>("Clothes Prefabs/Lingeries/" + tp[0]);
+                }
+                else
+                {
+                    t = Resources.Load<Transform>("Clothes Prefabs/Armors/" + tp[0]);
+                }
+                if (t)
+                {
+                    Transform p = t.Find(tp[1]);
+                    if (p)
+                    {
+                        Transform added = Utility.Instantiate(p);
+                        added.SetParent(childItem);
+                        added.name = part;
+                    }
                 }
             }
         }
