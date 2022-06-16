@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace HideHeadgear
 {
-    [BepInPlugin("aedenthorn.HideHeadgear", "HideHeadgear", "0.1.2")]
+    [BepInPlugin("aedenthorn.HideHeadgear", "HideHeadgear", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -55,7 +55,7 @@ namespace HideHeadgear
         {
             static void Postfix(CharacterCustomization __instance)
             {
-                if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value) || Global.code.uiNameChanger.gameObject.activeSelf)
+                if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value) || Global.code.uiPose.nameinput.gameObject.activeSelf)
                     return;
 
                 showHeadgear.Value = !showHeadgear.Value;

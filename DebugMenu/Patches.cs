@@ -13,6 +13,17 @@ namespace DebugMenu
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         
+        [HarmonyPatch(typeof(MessageManager), "CS")]
+        public static class MessageManager_CS_Patch
+        {
+            public static bool Prefix()
+            {
+                if (!modEnabled.Value)
+                    return true;
+                return Mainframe.code?.uiMessage != null && Global.code?.curlocation != null;            
+            }
+        }
+            
         [HarmonyPatch(typeof(Global), "Awake")]
         public static class Global_Awake_Patch
         {

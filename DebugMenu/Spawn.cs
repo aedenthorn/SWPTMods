@@ -31,16 +31,16 @@ namespace DebugMenu
                 text.text = spawnItemTitle.Value;
                 text.gameObject.name = "Title";
 
-                GameObject ti = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
+                GameObject ti = Instantiate(Global.code.uiPose.nameinput.gameObject, uiSpawnItem);
                 ti.name = "Input Field";
-                ti.GetComponent<RectTransform>().anchoredPosition *= new Vector2(0,1);
+                ti.GetComponent<RectTransform>().anchoredPosition = new Vector2(0,36);
                 spawnInput = ti.GetComponent<InputField>();
                 spawnInput.text = "";
                 spawnInput.onValueChanged = new InputField.OnChangeEvent();
                 spawnInput.onValueChanged.AddListener(UpdateSpawnText); 
                 spawnInput.placeholder.GetComponent<Text>().text = "Item Name";
 
-                GameObject tp = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
+                GameObject tp = Instantiate(Global.code.uiPose.nameinput.gameObject, uiSpawnItem);
                 tp.name = "Prefix Field";
                 tp.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height * 2);
                 spawnPrefixInput = tp.GetComponent<InputField>();
@@ -50,7 +50,7 @@ namespace DebugMenu
                 spawnPrefixInput.placeholder.GetComponent<Text>().text = "Prefix Name";
                 tp.SetActive(false);
 
-                GameObject ts = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, uiSpawnItem);
+                GameObject ts = Instantiate(Global.code.uiPose.nameinput.gameObject, uiSpawnItem);
                 ts.name = "Suffix Field";
                 ts.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition + new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height);
                 spawnSuffixInput = ts.GetComponent<InputField>();
@@ -80,7 +80,7 @@ namespace DebugMenu
                 spawnHintText = Instantiate(Global.code.uiCombat.lineName.transform, uiSpawnItem).GetComponent<Text>();
                 spawnHintText.text = "";
                 text.gameObject.name = "Hint";
-                spawnHintText.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition - new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height + (spawnInput.GetComponent<RectTransform>().anchoredPosition.y - buttonObj.GetComponent<RectTransform>().anchoredPosition.y) / 2);
+                spawnHintText.GetComponent<RectTransform>().anchoredPosition = spawnInput.GetComponent<RectTransform>().anchoredPosition - new Vector2(0, spawnInput.GetComponent<RectTransform>().rect.height - (spawnInput.GetComponent<RectTransform>().anchoredPosition.y - buttonObj.GetComponent<RectTransform>().anchoredPosition.y) / 2);
                 Button spawnHint = spawnHintText.gameObject.AddComponent<Button>();
                 spawnHint.onClick.AddListener(SpawnItem);
             }

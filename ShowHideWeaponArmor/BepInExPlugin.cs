@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace ShowHideWeaponArmor
 {
-    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.4.0")]
+    [BepInPlugin("aedenthorn.ShowHideWeaponArmor", "Show / Hide Weapons and Armor", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -207,7 +207,7 @@ namespace ShowHideWeaponArmor
         {
             static void Postfix()
             {
-                if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value) || Global.code.uiNameChanger.gameObject.activeSelf)
+                if (!modEnabled.Value || !AedenthornUtils.CheckKeyDown(hotKey.Value) || Global.code.uiPose.nameinput.gameObject.activeSelf)
                     return;
 
                 Dbgl("Pressed hotkey");

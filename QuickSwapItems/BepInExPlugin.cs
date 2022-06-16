@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickSwapItems
 {
-    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap", "0.4.0")]
+    [BepInPlugin("aedenthorn.QuickSwapItems", "Quick Swap", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -113,15 +113,6 @@ namespace QuickSwapItems
                             {
                                 __instance.uiMakeup.curCustomization = cc;
                                 __instance.uiMakeup.SwitchToMakeup();
-                                Dbgl("Switched character");
-                            }
-                        }
-                        else if (__instance.uiNameChanger.gameObject.activeSelf)
-                        {
-                            if (__instance.uiNameChanger.curcustomization != cc)
-                            {
-                                __instance.uiNameChanger.curcustomization = cc;
-                                __instance.uiNameChanger.SwitchToCharacter();
                                 Dbgl("Switched character");
                             }
                         }

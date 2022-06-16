@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace ScalingFieldEncounters
 {
-    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.5.1")]
+    [BepInPlugin("aedenthorn.ScalingFieldEncounters", "Scaling Field Encounters", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -58,7 +58,7 @@ namespace ScalingFieldEncounters
         }
 
 
-        //[HarmonyPatch(typeof(Weapon), "DealDamage")]
+        [HarmonyPatch(typeof(Weapon), "DealDamage")]
         static class DealDamage_Patch
         {
             static void Prefix(Weapon __instance, Item ____Item, ref float __state)
@@ -68,18 +68,18 @@ namespace ScalingFieldEncounters
 
                 float mult = GetMult() * damageScaleMult .Value;
 
-                __state = ____Item.owner.GetComponent<ID>().damage;
+                __state = ____Item.owner.GetComponent<ID>().damage1;
 
                 //Dbgl($"damage: {pt} mult: {mult}");
 
-                ____Item.owner.GetComponent<ID>().damage *= mult;
+                ____Item.owner.GetComponent<ID>().damage1 *= mult;
             }
             static void Postfix(Weapon __instance, Item ____Item, float __state)
             {
                 if (!modEnabled.Value || Global.code.curlocation?.locationType != LocationType.fieldarmy || !____Item.owner.GetComponent<ID>()?.monster)
                     return;
 
-                ____Item.owner.GetComponent<ID>().damage = __state;
+                ____Item.owner.GetComponent<ID>().damage1 = __state;
             }
         }
 
@@ -199,15 +199,19 @@ namespace ScalingFieldEncounters
                 float damageMult = mult * damageScaleMult.Value;
                 ID id = monster._ID;
 
-                Dbgl($"enemy {monster.name}: old level {id.level} health {id.maxHealth}, stamina {id.maxStamina }, mana {id.maxMana}, damage {monster._ID.damage}");
+                //Dbgl($"enemy {monster.name}: old level {id.level} health {id.maxHealth}, stamina {id.maxStamina }, mana {id.maxMana}, damage {monster._ID.damage1}");
 
                 id.level = Mathf.RoundToInt(id.level * levelScaleMult.Value * mult);
 
-                monster._ID.damage = Mathf.RoundToInt(monster._ID.damage * damageMult);
-                monster._ID.fireDamage = Mathf.RoundToInt(monster._ID.fireDamage * damageMult);
-                monster._ID.coldDamage = Mathf.RoundToInt(monster._ID.coldDamage * damageMult);
-                monster._ID.lighteningDamage = Mathf.RoundToInt(monster._ID.lighteningDamage * damageMult);
-                monster._ID.poisonDamage = Mathf.RoundToInt(monster._ID.poisonDamage * damageMult);
+                monster._ID.damage1 = Mathf.RoundToInt(monster._ID.damage1 * damageMult);
+                monster._ID.fireDamage1 = Mathf.RoundToInt(monster._ID.fireDamage1 * damageMult);
+                monster._ID.fireDamage2 = Mathf.RoundToInt(monster._ID.fireDamage2 * damageMult);
+                monster._ID.coldDamage1 = Mathf.RoundToInt(monster._ID.coldDamage1 * damageMult);
+                monster._ID.coldDamage2 = Mathf.RoundToInt(monster._ID.coldDamage2 * damageMult);
+                monster._ID.lighteningDamage1 = Mathf.RoundToInt(monster._ID.lighteningDamage1 * damageMult);
+                monster._ID.lighteningDamage2 = Mathf.RoundToInt(monster._ID.lighteningDamage2 * damageMult);
+                monster._ID.poisonDamage1 = Mathf.RoundToInt(monster._ID.poisonDamage1 * damageMult);
+                monster._ID.poisonDamage2 = Mathf.RoundToInt(monster._ID.poisonDamage2 * damageMult);
                 monster._ID.fireResist = Mathf.RoundToInt(monster._ID.fireResist * damageMult);
                 monster._ID.coldResist = Mathf.RoundToInt(monster._ID.coldResist * damageMult);
                 monster._ID.lighteningResist = Mathf.RoundToInt(monster._ID.lighteningResist * damageMult);
@@ -217,7 +221,7 @@ namespace ScalingFieldEncounters
                 id.maxStamina *= Mathf.Max(1, statMult);
                 id.maxMana *= Mathf.Max(1, statMult);
 
-                Dbgl($"enemy {monster.name}: new level {id.level} health {id.maxHealth}, stamina {id.maxStamina }, mana {id.maxMana}, damage {monster._ID.damage}");
+                //Dbgl($"enemy {monster.name}: new level {id.level} health {id.maxHealth}, stamina {id.maxStamina }, mana {id.maxMana}, damage {monster._ID.damage}");
 
             }
         }

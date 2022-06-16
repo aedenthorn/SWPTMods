@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CompanionAdd
 {
-    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.2.3")]
+    [BepInPlugin("aedenthorn.CompanionAdd", "Companion Add", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -160,7 +160,7 @@ namespace CompanionAdd
         {
             string name = null;
 
-            List<string> names = new List<string>(Global.code.uiNameChanger.namelist);
+            List<string> names = new List<string>(Global.code.uiPose.namelist);
             AedenthornUtils.ShuffleList(names);
             foreach (string n in names)
             {

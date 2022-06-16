@@ -7,11 +7,12 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityStandardAssets.Cameras;
 using Random = UnityEngine.Random;
 
 namespace EnemySuccubi
 {
-    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.3.1")]
+    [BepInPlugin("aedenthorn.EnemySuccubi", "Enemy Succubi", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -107,16 +108,46 @@ namespace EnemySuccubi
         [HarmonyPatch(typeof(Weapon), "DealDamage")]
         public static class Weapon_DealDamage_Patch
         {
-            public static bool Prefix(Weapon __instance, Bodypart bodypart, float multiplier, bool playStaggerAnimation)
+            public static bool Prefix(Weapon __instance, Bodypart bodypart, float multiplier, bool playStaggerAnimation, Item ____Item)
             {
-                if (!modEnabled.Value || __instance.GetComponent<Item>().owner.GetComponent<ID>().monster || __instance.GetComponent<Item>().owner.GetComponent<ID>().player || __instance.GetComponent<Item>().owner.GetComponent<ID>().isFriendly)
+                if (!modEnabled.Value || __instance.GetComponent<Item>().owner.GetComponent<ID>().monster || !__instance.GetComponent<Item>().owner.GetComponent<ID>().customization || __instance.GetComponent<Item>().owner.GetComponent<ID>().player || __instance.GetComponent<Item>().owner.GetComponent<ID>().isFriendly)
                     return true;
-
-                ID component = __instance.GetComponent<Item>().owner.GetComponent<ID>();
+                float num = 0f;
+                ID component = ____Item.owner.GetComponent<ID>();
                 ID component2 = bodypart.root.GetComponent<ID>();
 
-                float num = component.damage;
-                float num2 = 0f;
+                if (__instance.isProjectile)
+                {
+                    num = __instance.GetComponent<Item>().damage;
+                }
+                else if (__instance.transform == component.customization.weapon)
+                {
+                    num = component.damage1;
+                }
+                else if (__instance.transform == component.customization.weapon2)
+                {
+                    num = component.damage2;
+                }
+                float health = component.health;
+                float num3 = component.maxHealth * 0.5f;
+                if (component.customization.isPowerAttack)
+                {
+                    num *= 1.5f;
+                }
+                if (!component.player)
+                {
+                    num *= 0.5f;
+                }
+                if (component.stamina <= 5f)
+                {
+                    num *= 0.2f;
+                }
+                if (component.anim.GetCurrentAnimatorStateInfo(1).tagHash == component.customization.specialAttackHash)
+                {
+                    num *= 2f;
+                }
+
+                float num2 = 1f;
                 switch (PMC_Setting.code.CurDifficulty)
                 {
                     case Difficulty.Easy:
@@ -138,20 +169,91 @@ namespace EnemySuccubi
                 num *= Global.code.dynamicDifficultyModifier;
                 num *= num2;
 
-                if (num <= 0f)
+                if (component2.monster)
                 {
-                    num = Random.Range(1, 3);
+                    component2.monster.AddCombo();
+                    if (component.customization)
+                    {
+                        float num4 = 0.15f + (float)component.customization.phatomslashes * 0.1f;
+                        num *= 1f + num4 * (float)component2.monster.comboCount;
+                    }
+                    if (component.player && component2.monster.comboCount > 1)
+                    {
+                        Global.code.uiCombat.AddComboPrompt(Localization.GetContent("Combo", new object[] { }) + " ×" + component2.monster.comboCount);
+                    }
+                    if (component2.isFriendly)
+                    {
+                        if (playStaggerAnimation)
+                        {
+                            component2.monster.SetHitAnimation(3001);
+                        }
+                    }
+                    else
+                    {
+                        component2.monster.charge = true;
+                        if (component2.monster.enemySpawner && Random.Range(0, 100) < 50 && __instance.isProjectile && component2.monster.enemySpawner.generatedEnemies.items.Count > 0)
+                        {
+                            Transform transform = component2.monster.enemySpawner.generatedEnemies.items[Random.Range(0, component2.monster.enemySpawner.generatedEnemies.items.Count)];
+                            if (transform && transform.GetComponent<Monster>().attackDist < 10f)
+                            {
+                                transform.GetComponent<Monster>().charge = true;
+                            }
+                        }
+                        if (playStaggerAnimation)
+                        {
+                            component2.monster.DamageBalance(____Item.balanceDamage);
+                        }
+                    }
                 }
-
+                else if (component2.customization && num <= 0f)
+                {
+                    num = (float)Random.Range(1, 3);
+                }
                 num -= component2.defence;
                 num *= multiplier;
                 if (num < 0f)
                 {
-                    num = Random.Range(0, 5);
+                    num = (float)Random.Range(0, 5);
                 }
-                component2.AddHealth(-num, component.transform);
-                component2.AddBalance(-num);
-
+                if (component.customization)
+                {
+                    component.AddRage((float)(____Item.rage + component.customization.focus * 3));
+                }
+                component2.AddHealth(-num, ____Item.owner.transform);
+                if (component.customization)
+                {
+                    if (component2.health <= 0f)
+                    {
+                        if (component2.monster.bones.Count > 0)
+                        {
+                            component2.monster.bones[Random.Range(0, component2.monster.bones.Count)].GetComponent<Rigidbody>().AddForce(component.customization.transform.forward * 300f, ForceMode.Impulse);
+                        }
+                        if (component.player)
+                        {
+                            component.player.lockTarget = null;
+                        }
+                    }
+                    else if (component.player)
+                    {
+                        Global.code.uiCombat.AddRollHint(Localization.GetContent("Weapon_1", new object[]
+                        {
+                    Mathf.Round(num)
+                        }), Color.green);
+                    }
+                }
+                if (component2.customization)
+                {
+                    component2.AddBalance(-num);
+                    if (component2.player)
+                    {
+                        Global.code.uiCombat.lowHealthEffect.Play("TakeHit");
+                        FreeLookCam.code.transform.GetChild(0).GetChild(0).GetComponent<Animation>().Play();
+                        Global.code.uiCombat.AddRollHint(Localization.GetContent("Weapon_2", new object[]
+                        {
+                    Mathf.Round(num)
+                        }), Color.red);
+                    }
+                }
                 return false;
 
             }

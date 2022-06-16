@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace PoseAnimations
 {
-    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.11.0")]
+    [BepInPlugin("aedenthorn.PoseAnimations", "Pose Animations", "0.12.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -448,7 +448,7 @@ namespace PoseAnimations
                     text.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 22);
                     text.resizeTextMaxSize = 32;
 
-                    GameObject ti = Instantiate(Global.code.uiNameChanger.nameinput.gameObject, framesObject.transform);
+                    GameObject ti = Instantiate(Global.code.uiPose.nameinput.gameObject, framesObject.transform);
                     ti.name = "Input Field";
                     ti.GetComponent<RectTransform>().sizeDelta = new Vector2(80, 40);
                     ti.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -10);

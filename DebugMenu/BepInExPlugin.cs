@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace DebugMenu
 {
-    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.5.0")]
+    [BepInPlugin("aedenthorn.DebugMenu", "Debug Menu", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
