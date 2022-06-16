@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Resurrection
 {
     [BepInDependency("aedenthorn.SkillFramework", "0.1.0")]
-    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.2.3")]
+    [BepInPlugin("aedenthorn.Resurrection", "Resurrection", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -88,7 +88,7 @@ namespace Resurrection
                             resurrectSkill.gameObject.name = "Resurrection Spell";
                             resurrectSkill.manaConsumption = manaCost.Value;
                         }
-                        IEnumerable<Transform> deadCompanions = FindObjectsOfType<Companion>().ToList().FindAll(t => t.GetComponent<Companion>() && t.GetComponent<ID>()?.isFriendly == true && t.gameObject.tag == "D").Select(c => c.transform);
+                        IEnumerable<Transform> deadCompanions = FindObjectsOfType<Companion>().ToList().FindAll(t => t.GetComponent<Companion>() && t.GetComponent<ID>()?.isFriendly == true && t.GetComponent<ID>()?.isDead == true).Select(c => c.transform);
                         deadCompanion = null;
                         if (deadCompanions.Any())
                         {
@@ -178,7 +178,6 @@ namespace Resurrection
 
             RM.code.PlayOneShot(resurrectSkill.sfxActivate);
 
-            customization.gameObject.tag = "Player";
             customization.UpdateStats();
             customization._ID.health = Math.Min(customization._ID.maxHealth, customization._ID.maxHealth * resurrectedHealthPercent.Value / 100f * SkillFramework.SkillAPI.GetCharacterSkillLevel(skillId, "Player"));
             customization._ID.tempHealth = customization._ID.health;
@@ -200,6 +199,7 @@ namespace Resurrection
                     transform.GetComponent<Collider>().enabled = false;
                 }
             }
+            customization._ID.isDead = false;
 
             if (customization.GetComponent<MapIcon>())
             {
