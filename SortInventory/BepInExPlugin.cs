@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace SortInventory
 {
-    [BepInPlugin("aedenthorn.SortInventory", "Sort Inventory", "0.1.0")]
+    [BepInPlugin("aedenthorn.SortInventory", "Sort Inventory", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -220,9 +220,9 @@ namespace SortInventory
             List<Vector2Int> list = new List<Vector2Int>();
             if (item.GetComponent<Item>().itemType == ItemType.lingerie)
             {
-                MonoBehaviour.print(item.name);
+                print(item.name);
                 Global.code.playerLingerieStorage.AddItemToCollection(item, true, true);
-                UnityEngine.Object.Destroy(item.gameObject);
+                Destroy(item.gameObject);
                 return true;
             }
             for (int i = 0; i < item.GetComponent<Item>().x; i++)
