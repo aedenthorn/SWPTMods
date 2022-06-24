@@ -260,7 +260,7 @@ namespace CustomFurniture
                 }
             }
         }
-        [HarmonyPatch(typeof(UIBuilding), nameof(UIBuilding.Open))]
+        [HarmonyPatch(typeof(UIBuildingMode), nameof(UIBuildingMode.Open))]
         static class UIBuilding_Open_Patch
         {
             static void Prefix()
@@ -304,10 +304,10 @@ namespace CustomFurniture
             }
 
         }
-        [HarmonyPatch(typeof(UIBuilding), nameof(UIBuilding.Refresh))]
+        [HarmonyPatch(typeof(UIBuildingMode), nameof(UIBuildingMode.RefreshBuildingList))]
         static class UIBuilding_Refresh_Patch
         {
-            static void Postfix(UIBuilding __instance)
+            static void Postfix(UIBuildingMode __instance)
             {
                 bool refresh = false;
                 for (int i = __instance.iconGroup.childCount - 1; i >= 0; i--)
@@ -330,7 +330,7 @@ namespace CustomFurniture
                     }
                 }
                 if(refresh)
-                    __instance.Refresh();
+                    __instance.RefreshBuildingList();
 
             }
         }

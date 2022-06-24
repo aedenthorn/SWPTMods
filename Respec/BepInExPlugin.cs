@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Respec
 {
-    [BepInPlugin("aedenthorn.Respec", "Respec", "0.1.1")]
+    [BepInPlugin("aedenthorn.Respec", "Respec", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -61,14 +61,17 @@ namespace Respec
                     case "focus":
                         Global.code.uiCharacter.curCustomization.focus--;
                         break;
+                    case "recreation":
+                        Global.code.uiCharacter.curCustomization.recreation--;
+                        break;
                     case "bowproficiency":
                         Global.code.uiCharacter.curCustomization.bowproficiency--;
                         break;
                     case "swordproficiency":
                         Global.code.uiCharacter.curCustomization.swordproficiency--;
                         break;
-                    case "summoner":
-                        Global.code.uiCharacter.curCustomization.summoner--;
+                    case "healaura":
+                        Global.code.uiCharacter.curCustomization.healaura--;
                         break;
                     case "axeproficiency":
                         Global.code.uiCharacter.curCustomization.axeproficiency--;
@@ -76,20 +79,20 @@ namespace Respec
                     case "atheletic":
                         Global.code.uiCharacter.curCustomization.atheletic--;
                         break;
-                    case "recreation":
-                        Global.code.uiCharacter.curCustomization.recreation--;
+                    case "daggerproficiency":
+                        Global.code.uiCharacter.curCustomization.daggerproficiency--;
                         break;
                     case "phatomslashes":
                         Global.code.uiCharacter.curCustomization.phatomslashes--;
                         break;
-                    case "healaura":
-                        Global.code.uiCharacter.curCustomization.healaura--;
+                    case "maceproficiency":
+                        Global.code.uiCharacter.curCustomization.maceproficiency--;
                         break;
                     case "fireball":
                         Global.code.uiCharacter.curCustomization.fireball--;
                         break;
-                    case "daggerproficiency":
-                        Global.code.uiCharacter.curCustomization.daggerproficiency--;
+                    case "crystalhunter":
+                        Global.code.uiCharacter.curCustomization.crystalhunter--;
                         break;
                     case "elementalresistence":
                         Global.code.uiCharacter.curCustomization.elementalresistence--;
@@ -97,20 +100,20 @@ namespace Respec
                     case "scavenger":
                         Global.code.uiCharacter.curCustomization.scavenger--;
                         break;
-                    case "maceproficiency":
-                        Global.code.uiCharacter.curCustomization.maceproficiency--;
+                    case "trading":
+                        Global.code.uiCharacter.curCustomization.trading--;
                         break;
                     case "painfulscream":
                         Global.code.uiCharacter.curCustomization.painfulscream--;
                         break;
-                    case "crystalhunter":
-                        Global.code.uiCharacter.curCustomization.crystalhunter--;
+                    case "blocking":
+                        Global.code.uiCharacter.curCustomization.blocking--;
                         break;
                     case "ironbody":
                         Global.code.uiCharacter.curCustomization.ironbody--;
                         break;
-                    case "trading":
-                        Global.code.uiCharacter.curCustomization.trading--;
+                    case "fastlearner":
+                        Global.code.uiCharacter.curCustomization.fastlearner--;
                         break;
                     case "hardenedskin":
                         Global.code.uiCharacter.curCustomization.hardenedskin--;
@@ -118,20 +121,17 @@ namespace Respec
                     case "dodging":
                         Global.code.uiCharacter.curCustomization.dodging--;
                         break;
-                    case "blocking":
-                        Global.code.uiCharacter.curCustomization.blocking--;
+                    case "alchemist":
+                        Global.code.uiCharacter.curCustomization.alchemist--;
                         break;
                     case "commanding":
                         Global.code.uiCharacter.curCustomization.commanding--;
                         break;
-                    case "fastlearner":
-                        Global.code.uiCharacter.curCustomization.fastlearner--;
+                    case "spearproficiency":
+                        Global.code.uiCharacter.curCustomization.spearproficiency--;
                         break;
                     case "goldenhand":
                         Global.code.uiCharacter.curCustomization.goldenhand--;
-                        break;
-                    case "alchemist":
-                        Global.code.uiCharacter.curCustomization.alchemist--;
                         break;
                 }
                 Global.code.uiCharacter.curCustomization._ID.skillPoints++;
