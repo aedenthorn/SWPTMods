@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomFurniture
 {
-    [BepInPlugin("aedenthorn.CustomFurniture", "Custom Furniture", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomFurniture", "Custom Furniture", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static List<CustomFurniture> furnitureList = new List<CustomFurniture>();
