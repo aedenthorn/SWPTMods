@@ -18,6 +18,7 @@ namespace ShowHideWeaponArmor
         
         public static ConfigEntry<bool> hideWeaponsWithArmor;
         public static ConfigEntry<bool> hideWeaponsNotArmor;
+        public static ConfigEntry<bool> shieldIsWeapon;
         public static ConfigEntry<bool> forceShowArmor;
         public static ConfigEntry<bool> forceHideArmor;
         public static ConfigEntry<bool> hideArmorAtHome;
@@ -164,7 +165,7 @@ namespace ShowHideWeaponArmor
                 {
                     __instance.showArmor = false;
                 }
-
+                __instance.shield?.gameObject.SetActive(__instance.showArmor);
                 if (hideWeaponsNotArmor.Value)
                 {
                     if (!__instance.showArmor)
@@ -175,7 +176,7 @@ namespace ShowHideWeaponArmor
                             __instance.weapon2?.gameObject.SetActive(false);
                         }
                     }
-                    if((!Global.code.uiInventory.gameObject.activeSelf || !Global.code.uiInventory.lingerieGroup.activeSelf) && !Global.code.uiCustomization.gameObject.activeSelf && !Global.code.uiMakeup.gameObject.activeSelf)
+                    if ((!Global.code.uiInventory.gameObject.activeSelf || !Global.code.uiInventory.lingerieGroup.activeSelf) && !Global.code.uiCustomization.gameObject.activeSelf && !Global.code.uiMakeup.gameObject.activeSelf)
                         __instance.showArmor = true;
                 }
                 else if (hideWeaponsWithArmor.Value)

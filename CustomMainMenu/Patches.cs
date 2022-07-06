@@ -7,7 +7,8 @@ namespace CustomMainMenu
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-       
+
+        public static bool loaded = false;
 
         [HarmonyPatch(typeof(UIDesktop), "Awake")]
         static class UIDesktop_Awake_Patch
@@ -17,37 +18,8 @@ namespace CustomMainMenu
             {
                 if (!modEnabled.Value)
                     return;
-                kiraCharacter = GameObject.Find("Kira").transform;
-
-                if (poseName.Value.Trim().Length == 0)
-                {
-                    var poses = RM.code.allFreePoses.items.FindAll(t => t.GetComponent<Pose>().categoryName == "Standing");
-                    Dbgl($"Standing Poses:");
-                    foreach (var pose in poses)
-                    {
-                        Dbgl($"\t{pose.name}");
-                    }
-                }
-
-                lightPositions = new Vector3[]
-                {
-                    GameObject.Find("Inventory Scene/hide (2)/Point Light (13)").transform.localPosition,
-                    GameObject.Find("Inventory Scene/hide (2)/Point Light (20)").transform.localPosition,
-                    GameObject.Find("Inventory Scene/hide (2)/Point Light (21)").transform.localPosition,
-                    GameObject.Find("Inventory Scene/hide (2)/Point Light (22)").transform.localPosition,
-                };
-
-
-                LoadCustomLightData();
-
-                LoadCustomCharacter();
-
-                LoadPoseData();
-                
-                LoadBackgroundImage();
-
+                loaded = false;
             }
-
         }
 
         [HarmonyPatch(typeof(UIDesktop), "Update")]
@@ -56,7 +28,44 @@ namespace CustomMainMenu
 
             static void Postfix(UIDesktop __instance)
             {
-                if (!modEnabled.Value || backgroundName.Value.Trim().Length != 0)
+                if (!modEnabled.Value)
+                    return;
+
+                if (!loaded)
+                {
+                    kiraCharacter = GameObject.Find("Kira").transform;
+
+                    if (poseName.Value.Trim().Length == 0)
+                    {
+                        var poses = RM.code.allFreePoses.items.FindAll(t => t.GetComponent<Pose>().categoryName == "Standing");
+                        Dbgl($"Standing Poses:");
+                        foreach (var pose in poses)
+                        {
+                            Dbgl($"\t{pose.name}");
+                        }
+                    }
+
+                    lightPositions = new Vector3[]
+                    {
+                        GameObject.Find("Inventory Scene/hide (2)/Point Light (13)").transform.localPosition,
+                        GameObject.Find("Inventory Scene/hide (2)/Point Light (20)").transform.localPosition,
+                        GameObject.Find("Inventory Scene/hide (2)/Point Light (21)").transform.localPosition,
+                        GameObject.Find("Inventory Scene/hide (2)/Point Light (22)").transform.localPosition,
+                    };
+
+
+                    LoadCustomLightData();
+
+                    LoadCustomCharacter();
+
+                    LoadPoseData();
+
+                    LoadBackgroundImage();
+                    loaded = true;
+                }
+
+
+                if (backgroundName.Value.Trim().Length != 0)
                 {
                     lastBackgroundUpdate = 0;
                     return;

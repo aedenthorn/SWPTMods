@@ -118,13 +118,21 @@ namespace CustomMainMenu
 
                 Player.code = new Player();
 
-                Transform template;
+                string tname = "Kira";
                 if (saveFolder.Value.Trim().Length > 0 && charOrPresetName.Value.Trim() != "Player")
                 {
-                    template = RM.code.allCompanions.GetItemWithName(charOrPresetName.Value.Trim());
+                    tname = charOrPresetName.Value.Trim();
+                }
+
+                Transform template;
+                if(RM.code?.allCompanions is null)
+                {
+                    template = Resources.LoadAll("Companions", typeof(Transform)).Cast<Transform>().ToList<Transform>().Find(t => t.name == tname);
                 }
                 else
-                    template = RM.code.allCompanions.GetItemWithName("Kira");
+                {
+                    template = RM.code.allCompanions.GetItemWithName(tname);
+                }
 
                 if (!template)
                 {
