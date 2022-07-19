@@ -183,38 +183,80 @@ namespace ArmorParts
         [HarmonyPriority(Priority.Last)]
         static class CharacterCustomization_RefreshClothesVisibility_Patch
         {
-
-            static void Postfix(CharacterCustomization __instance)
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                if (!modEnabled.Value || !__instance.showArmor || !__instance.armor || !Global.code?.uiInventory)
-                    return;
-                Transform t;
-                
-                if(__instance.isDisplay && Global.code.uiInventory.gameObject.activeSelf)
+                string[] fieldsToLocate =
                 {
-                    t = Global.code.uiInventory.curCustomization.armor;
+                    nameof(CharacterCustomization.bra),
+                    nameof(CharacterCustomization.panties),
+                    nameof(CharacterCustomization.suspenders),
+                };
+
+                // Make sure we can traverse code
+                var ops = instructions.ToArray();
+
+                // Start pattern matching in code
+                var processedFields = new HashSet<string>();
+                for (int i = 0; i < ops.Length; i++)
+                {
+                    var op = ops[i];
+                    string fieldName;
+                    if (op.opcode == OpCodes.Callvirt && 
+                        (op.operand as MethodInfo) == typeof(Item).GetMethod(nameof(Item.DestroyModel)) &&
+                        ops[i - 2].opcode == OpCodes.Ldfld && 
+                        fieldsToLocate.Contains(fieldName = ((FieldInfo)ops[i - 2].operand).Name))
+                    {
+                        processedFields.Add(fieldName);
+
+                        // Modify opcodes
+                        ops[i - 2].opcode = OpCodes.Ldstr;
+                        ops[i - 2].operand = fieldName;
+                        ops[i - 1].operand = typeof(CharacterCustomization_RefreshClothesVisibility_Patch).GetMethod(nameof(OnDestroyClothesModel));
+                        ops[i].opcode = OpCodes.Nop;
+                        ops[i].operand = null;
+                    }
+
+                    if (processedFields.Count == fieldsToLocate.Length) break;
                 }
+
+                return ops;
+            }
+
+            public static void OnDestroyClothesModel(CharacterCustomization __instance, string type)
+            {
+                bool modActive = modEnabled.Value && __instance.showArmor && __instance.armor && Global.code?.uiInventory;
+
+                Transform t;
+                if (__instance.isDisplay && Global.code.uiInventory.gameObject.activeSelf)
+                    t = Global.code.uiInventory.curCustomization.armor;
                 else
                     t = __instance.armor;
 
-                if (!partsTransformDict.ContainsKey(t))
-                    return;
+                if (!partsTransformDict.ContainsKey(t)) modActive = false;
 
-                if (partsTransformDict[t].showBra && __instance.bra)
+                switch (type)
                 {
-                    __instance.bra.gameObject.SetActive(true);
-                }
-                if (partsTransformDict[t].showPanties && __instance.panties)
-                {
-                    __instance.panties.gameObject.SetActive(true);
-                }
-                if (partsTransformDict[t].showSuspenders && __instance.suspenders)
-                {
-                    __instance.suspenders.gameObject.SetActive(true);
+                    case nameof(CharacterCustomization.bra):
+                        if (!modActive || !partsTransformDict[t].showBra)
+                            __instance.bra.GetComponent<Item>().DestroyModel();
+                        else
+                            __instance.bra.GetComponent<Item>().InstantiateModel(__instance);
+                        break;
+                    case nameof(CharacterCustomization.panties):
+                        if (!modActive || !partsTransformDict[t].showPanties)
+                            __instance.panties.GetComponent<Item>().DestroyModel();
+                        else
+                            __instance.panties.GetComponent<Item>().InstantiateModel(__instance);
+                        break;
+                    case nameof(CharacterCustomization.suspenders):
+                        if (!modActive || !partsTransformDict[t].showSuspenders)
+                            __instance.suspenders.GetComponent<Item>().DestroyModel();
+                        else
+                            __instance.suspenders.GetComponent<Item>().InstantiateModel(__instance);
+                        break;
                 }
             }
         }
-
 
         [HarmonyPatch(typeof(UIInventory), "Update")]
         static class UIInventory_Update_Patch
