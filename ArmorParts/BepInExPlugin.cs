@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace ArmorParts
 {
-    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.3.1")]
+    [BepInPlugin("aedenthorn.ArmorParts", "Armor Parts", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;

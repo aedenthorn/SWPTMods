@@ -155,8 +155,9 @@ namespace CustomMainMenu
 
                 mmCharacter = Instantiate(template, GameObject.Find("Kira").transform.parent);
                 mmCharacter.name = charOrPresetName.Value;
+                CharacterCustomization customization = mmCharacter.GetComponent<CharacterCustomization>();
 
-                mmCharacter.GetComponent<CharacterCustomization>().isDisplay = true;
+                customization.isDisplay = true;
 
                 if (mmCharacter.GetComponent<Companion>())
                 {
@@ -168,32 +169,71 @@ namespace CustomMainMenu
                 }
                 if (mmCharacter.GetComponent<NavMeshAgent>())
                 {
-                    mmCharacter.GetComponent<NavMeshAgent>().enabled = false;
+                    Destroy(mmCharacter.GetComponent<NavMeshAgent>());
                 }
-
-                if (mmCharacter.GetComponent<CharacterCustomization>().weapon)
+                if (mmCharacter.GetComponent<Collider>())
                 {
-                    mmCharacter.GetComponent<CharacterCustomization>().weapon.gameObject.SetActive(false);
+                    Destroy(mmCharacter.GetComponent<Collider>());
                 }
-                if (mmCharacter.GetComponent<CharacterCustomization>().weapon2)
+                foreach(var c in mmCharacter.GetComponentsInChildren<Collider>())
                 {
-                    mmCharacter.GetComponent<CharacterCustomization>().weapon2.gameObject.SetActive(false);
+                    Destroy(c);
                 }
-                if (mmCharacter.GetComponent<CharacterCustomization>().shield)
+                
+                foreach(var c in mmCharacter.GetComponentsInChildren<Rigidbody>())
                 {
-                    mmCharacter.GetComponent<CharacterCustomization>().shield.gameObject.SetActive(false);
+                    c.isKinematic = true;
+                    c.detectCollisions = false;
                 }
 
+                if (mmCharacter.GetComponent<Interaction>())
+                {
+                    mmCharacter.GetComponent<Interaction>().enabled = false;
+                }
+                if (mmCharacter.GetComponent<ID>())
+                {
+                    mmCharacter.GetComponent<ID>().enabled = false;
+                }
 
-                Destroy(mmCharacter.GetComponent<Interaction>());
-                Destroy(mmCharacter.GetComponent<ID>());
+                if (customization.weapon)
+                {
+                    customization.weapon.gameObject.SetActive(false);
+                }
+                if (customization.weapon2)
+                {
+                    customization.weapon2.gameObject.SetActive(false);
+                }
+                if (customization.shield)
+                {
+                    customization.shield.gameObject.SetActive(false);
+                }
 
-                mmCharacter.GetComponent<Animator>().runtimeAnimatorController = RM.code.combatController;
-                //mmCharacter.GetComponent<Animator>().avatar = RM.code.flatFeetAvatar;
+                if (saveFolder.Value.Trim().Length > 0)
+                {
+                    Dbgl($"Loading character {charOrPresetName.Value} from save {saveFolder.Value}.");
+
+                    Mainframe.code.foldername = saveFolder.Value;
+                    AccessTools.Method(typeof(Mainframe), "LoadCharacterCustomization").Invoke(Mainframe.code, new object[] { customization });
+                }
+                else
+                {
+
+                    Dbgl($"Loading preset {charOrPresetName.Value}.");
+
+                    if (RM.code.allItems.GetItemWithName(armorItem.Value))
+                    {
+                        Dbgl($"Adding armor {armorItem.Value}.");
+                        if (customization.armor)
+                            customization.armor.gameObject.SetActive(false);
+                        customization.AddItem(Utility.Instantiate(RM.code.allItems.GetItemWithName(armorItem.Value)), "armor");
+                        customization.armor.gameObject.SetActive(true);
+                    }
+                    Mainframe.code.LoadCharacterPreset(customization, charOrPresetName.Value);
+                }
+
+                Destroy(mmCharacter.GetComponent<CharacterCustomization>());
 
                 //mmCharacter.GetComponent<Animator>().cullingMode = AnimatorCullingMode.AlwaysAnimate;
-                mmCharacter.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                //mmCharacter.GetComponent<Rigidbody>().isKinematic = true;
                 //mmCharacter.GetComponent<Collider>().enabled = true;
                 //mmCharacter.GetComponent<Animator>().applyRootMotion = false;
                 mmCharacter.gameObject.SetActive(true);
@@ -202,34 +242,12 @@ namespace CustomMainMenu
             {
                 mmCharacter.gameObject.SetActive(true);
             }
-
-            CharacterCustomization customization = mmCharacter.GetComponent<CharacterCustomization>();
-
-            if(saveFolder.Value.Trim().Length > 0)
-            {
-                Dbgl($"Loading character {charOrPresetName.Value} from save {saveFolder.Value}.");
-
-                Mainframe.code.foldername = saveFolder.Value;
-                AccessTools.Method(typeof(Mainframe), "LoadCharacterCustomization").Invoke(Mainframe.code, new object[] { customization } );
-            }
-            else
-            {
-
-                Dbgl($"Loading preset {charOrPresetName.Value}.");
-
-                if (RM.code.allItems.GetItemWithName(armorItem.Value))
-                {
-                    Dbgl($"Adding armor {armorItem.Value}.");
-                    if (customization.armor)
-                        customization.armor.gameObject.SetActive(false);
-                    customization.AddItem(Utility.Instantiate(RM.code.allItems.GetItemWithName(armorItem.Value)), "armor");
-                    customization.armor.gameObject.SetActive(true);
-                }
-                Mainframe.code.LoadCharacterPreset(customization, charOrPresetName.Value);
-            }
-
+            mmCharacter.GetComponent<Rigidbody>().isKinematic = true;
+            mmCharacter.GetComponent<Rigidbody>().detectCollisions = false;
+            mmCharacter.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
             mmCharacter.transform.position = new Vector3(88.95f, 83.65f, 94.652f) + characterPosition.Value;
             mmCharacter.transform.eulerAngles = kiraCharacter.rotation.eulerAngles + characterRotation.Value;
+
             kiraCharacter.gameObject.SetActive(false);
 
         }
@@ -238,8 +256,6 @@ namespace CustomMainMenu
         {
             if (!modEnabled.Value || mmCharacter == null)
                 return;
-
-            CharacterCustomization customization = mmCharacter.GetComponent<CharacterCustomization>();
 
             Pose code = null;
             if (poseName.Value.Trim().Length > 0)
@@ -262,8 +278,6 @@ namespace CustomMainMenu
             if (code != null)
             {
                 Dbgl($"pose: {code.name}");
-                customization.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
-                customization.anim.avatar = RM.code.genericAvatar;
                 context.StartCoroutine(ChangePose(code));
             }
         }
@@ -271,7 +285,13 @@ namespace CustomMainMenu
         private static IEnumerator ChangePose(Pose code)
         {
             yield return new WaitForEndOfFrame();
-            mmCharacter.GetComponent<CharacterCustomization>().anim.runtimeAnimatorController = code.controller;
+            mmCharacter.GetComponent<Animator>().speed = 0;
+            mmCharacter.GetComponent<Animator>().avatar = RM.code.genericAvatar;
+            mmCharacter.GetComponent<Animator>().runtimeAnimatorController = code.controller;
+            if (mmCharacter.GetComponent<Animator>().layerCount > 0)
+            {
+                mmCharacter.GetComponent<Animator>().SetLayerWeight(1, 0f);
+            }
         }
     }
 }
