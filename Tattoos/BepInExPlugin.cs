@@ -794,7 +794,6 @@ namespace Tattoos
 
                     if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
                     {
-                        color.a = gen.pubicStrength;
                         gen.pubicHairColor = color;
                     }
                 }
