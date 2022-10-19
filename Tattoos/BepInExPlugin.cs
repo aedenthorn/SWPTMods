@@ -42,8 +42,7 @@ namespace Tattoos
         //Why not using context.Logger.LogInfo / .LogWarning / .LogError ?
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+            if (isDebug.Value) Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
 
         private void Awake()
@@ -743,63 +742,66 @@ namespace Tattoos
                 if (!modEnabled.Value)
                     return;
 
-                LoadTattoo(gen.pubicHair);
-                gen.blushColor.GetComponent<CustomizationItem>().eyes = (Texture2D)gen.body.materials[1].GetTexture("_MakeUpMask2_RGB");
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattoo"))
+                try
                 {
-                    Transform t = RM.code.allWombTattoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattoo"));
-                    if (t) gen.wombTattoo = LoadTattoo(t);
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=faceTatoos"))
-                {
-                    Transform t = RM.code.allFaceTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=faceTatoos"));
-                    if (t) gen.faceTatoos = LoadTattoo(t);
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=bodyTatoos"))
-                {
-                    Transform t = RM.code.allBodyTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=bodyTatoos"));
-                    if (t) gen.bodyTatoos = LoadTattoo(t);
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=legsTatoos"))
-                {
-                    Transform t = RM.code.allLegsTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=legsTatoos"));
-                    if (t) gen.legsTatoos = LoadTattoo(t);
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=armsTatoos"))
-                {
-                    Transform t = RM.code.allArmsTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=armsTatoos"));
-                    if (t) gen.armsTatoos = LoadTattoo(t);
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooStrength"))
-                {
-                    gen.wombTattooStrength = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooStrength");
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooGlossiness"))
-                {
-                    gen.wombTattooGlossiness = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooGlossiness");
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooColor"))
-                {
-                    string colorCode = "#" + ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooColor");
-
-                    if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
+                    LoadTattoo(gen.pubicHair);
+                    gen.blushColor.GetComponent<CustomizationItem>().eyes = (Texture2D)gen.body.materials[1].GetTexture("_MakeUpMask2_RGB");
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattoo"))
                     {
-                        color.a = gen.wombTattooStrength;
-                        gen.wombTattooColor = color;
+                        Transform t = RM.code.allWombTattoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattoo"));
+                        if (t) gen.wombTattoo = LoadTattoo(t);
                     }
-                }
-                if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=pubicHairColor"))
-                {
-                    string colorCode = "#" + ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=pubicHairColor");
-
-                    if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=faceTatoos"))
                     {
+                        Transform t = RM.code.allFaceTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=faceTatoos"));
+                        if (t) gen.faceTatoos = LoadTattoo(t);
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=bodyTatoos"))
+                    {
+                        Transform t = RM.code.allBodyTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=bodyTatoos"));
+                        if (t) gen.bodyTatoos = LoadTattoo(t);
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=legsTatoos"))
+                    {
+                        Transform t = RM.code.allLegsTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=legsTatoos"));
+                        if (t) gen.legsTatoos = LoadTattoo(t);
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=armsTatoos"))
+                    {
+                        Transform t = RM.code.allArmsTatoos.GetItemWithName(ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=armsTatoos"));
+                        if (t) gen.armsTatoos = LoadTattoo(t);
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooStrength"))
+                    {
+                        gen.wombTattooStrength = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooStrength");
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooGlossiness"))
+                    {
+                        gen.wombTattooGlossiness = ES2.Load<float>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooGlossiness");
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooColor"))
+                    {
+                        string colorCode = "#" + ES2.Load<string>(__instance.GetFolderName() + gen.name + ".txt?tag=wombTattooColor");
+
+                        if (colorCode != "n" && ColorUtility.TryParseHtmlString(colorCode, out Color color))
+                        {
+                            color.a = gen.wombTattooStrength;
+                            gen.wombTattooColor = color;
+                        }
+                    }
+                    if (ES2.Exists(__instance.GetFolderName() + gen.name + ".txt?tag=pubicHairColor"))
+                    {
+                        var color = ES2.Load<Color>(__instance.GetFolderName() + gen.name + ".txt?tag=pubicHairColor");
                         gen.pubicHairColor = color;
                     }
+                    gen.RefreshAppearence();
+                    gen.SyncBlendshape();
+                    Global.code.uiCustomization.SyncSliders();
                 }
-                gen.RefreshAppearence();
-                gen.SyncBlendshape();
-                Global.code.uiCustomization.SyncSliders();
+                catch (Exception e)
+				{
+                    context.Logger.LogWarning(e);
+				}
             }
         }
 
