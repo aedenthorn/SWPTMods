@@ -11,55 +11,64 @@ namespace BepInExInstaller
     {
         static void Main(string[] args)
         {
-            if(File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityPlayer.dll")))
+            try
             {
-                Console.WriteLine("Installer is in game folder.");
-                if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "BepInEx")))
+                if (File.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "UnityPlayer.dll")))
                 {
-                    Console.WriteLine("BepInEx folder already exists!");
-                    Console.WriteLine("Press U to uninstall or Y to install anyway:");
-                    ConsoleKeyInfo key = Console.ReadKey();
-                    if(key.Key == ConsoleKey.U)
+                    Console.WriteLine("Installer is in game folder.");
+                    if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "BepInEx")))
                     {
-                        Console.WriteLine("This will remove all existing BepInEx data and any plugins already installed! Press Y if you're sure:");
-                        key = Console.ReadKey();
-                        if (key.Key == ConsoleKey.Y)
+                        Console.WriteLine("BepInEx folder already exists!");
+                        Console.WriteLine("Press U to uninstall or Y to install anyway:");
+                        ConsoleKeyInfo key = Console.ReadKey();
+                        if (key.Key == ConsoleKey.U)
                         {
-                            Console.WriteLine("Deleting BepInEx folder");
-                            Directory.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "BepInEx"), true);
-                            Console.WriteLine("Deleting winhttp.dll");
-                            File.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "winhttp.dll"));
-                            Console.WriteLine("Deleting doorstop_config.ini");
-                            File.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "doorstop_config.ini"));
-                            Console.WriteLine("Deleting changelog.txt");
-                            File.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "changelog.txt"));
-                            Console.WriteLine("\nBepInEx uninstalled! Press any key to exit...");
+                            Console.WriteLine("This will remove all existing BepInEx data and any plugins already installed! Press Y if you're sure:");
+                            key = Console.ReadKey();
+                            if (key.Key == ConsoleKey.Y)
+                            {
+                                Console.WriteLine("Deleting BepInEx folder");
+                                Directory.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "BepInEx"), true);
+                                Console.WriteLine("Deleting winhttp.dll");
+                                File.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "winhttp.dll"));
+                                Console.WriteLine("Deleting doorstop_config.ini");
+                                File.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "doorstop_config.ini"));
+                                Console.WriteLine("Deleting changelog.txt");
+                                File.Delete(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "changelog.txt"));
+                                Console.WriteLine("\nBepInEx uninstalled! Press any key to exit...");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Uninstall aborted! Press any key to exit...");
+                            }
                         }
-                        else
+                        else if (key.Key == ConsoleKey.Y)
                         {
-                            Console.WriteLine("Uninstall aborted! Press any key to exit...");
+                            InstallTo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                            Console.WriteLine("\nPress any key to exit...");
                         }
+                        Console.ReadKey();
+                        return;
                     }
-                    else if (key.Key == ConsoleKey.Y)
-                    {
-                        InstallTo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-                        Console.WriteLine("\nPress any key to exit...");
-                    }
+
+                    InstallTo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                    Console.WriteLine("\nPress any key to exit...");
                     Console.ReadKey();
                     return;
                 }
-
-                InstallTo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-                Console.WriteLine("\nPress any key to exit...");
-                Console.ReadKey();
-                return;
+                Console.WriteLine("Game folder not found! Install here anyway? (Y to confirm)");
+                var keyinfo = Console.ReadKey();
+                if (keyinfo.Key == ConsoleKey.Y)
+                {
+                    InstallTo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                    Console.WriteLine("\nPress any key to exit...");
+                    Console.ReadKey();
+                }
             }
-            Console.WriteLine("Game folder not found! Install here anyway? (Y to confirm)");
-            var keyinfo = Console.ReadKey();
-            if(keyinfo.Key == ConsoleKey.Y)
+            catch(Exception ex)
             {
-                InstallTo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-                Console.WriteLine("\nPress any key to exit...");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("\n\nPress any key to exit...");
                 Console.ReadKey();
             }
         }
@@ -108,7 +117,7 @@ namespace BepInExInstaller
                 }
                 source = client.DownloadString(match.Groups[1].Value);
 
-                match = Regex.Match(source, $"href=.(/BepInEx/BepInEx/releases/download/v[^/]+/BepInEx_{(x64 ? "x64" : "x86")}[^\"]+)\"");
+                match = Regex.Match(source, "href=.(/BepInEx/BepInEx/releases/download/v[^/]+/BepInEx_" + (x64 ? "x64" : "x86") + "[^\"]+)\"");
                 if (!match.Success)
                 {
                     Console.WriteLine("Couldn't find latest BepInEx file, please visit https://github.com/BepInEx/BepInEx/releases/ to download the latest release.");
